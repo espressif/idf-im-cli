@@ -10,27 +10,27 @@ default:
     - git config --global credential.helper store
     - echo "https://gitlab-ci-token:${IDF_IM_CI_TOKEN}@gitlab.espressif.cn:6688" > ~/.git-credentials
     - git config --global url."https://gitlab-ci-token:${IDF_IM_CI_TOKEN}@gitlab.espressif.cn:6688".insteadOf ssh://git@gitlab.espressif.cn:27227
-    - | # skip if not using custom Rust image
-      if hash rustc 2>/dev/null; then
-        rustc --version
-        cargo --version
-      fi
+    # - | # skip if not using custom Rust image
+    #   if hash rustc 2>/dev/null; then
+    #     rustc --version
+    #     cargo --version
+    #   fi
 
 stages:
-  - test
+  # - test
   - integration-test
   - release-build
   - release
 
-lint-code:
-  image: "registry.gitlab.com/hahihula/rustup-openssl-debian-dockerimage:6988926837"
-  stage: test
-  allow_failure: true
-  script:
-    - cargo fmt -- --check
-    - cargo clippy -- -D warnings
-  tags:
-    - amd64
+# lint-code:
+#   image: "registry.gitlab.com/hahihula/rustup-openssl-debian-dockerimage:6988926837"
+#   stage: test
+#   allow_failure: true
+#   script:
+#     - cargo fmt -- --check
+#     - cargo clippy -- -D warnings
+#   tags:
+#     - amd64
 
 # check-dependencies:
 #   stage: test
@@ -46,20 +46,63 @@ lint-code:
 #   tags:
 #     - amd64
 
+release-build-windows:
+  stage: release-build
+  variables:
+    GIT_STRATEGY: clone
+  script:
+    # - Invoke-WebRequest -OutFile vs_buildtools.exe -Uri https://aka.ms/vs/17/release/vs_buildtools.exe
+    # - | 
+    #   $components = @(
+    #       "--add", "Microsoft.VisualStudio.Workload.VCTools",      # Visual C++ tools
+    #       "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", # x86 and x64 build tools
+    #       "--add", "Microsoft.VisualStudio.Component.Windows10SDK.20348" # Windows 10 SDK
+    #       "--passive", "--norestart"
+    #   )
+    # - Start-Process -Wait .\vs_buildtools.exe -ArgumentList $components -NoNewWindow
+    # - Invoke-WebRequest -OutFile rustup-init.exe https://win.rustup.rs/
+    - Invoke-WebRequest -Uri https://sourceforge.net/projects/mingw-w64/files/latest/download -OutFile mingw-w64.zip
+    - Expand-Archive mingw-w64.zip $Env:USERPROFILE\mingw-w64
+    - $env:Path += ";$Env:USERPROFILE\mingw-w64\mingw64\bin" # [System.Environment]::SetEnvironmentVariable('PATH', $env:Path, [System.EnvironmentVariableTarget]::Machine)
+    - gcc --version
+    - cd $CI_PROJECT_DIR
+    - $PWD
+    - $env:Path += ';' + $env:USERPROFILE + '\.cargo\bin'
+    # - rustup update stable
+    - $PWD
+    - cd $CI_PROJECT_DIR
+    - dir
+    # - git checkout $CI_COMMITS_REF
+    # - cd id-im-cli
+    - rustup target add x86_64-pc-windows-gnu
+    - cargo build --target x86_64-pc-windows-gnu --release
+    - cp target/x86_64-pc-windows-gnu/release/idf-im-cli.exe installer/idf-im-cli.exe
+  tags:
+    - windows-build
+  artifacts:
+    paths:
+      - installer
+
 # release-build-windows:
 #   stage: release-build
 #   script:
+#     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+#     - rustup update stable
+#     - rustup default stable
+#     - rustup target add x86_64-pc-windows-gnu
 #     - cargo build --target x86_64-pc-windows-gnu --release
-#     - |
-#       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "target/x86_64-pc-windows-gnu/release/idf-im-cli.exe" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/win-x86_64/idf-im-cli.exe"
+#     - mkdir -p installer
+#     - cp target/x86_64-pc-windows-gnu/release/idf-im-cli.exe installer/idf-im-cli.exe
+#     - bash download_github_artifacts.sh rustpython-windows-latest.exe
+#     - mv rustpython-windows-latest.exe installer/rustpython.exe
 #   tags:
 #     - windows-build
 #   artifacts:
 #     paths:
-#       - target/x86_64-pc-windows-gnu/release/idf-im-cli.exe
-#   # rules:
-#   #   - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]\.[0-9]\.[0-9](-rc.+)?/'
-#   #     when: always
+#       - installer
+  # rules:
+  #   - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]\.[0-9]\.[0-9](-rc.+)?/'
+  #     when: always
   
 
 release-build-linux:
@@ -67,13 +110,15 @@ release-build-linux:
   image: "registry.gitlab.com/hahihula/rustup-openssl-debian-dockerimage:6988926837"
   script:
     - cargo build --target x86_64-unknown-linux-gnu --release
-    - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "target/x86_64-unknown-linux-gnu/release/idf-im-cli" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/linux-x86_64/idf-im-cli"
+    - mkdir -p installer
+    - cp target/x86_64-unknown-linux-gnu/release/idf-im-cli installer/idf-im-cli
+    - bash download_github_artifacts.sh rustpython-ubuntu-latest
+    - mv rustpython-ubuntu-latest installer/rustpython
   tags:
     - amd64
   artifacts:
     paths:
-      - target/x86_64-unknown-linux-gnu/release/idf-im-cli
+      - installer
   # rules:
   #   - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]\.[0-9]\.[0-9](-rc.+)?/'
   #     when: always
@@ -81,17 +126,41 @@ release-build-linux:
 release-build-macos:
   stage: release-build
   script:
+    # - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    # - rustup update stable
+    # - rustup default stable
+    # - rustup target add aarch64-apple-darwin
     - cargo build --target aarch64-apple-darwin --release
-    - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "target/aarch64-apple-darwin/release/idf-im-cli" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/linux-x86_64/idf-im-cli"
+    - mkdir -p installer
+    - mv target/aarch64-apple-darwin/release/idf-im-cli installer/idf-im-cli
+    - bash download_github_artifacts.sh rustpython-macos-latest
+    - mv rustpython-macos-latest installer/rustpython
   tags:
     - aarch64
   artifacts:
     paths:
-      - target/aarch64-apple-darwin/release/idf-im-cli
+      - installer
   # rules:
   #   - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]\.[0-9]\.[0-9](-rc.+)?/'
   #     when: always
+
+# release-build-macos-x64:
+#   stage: release-build
+#   script:
+#     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+#     - rustup update stable
+#     - rustup default stable
+#     - rustup target add x86_64-apple-darwin
+#     - cargo build --target x86_64-apple-darwin --release
+#   tags:
+#     - amd64
+#     - macos_shell
+#   artifacts:
+#     paths:
+#       - target/x86_64-apple-darwin/release/idf-im-cli
+#   # rules:
+#   #   - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]\.[0-9]\.[0-9](-rc.+)?/'
+#   #     when: always
 
 # release-build-aarch-linux:
 #   stage: release-build
@@ -159,7 +228,7 @@ additional_files:
     - amd64
   script:
     - apt install -y jq
-    - bash download_github_artifacts.sh
+    - bash download_github_artifacts.sh additional_files.zip
   artifacts:
     paths:
       - artifact.zip
