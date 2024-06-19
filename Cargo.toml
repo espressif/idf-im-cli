@@ -5,10 +5,14 @@ edition = "2021"
 
 [dependencies]
 tokio = {version = "1.37.0", features=["full"]}
-idf-im-lib = { git = "ssh://git@gitlab.espressif.cn:27227/idf/idf-im-lib.git", branch="rust-initialization" }
-clap = {version = "4.5", features = ["cargo"]}
+idf-im-lib = { git = "ssh://git@gitlab.espressif.cn:27227/idf/idf-im-lib.git", branch="master" }
+clap = {version = "4.5", features = ["cargo", "derive"]}
 ratatui = "0.26.3"
 crossterm = "0.27.0"
 dialoguer = "0.11.0"
 byte-unit = "5.1.4"
 indicatif = "0.17.8"
+ratatui-splash-screen = "0.1.3"
+rfd = "0.14.1"
+walkdir = "2.5.0"
+console = "0.15.8"
