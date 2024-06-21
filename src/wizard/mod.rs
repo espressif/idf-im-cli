@@ -2,12 +2,11 @@ use crate::cli_args::{ChipId, Config};
 use console::Style;
 use dialoguer::theme::ColorfulTheme;
 use idf_im_lib::idf_tools::ToolsFile;
-use idf_im_lib::idf_versions;
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use ratatui::prelude::*;
-use ratatui_splash_screen::{SplashConfig, SplashError, SplashScreen};
-use rfd::FileDialog;
+use ratatui_splash_screen::{SplashConfig, SplashScreen};
 use std::error::Error;
+use std::fmt::Write;
 use std::io::{stdout, Stdout};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -15,7 +14,7 @@ use std::time::Duration;
 use std::{env, fs};
 
 // folder select
-use dialoguer::{MultiSelect, Select};
+use dialoguer::Select;
 use walkdir::{DirEntry, WalkDir};
 
 fn show_splash_screen(
@@ -58,7 +57,7 @@ fn check_prerequisites(
     }
 }
 
-async fn select_target() -> Result<ChipId, String> {
+async fn select_target() -> Result<String, String> {
     let avalible_targets_result = idf_im_lib::idf_versions::get_avalible_targets().await;
     match avalible_targets_result {
         Ok(avalible_targets) => {
@@ -68,7 +67,7 @@ async fn select_target() -> Result<ChipId, String> {
                 .interact()
                 .unwrap();
 
-            return Ok(ChipId::from_str(&avalible_targets[selection].to_uppercase()).unwrap());
+            return Ok(avalible_targets[selection].clone());
         }
         Err(err) => Err(format!("We were unable to get avalible targets {:?}", err)),
     }
@@ -90,7 +89,13 @@ async fn select_idf_version(target: &str) -> Result<String, String> {
 }
 
 fn download_idf(path: &str, tag: &str) -> Result<String, String> {
-    idf_im_lib::ensure_path(&path.to_string());
+    let _: Result<String, String> = match idf_im_lib::ensure_path(&path.to_string()) {
+        Ok(_) => {
+            println!("Path is ok");
+            Ok("ok".to_string())
+        }
+        Err(err) => return Err(err.to_string()),
+    };
     let output = idf_im_lib::get_esp_idf_by_tag_name(&path.to_string(), &tag.to_string());
     match output {
         Ok(_) => Ok("ok".to_string()),
@@ -104,7 +109,11 @@ async fn download_tools(
     selected_chip: String,
     destination_path: &str,
 ) -> Vec<String> {
-    let list = idf_im_lib::idf_tools::filter_tools_by_target(tools_file.tools, &selected_chip);
+    println!("Selected chip for tools downloads: {}", selected_chip);
+    let list = idf_im_lib::idf_tools::filter_tools_by_target(
+        tools_file.tools,
+        &selected_chip.to_lowercase(),
+    );
 
     // println!("{:?}", list);
     let platform = match idf_im_lib::idf_tools::get_platform_identification() {
@@ -113,6 +122,7 @@ async fn download_tools(
             panic!("Can not identify platfor for tools instalation.  {:?}", err);
         }
     };
+    println!("Platform: {}", platform);
     let download_links = idf_im_lib::idf_tools::change_links_donwanload_mirror(
         idf_im_lib::idf_tools::get_download_link_by_platform(list, &platform),
         // Some("https://dl.espressif.com/github_assets"), // this switches mirror, should be parametrized
@@ -122,7 +132,11 @@ async fn download_tools(
     for (tool_name, download_link) in download_links.iter() {
         println!("Downloading tool: {}", tool_name);
         let progress_bar = ProgressBar::new(100);
-        let update_progress = move |amount_downloaded: u64, total_size: u64| {
+        progress_bar.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})").unwrap()
+        .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
+        .progress_chars("#>-"));
+
+        let update_progress = |amount_downloaded: u64, total_size: u64| {
             let current_progress = ((amount_downloaded as f64) / (total_size as f64)) * 100.0;
             progress_bar.set_position(current_progress as u64);
         };
@@ -134,6 +148,7 @@ async fn download_tools(
                 let file_path = Path::new(download_link);
                 let filename: &str = file_path.file_name().unwrap().to_str().unwrap();
                 downloaded_tools.push(filename.to_string());
+                progress_bar.finish();
                 println!("Downloaded {}", tool_name);
             }
             Err(err) => {
@@ -248,6 +263,7 @@ pub async fn run_wizzard_run(mut config: Config) -> Result<(), String> {
     // render splash screen
     // show_splash_screen(&mut terminal);
     // terminal.clear();
+
     // check prerequisites
     check_prerequisites(&mut terminal);
     terminal.clear();
@@ -337,7 +353,23 @@ pub async fn run_wizzard_run(mut config: Config) -> Result<(), String> {
         &tool_install_directory.to_str().unwrap(),
     );
     idf_im_lib::add_path_to_path(tool_install_directory.to_str().unwrap());
+    let mut env_vars = vec![];
     env::set_var("IDF_TOOLS_PATH", &tool_install_directory);
+    env_vars.push((
+        "IDF_TOOLS_PATH".to_string(),
+        tool_install_directory.to_str().unwrap().to_string(),
+    ));
+
+    let mut python_env_path = PathBuf::new();
+    python_env_path.push(&tool_install_directory);
+    python_env_path.push("python");
+
+    env::set_var("IDF_PYTHON_ENV_PATH", &python_env_path);
+    env_vars.push((
+        "IDF_PYTHON_ENV_PATH".to_string(),
+        tool_install_directory.to_str().unwrap().to_string(),
+    ));
+
     // parametrize path too idf_tools.py
     let mut idf_tools_path = PathBuf::new();
     idf_tools_path.push(&instalation_path);
@@ -352,6 +384,7 @@ pub async fn run_wizzard_run(mut config: Config) -> Result<(), String> {
         idf_tools_path.to_str().unwrap(),
         Some("install"),
         None,
+        Some(&env_vars),
     );
     match out {
         Ok(output) => println!("{}", output),
@@ -361,15 +394,18 @@ pub async fn run_wizzard_run(mut config: Config) -> Result<(), String> {
         idf_tools_path.to_str().unwrap(),
         Some("install-python-env"),
         None,
+        Some(&env_vars),
     );
     match output {
         Ok(output) => println!("{}", output),
         Err(err) => panic!("Failed to run idf tools: {:?}", err),
     }
+    env_vars.push(("PATH".to_string(), env::var("PATH").unwrap_or_default()));
     let output2 = idf_im_lib::python_utils::run_python_script_from_file(
         idf_tools_path.to_str().unwrap(),
         Some("export"),
         None,
+        Some(&env_vars),
     );
     match output2 {
         Ok(output) => println!("{}", output),

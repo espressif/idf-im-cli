@@ -23,4 +23,6 @@ async fn main() {
     }
 
     // next step is source the env vars
+    // activate venvironment
+    // or at least spit user instruction how to do this
 }

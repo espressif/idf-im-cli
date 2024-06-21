@@ -1,20 +1,14 @@
 use std::{fmt, path::PathBuf, str::FromStr};
 
 // use clap::{command, Parser, ValueEnum};
-use clap::{arg, command, value_parser, Arg, Command, Parser, ValueEnum};
+use clap::{arg, value_parser, Command, ValueEnum};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-// #[derive(Parser, Debug)]
-// #[command(author, version, about, long_about = None)]
-// pub struct Args {
-//     #[arg(short, long, default_value = "shuttle")]
-//     pub name: String,
-// }
 #[derive(Debug, Default)]
 pub struct Config {
     pub path: Option<PathBuf>,
-    pub target: Option<ChipId>,
+    pub target: Option<String>,
     pub idf_version: Option<String>,
     pub config_file: Option<PathBuf>,
     pub non_interactive: Option<bool>,
@@ -53,15 +47,22 @@ impl FromStr for ChipId {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+        match s.to_uppercase().as_str() {
             "ESP32" => Ok(ChipId::Esp32),
             "ESP32-S2" => Ok(ChipId::Esp32s2),
+            "ESP32S2" => Ok(ChipId::Esp32s2),
             "ESP32-S3" => Ok(ChipId::Esp32s3),
+            "ESP32S3" => Ok(ChipId::Esp32s3),
             "ESP32-C2" => Ok(ChipId::Esp32c2),
+            "ESP32C2" => Ok(ChipId::Esp32c2),
             "ESP32-C3" => Ok(ChipId::Esp32c3),
+            "ESP32C3" => Ok(ChipId::Esp32c3),
             "ESP32-C6" => Ok(ChipId::Esp32c6),
+            "ESP32C6" => Ok(ChipId::Esp32c6),
             "ESP32-H2" => Ok(ChipId::Esp32h2),
+            "ESP32H2" => Ok(ChipId::Esp32h2),
             "ESP32-P4" => Ok(ChipId::Esp32p4),
+            "ESP32P4" => Ok(ChipId::Esp32p4),
             _ => Err(format!("'{}' is not a valid value", s)),
         }
     }
@@ -151,7 +152,7 @@ pub fn parse_cli(arg_matches: &clap::ArgMatches) -> Config {
         config.path = Some(path.to_owned());
     }
     if let Some(target) = arg_matches.get_one::<ChipId>("target") {
-        config.target = Some(target.to_owned());
+        config.target = Some(target.to_string().to_lowercase());
     }
     if let Some(idf_version) = arg_matches.get_one::<String>("idf-version") {
         config.idf_version = Some(idf_version.to_owned());
