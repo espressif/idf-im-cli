@@ -1607,7 +1607,7 @@ dependencies = [
 [[package]]
 name = "idf-im-lib"
 version = "0.1.0"
-source = "git+ssh://git@gitlab.espressif.cn:27227/idf/idf-im-lib.git?branch=master#fe0aff78a326b62215fe1236c86d6a5562037021"
+source = "git+ssh://git@gitlab.espressif.cn:27227/idf/idf-im-lib.git?branch=python-sanity#934d8665110d42baf74091a52f9ecb767b0bd5c7"
 dependencies = [
  "colored",
  "decompress",

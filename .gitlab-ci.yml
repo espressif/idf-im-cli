@@ -21,6 +21,7 @@ stages:
   - integration-test
   - release-build
   - release
+  - cleanup
 
 # lint-code:
 #   image: "registry.gitlab.com/hahihula/rustup-openssl-debian-dockerimage:6988926837"
@@ -52,7 +53,7 @@ stages:
 #     GIT_STRATEGY: clone
 #   script:
 #     # - Invoke-WebRequest -OutFile vs_buildtools.exe -Uri https://aka.ms/vs/17/release/vs_buildtools.exe
-#     # - | 
+#     # - |
 #     #   $components = @(
 #     #       "--add", "Microsoft.VisualStudio.Workload.VCTools",      # Visual C++ tools
 #     #       "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", # x86 and x64 build tools
@@ -100,10 +101,9 @@ stages:
 #   artifacts:
 #     paths:
 #       - installer
-  # rules:
-  #   - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]\.[0-9]\.[0-9](-rc.+)?/'
-  #     when: always
-  
+# rules:
+#   - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]\.[0-9]\.[0-9](-rc.+)?/'
+#     when: always
 
 release-build-linux:
   stage: release-build
@@ -143,7 +143,6 @@ release-build-macos:
   # rules:
   #   - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]\.[0-9]\.[0-9](-rc.+)?/'
   #     when: always
-
 # release-build-macos-x64:
 #   stage: release-build
 #   script:
@@ -173,9 +172,9 @@ release-build-macos:
 #   artifacts:
 #     paths:
 #       - target/aarch64-unknown-linux-gnu/release/idf-im-cli
-  # rules:
-  #   - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]\.[0-9]\.[0-9](-rc.+)?/'
-  #     when: always
+# rules:
+#   - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]\.[0-9]\.[0-9](-rc.+)?/'
+#     when: always
 
 # release-build-aarch-windows:
 #   stage: release-build
@@ -221,14 +220,14 @@ release-build-macos:
 #     - rustup target add x86_64-pc-windows-gnu
 #     - cargo build --release --target x86_64-pc-windows-gnu
 
-additional_files:
-  stage: release-build
-  image: "registry.gitlab.com/hahihula/rustup-openssl-debian-dockerimage:6988926837"
-  tags:
-    - amd64
-  script:
-    - apt install -y jq
-    - bash download_github_artifacts.sh additional_files.zip
-  artifacts:
-    paths:
-      - artifact.zip
+# additional_files:
+#   stage: release-build
+#   image: "registry.gitlab.com/hahihula/rustup-openssl-debian-dockerimage:6988926837"
+#   tags:
+#     - amd64
+#   script:
+#     - apt install -y jq
+#     - bash download_github_artifacts.sh additional_files.zip
+#   artifacts:
+#     paths:
+#       - artifact.zip
