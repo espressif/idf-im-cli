@@ -1,0 +1,85 @@
+name: Rust
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build for multiple platforms
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-12]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install OpenSSL (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          vcpkg install openssl:x64-windows-static-md
+
+      - name: Install OpenSSL (Macos)
+        if: matrix.os == 'macos-latest' 
+        run: brew install openssl
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index
+          restore-keys: |
+            ${{ runner.os }}-cargo-index
+
+      - name: Build
+        run: cargo build --release
+
+      # - name: Run tests
+      #   run: cargo test --release
+
+      - name: Create release directory
+        run: mkdir -p release
+
+      - name: Copy binary to release directory Windows
+        if: matrix.os == 'windows-latest'
+        run: cp target/release/idf-im-cli.exe release/idf-im-cli-${{ matrix.os }}.exe
+
+      - name: Copy binary to release directory POSIX
+        if: matrix.os != 'windows-latest'
+        run: cp target/release/idf-im-cli release/idf-im-cli-${{ matrix.os }}
+
+      - name: Upload build artifacts for POSIX
+        uses: actions/upload-artifact@v4
+        if: matrix.os != 'windows-latest'
+        with:
+          name: idf-im-cli-${{ matrix.os }}
+          path: release/idf-im-cli-${{ matrix.os }}
+
+      - name: Upload build artifacts for Windows
+        uses: actions/upload-artifact@v4
+        if: matrix.os == 'windows-latest'
+        with:
+          name: idf-im-cli-${{ matrix.os }}.exe
+          path: release/idf-im-cli-${{ matrix.os }}.exe
