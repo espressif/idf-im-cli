@@ -1,17 +1,136 @@
-use std::{fmt, path::PathBuf, str::FromStr};
-
+use clap::Parser;
+use config::{Config, ConfigError, File};
+use serde::Deserialize;
+use std::path::PathBuf;
+use std::{fmt, str::FromStr};
 // use clap::{command, Parser, ValueEnum};
 use clap::{arg, value_parser, Command, ValueEnum};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[derive(Debug, Default)]
-pub struct Config {
+#[derive(Debug, Deserialize, Default)]
+pub struct Settings {
     pub path: Option<PathBuf>,
+    pub idf_path: Option<PathBuf>,
+    pub tool_download_folder_name: Option<String>,
+    pub tool_install_folder_name: Option<String>,
     pub target: Option<String>,
     pub idf_version: Option<String>,
+    pub tools_json_file: Option<String>,
+    pub idf_tools_path: Option<String>, // relative to idf path
     pub config_file: Option<PathBuf>,
     pub non_interactive: Option<bool>,
+}
+
+#[derive(Parser, Debug)]
+#[command(
+    author,
+    version = VERSION,
+    about = "ESP-IDF Install Manager",
+    long_about = "All you need to manage your ESP-IDF installations"
+)]
+pub struct Cli {
+    #[arg(short, long, value_name = "FILE")]
+    config: Option<PathBuf>,
+
+    #[arg(short, long)]
+    target: Option<String>,
+
+    #[arg(short, long)]
+    idf_version: Option<String>,
+    #[arg(long)]
+    tool_download_folder_name: Option<String>,
+    #[arg(long)]
+    tool_install_folder_name: Option<String>,
+    #[arg(
+        long,
+        help = "Path to tools.json file relative from ESP-IDF installation folder"
+    )]
+    idf_tools_path: Option<String>,
+    #[arg(
+        long,
+        help = "Path to idf_tools.py file relative from ESP-IDF installation folder"
+    )]
+    tools_json_file: Option<String>,
+    #[arg(short, long)]
+    non_interactive: Option<bool>,
+}
+
+impl IntoIterator for Cli {
+    type Item = (String, Option<config::Value>);
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        vec![
+            (
+                "config".to_string(),
+                self.config.map(|p| p.to_str().unwrap().into()),
+            ),
+            (
+                "non_interactive".to_string(),
+                self.non_interactive.map(|b| b.into()),
+            ),
+            ("target".to_string(), self.target.map(|p| p.into())),
+            (
+                "idf_version".to_string(),
+                self.idf_version.map(|s| s.into()),
+            ),
+            (
+                "tool_download_folder_name".to_string(),
+                self.tool_download_folder_name.map(|s| s.into()),
+            ),
+            (
+                "tool_install_folder_name".to_string(),
+                self.tool_install_folder_name.map(|s| s.into()),
+            ),
+            (
+                "tools_json_file".to_string(),
+                self.tools_json_file.map(|s| s.into()),
+            ),
+            (
+                "idf_tools_path".to_string(),
+                self.idf_tools_path.map(|s| s.into()),
+            ),
+        ]
+        .into_iter()
+    }
+}
+
+impl Settings {
+    pub fn new() -> Result<Self, ConfigError> {
+        let cli = Cli::parse();
+
+        let mut builder = Config::builder()
+            // Start off by merging in the "default" configuration file
+            .add_source(File::with_name("config/default").required(false))
+            // Add in the current environment file
+            // Default to 'development' env
+            // Note that this file is _optional_
+            .add_source(File::with_name("config/development").required(false));
+
+        // If a config file was specified via cli arg, add it here
+        if let Some(config_path) = cli.config.clone() {
+            builder = builder.add_source(File::from(config_path));
+        }
+
+        // Add in settings from the environment (with a prefix of ESP)
+        // Eg.. `ESP_DEBUG=1 ./target/app` would set the `debug` key
+        builder = builder.add_source(config::Environment::with_prefix("ESP").separator("_"));
+
+        // Now that we've gathered all our config sources, let's merge them
+        let mut cfg = builder.build()?;
+
+        for (key, value) in cli.into_iter() {
+            if let Some(v) = value {
+                cfg.set(&key, v)?;
+            }
+        }
+
+        // Add in cli-specified values
+
+        // You can deserialize (and thus freeze) the entire configuration
+        cfg.try_deserialize()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -138,8 +257,8 @@ pub fn get_cli() -> clap::Command {
         )
 }
 
-pub fn parse_cli(arg_matches: &clap::ArgMatches) -> Config {
-    let mut config = Config::default();
+pub fn parse_cli(arg_matches: &clap::ArgMatches) -> Settings {
+    let mut config = Settings::default();
 
     // we need to parse config file first, because cli params have higher priority
     // TODO: we shoud parse env even before
