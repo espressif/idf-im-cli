@@ -1698,7 +1698,7 @@ dependencies = [
 [[package]]
 name = "idf-im-lib"
 version = "0.1.0"
-source = "git+https://github.com/espressif/idf-im-lib.git?branch=master#2598c4a2cb520599063ec962ff6856f7d77aa616"
+source = "git+https://github.com/espressif/idf-im-lib.git?branch=master#8b5fbd2813f2aa851728067e92bb9e9503288c43"
 dependencies = [
  "colored",
  "decompress",
@@ -1710,6 +1710,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
+ "sha2",
  "sys-info",
  "tokio",
 ]
