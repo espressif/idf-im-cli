@@ -1,10 +1,11 @@
 use clap::Parser;
+use clap::{arg, ValueEnum};
 use config::{Config, ConfigError, File};
+use log::error;
 use serde::Deserialize;
+use simple_logger::SimpleLogger;
 use std::path::PathBuf;
 use std::{fmt, str::FromStr};
-// use clap::{command, Parser, ValueEnum};
-use clap::{arg, value_parser, Command, ValueEnum};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -54,6 +55,14 @@ pub struct Cli {
     tools_json_file: Option<String>,
     #[arg(short, long)]
     non_interactive: Option<bool>,
+
+    #[arg(
+      short,
+      long,
+      action = clap::ArgAction::Count,
+      help = "Increase verbosity level (can be used multiple times)"
+  )]
+    verbose: u8,
 }
 
 impl IntoIterator for Cli {
@@ -99,6 +108,18 @@ impl IntoIterator for Cli {
 impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         let cli = Cli::parse();
+        let log_level = match cli.verbose {
+            0 => log::LevelFilter::Warn,
+            1 => log::LevelFilter::Info,
+            2 => log::LevelFilter::Debug,
+            _ => log::LevelFilter::Trace,
+        };
+        match SimpleLogger::new().with_level(log_level).init() {
+            Ok(_) => {}
+            Err(e) => {
+                error!("Failed to initialize logger: {}", e);
+            }
+        }
 
         let mut builder = Config::builder()
             // Start off by merging in the "default" configuration file
@@ -114,7 +135,7 @@ impl Settings {
         }
 
         // Add in settings from the environment (with a prefix of ESP)
-        // Eg.. `ESP_DEBUG=1 ./target/app` would set the `debug` key
+        // Eg.. `ESP_TARGET=esp32` would set the `target` key
         builder = builder.add_source(config::Environment::with_prefix("ESP").separator("_"));
 
         // Now that we've gathered all our config sources, let's merge them
@@ -213,71 +234,4 @@ impl ValueEnum for ChipId {
             ChipId::Esp32p4 => clap::builder::PossibleValue::new("ESP32-P4"),
         })
     }
-}
-
-pub fn get_cli() -> clap::Command {
-    Command::new("ESP-IDF Installation Manager")
-        .version(VERSION)
-        .about("All you need to manage your ESP-IDF installations")
-        .arg(
-            arg!(
-                -p --path <PATH> "base instalation path"
-            )
-            .required(false)
-            .value_parser(value_parser!(PathBuf)),
-        )
-        .arg(
-            arg!(
-                -t --target <VALUE> "which chip you are using"
-            )
-            .required(false)
-            .value_parser(value_parser!(ChipId)),
-        )
-        .arg(
-            arg!(
-              --"idf-version" <VALUE> "which version of idf we want to install"
-            )
-            .required(false)
-            .value_parser(value_parser!(String)),
-        )
-        .arg(
-            arg!(
-              -c --"config-file" <VALUE> "path to file with instalator configuration"
-            )
-            .required(false)
-            .value_parser(value_parser!(PathBuf)),
-        )
-        .arg(
-            arg!(
-              -n --"non-interactive" <BOOL> "show the wizard"
-            )
-            .required(false)
-            .value_parser(value_parser!(bool))
-            .default_value(std::ffi::OsStr::new("false")),
-        )
-}
-
-pub fn parse_cli(arg_matches: &clap::ArgMatches) -> Settings {
-    let mut config = Settings::default();
-
-    // we need to parse config file first, because cli params have higher priority
-    // TODO: we shoud parse env even before
-    if let Some(config_file) = arg_matches.get_one::<PathBuf>("config-file") {
-        println!("Value for config_file: {:?}", config_file);
-        println!("Parsing config file not implemented yet");
-    }
-
-    if let Some(path) = arg_matches.get_one::<PathBuf>("path") {
-        config.path = Some(path.to_owned());
-    }
-    if let Some(target) = arg_matches.get_one::<ChipId>("target") {
-        config.target = Some(target.to_string().to_lowercase());
-    }
-    if let Some(idf_version) = arg_matches.get_one::<String>("idf-version") {
-        config.idf_version = Some(idf_version.to_owned());
-    }
-    if let Some(non_interactive) = arg_matches.get_one::<bool>("non-interactive") {
-        config.non_interactive = Some(*non_interactive);
-    }
-    config
 }

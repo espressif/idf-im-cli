@@ -1,3 +1,5 @@
+use log::{error, info};
+use simple_logger::SimpleLogger;
 extern crate idf_im_lib;
 
 mod cli_args;
@@ -11,13 +13,14 @@ async fn main() {
             let result = wizard::run_wizzard_run(settings).await;
             match result {
                 Ok(r) => {
-                    println!("Successfully installed IDF {:?}", r);
+                    info!("Wizard result: {:?}", r);
+                    println!("Successfully installed IDF");
                     println!("Now you can start using IDF tools");
                 }
-                Err(err) => println!("Error: {}", err),
+                Err(err) => error!("Error: {}", err),
             }
         }
-        Err(err) => println!("Error: {}", err),
+        Err(err) => error!("Error: {}", err),
     }
 
     // next step is source the env vars

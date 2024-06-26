@@ -3,38 +3,14 @@ use console::Style;
 use dialoguer::theme::ColorfulTheme;
 use idf_im_lib::idf_tools::ToolsFile;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
-use ratatui::prelude::*;
-use ratatui_splash_screen::{SplashConfig, SplashScreen};
-use std::error::Error;
+use log::{debug, error, info, trace, warn};
 use std::fmt::Write;
-use std::io::Stdout;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
-use std::{env, fs, thread};
+use std::{env, fs};
 // folder select
 use dialoguer::{Confirm, Input, Select};
 use walkdir::{DirEntry, WalkDir};
-
-fn show_splash_screen(
-    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
-) -> Result<(), Box<dyn Error>> {
-    static SPLASH_CONFIG: SplashConfig = SplashConfig {
-        image_data: include_bytes!("../../assets/logo.png"),
-        sha256sum: Some("405a91875ca5c1247140c73cd80dbde1962b0f747330058c0989a324bb311d5f"),
-        render_steps: 10,
-        use_colors: true,
-    };
-
-    let mut splash_screen = SplashScreen::new(SPLASH_CONFIG)?;
-    while !splash_screen.is_rendered() {
-        terminal.draw(|frame| {
-            frame.render_widget(&mut splash_screen, frame.size());
-        })?;
-        std::thread::sleep(Duration::from_millis(120));
-    }
-
-    Ok(())
-}
 
 fn run_with_spinner<F, T>(func: F) -> T
 where
@@ -65,7 +41,7 @@ where
     let duration = start_time.elapsed();
 
     // Print the duration
-    // println!("Function completed in: {:?}", duration); //TODO: move to debug
+    debug!("Function completed in: {:?}", duration);
 
     // Return the result
     result
@@ -76,11 +52,11 @@ fn check_prerequisites() -> Result<Vec<String>, String> {
     match unsatisfied_prerequisities {
         Ok(prerequisities) => {
             if prerequisities.is_empty() {
-                // println!("All prerequisities are satisfied!"); //TODO: move to interactive wizard
+                debug!("All prerequisities are satisfied!");
                 Ok(vec![])
             } else {
-                // println!("The following prerequisities are not satisfied:");
-                // println!("{:?}", prerequisities);
+                debug!("The following prerequisities are not satisfied:");
+                debug!("{:?}", prerequisities);
                 Ok(prerequisities.into_iter().map(|p| p.to_string()).collect())
             }
         }
@@ -108,7 +84,6 @@ async fn select_idf_version(target: &str, theme: &ColorfulTheme) -> Result<Strin
     let avalible_versions =
         idf_im_lib::idf_versions::get_idf_name_by_target(&target.to_string().to_lowercase()).await;
 
-    // TODO: map latest to the latest version
     let selected_version = Select::with_theme(theme)
         .with_prompt("What varsion do you choose?")
         .items(&avalible_versions)
@@ -121,10 +96,7 @@ async fn select_idf_version(target: &str, theme: &ColorfulTheme) -> Result<Strin
 
 fn download_idf(path: &str, tag: &str) -> Result<String, String> {
     let _: Result<String, String> = match idf_im_lib::ensure_path(&path.to_string()) {
-        Ok(_) => {
-            // println!("Path is ok");
-            Ok("ok".to_string())
-        }
+        Ok(_) => Ok("ok".to_string()),
         Err(err) => return Err(err.to_string()), // probably panic
     };
     let progress_bar = ProgressBar::new(100);
@@ -141,7 +113,6 @@ fn download_idf(path: &str, tag: &str) -> Result<String, String> {
 
     let output =
         idf_im_lib::get_esp_idf_by_tag_name(&path.to_string(), &tag.to_string(), |stats| {
-            // println!("{}/{}", stats.received_objects(), stats.total_objects());
             let current_progress =
                 ((stats.received_objects() as f64) / (stats.total_objects() as f64)) * 100.0;
             progress_bar.set_position(current_progress as u64);
@@ -168,12 +139,12 @@ async fn download_tools(
     selected_chip: String,
     destination_path: &str,
 ) -> Vec<String> {
-    let pepa: Vec<String> = tools_file
+    let tool_name_list: Vec<String> = tools_file
         .tools
         .iter()
         .map(|tool| tool.name.clone())
         .collect();
-    print!("Downloading tools: {:?}", pepa);
+    info!("Downloading tools: {:?}", tool_name_list);
     let list = idf_im_lib::idf_tools::filter_tools_by_target(
         tools_file.tools,
         &selected_chip.to_lowercase(),
@@ -185,7 +156,7 @@ async fn download_tools(
             panic!("Can not identify platfor for tools instalation.  {:?}", err);
         }
     };
-    // println!("Platform: {}", platform);
+    debug!("Python platform: {}", platform);
     let download_links = idf_im_lib::idf_tools::change_links_donwanload_mirror(
         idf_im_lib::idf_tools::get_download_link_by_platform(list, &platform),
         // Some("https://dl.espressif.com/github_assets"), // this switches mirror, should be parametrized
@@ -193,18 +164,17 @@ async fn download_tools(
     );
     let mut downloaded_tools: Vec<String> = vec![];
     for (tool_name, download_link) in download_links.iter() {
-        println!("Downloading tool: {}", tool_name);
+        info!("Downloading tool: {}", tool_name);
         let progress_bar = ProgressBar::new(download_link.size);
         progress_bar.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})").unwrap()
         .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
         .progress_chars("#>-"));
 
-        let update_progress = |amount_downloaded: u64, total_size: u64| {
-            // let current_progress = ((amount_downloaded as f64) / (total_size as f64)) * 100.0;
+        let update_progress = |amount_downloaded: u64, _total_size: u64| {
             progress_bar.set_position(amount_downloaded);
         };
-        println!("Download link: {}", download_link.url);
-        println!("destination: {}", destination_path);
+        debug!("Download link: {}", download_link.url);
+        debug!("destination: {}", destination_path);
 
         let file_path = Path::new(&download_link.url);
         let filename: &str = file_path.file_name().unwrap().to_str().unwrap();
@@ -216,13 +186,12 @@ async fn download_tools(
         ) {
             Ok(true) => {
                 downloaded_tools.push(filename.to_string()); // add it to the list for extraction even if it's already downloaded
-                println!("The file is already downloaded and the checksum matches.");
+                info!("The file is already downloaded and the checksum matches.");
                 progress_bar.finish();
                 continue;
             }
             _ => {
-                println!("The checksum does not match or file was not avalible.");
-                // TODO: move to debug
+                debug!("The checksum does not match or file was not avalible.");
             }
         }
 
@@ -232,11 +201,11 @@ async fn download_tools(
             Ok(_) => {
                 downloaded_tools.push(filename.to_string());
                 progress_bar.finish();
-                println!("Downloaded {}", tool_name);
+                info!("Downloaded {}", tool_name);
             }
             Err(err) => {
-                println!("Failed to download tool: {}", tool_name);
-                println!("Error: {:?}", err);
+                error!("Failed to download tool: {}", tool_name);
+                error!("Error: {:?}", err);
                 panic!();
             }
         }
@@ -251,9 +220,9 @@ fn extract_tools(tools: Vec<String>, source_path: &str, destination_path: &str) 
         let out = idf_im_lib::decompress_archive(archive_path.to_str().unwrap(), destination_path);
         match out {
             Ok(_) => {
-                println!("extracted tool: {}", tool);
+                info!("extracted tool: {}", tool);
             }
-            Err(err) => println!("{:?}", err), // TODO: return error
+            Err(err) => warn!("{:?}", err),
         }
     }
 }
@@ -271,7 +240,7 @@ fn python_sanity_check() -> Result<(), String> {
         }
     }
     if all_ok {
-        // println!("All good!")
+        debug!("Python sanity check passed.");
         Ok(())
     } else {
         Err(" Your python does not meets the requirements!".to_string())
@@ -329,7 +298,7 @@ fn folder_select(path: &str) -> String {
 }
 
 pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
-    // println!("Config: {:?}", config); // TODO remove
+    debug!("Config entering wizard: {:?}", config);
 
     if let Some(non_interactive) = config.non_interactive {
         if non_interactive {
@@ -347,24 +316,24 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     match run_with_spinner::<_, Result<Vec<String>, String>>(|| check_prerequisites()) {
         Ok(list) => {
             if list.is_empty() {
-                println!("All prerequisities are satisfied!");
+                info!("All prerequisities are satisfied!");
             } else {
                 unimplemented!("Please install the following prerequisities: {:?}", list);
                 //TODO: offer to install prerequisities
             }
         }
         Err(err) => {
-            println!("{:?}", err);
+            error!("{:?}", err);
             return Err(err);
         }
     }
 
     match run_with_spinner::<_, Result<(), String>>(|| python_sanity_check()) {
         Ok(_) => {
-            println!("Your python meets the requirements")
+            info!("Your python meets the requirements")
         }
         Err(err) => {
-            println!("{:?}", err); // python does not meets requirements: TODO: on windows proceeed with instalation of our python
+            error!("{:?}", err); // python does not meets requirements: TODO: on windows proceeed with instalation of our python
             return Err(err);
         }
     }
@@ -373,20 +342,21 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         let chip_id = match select_target(&theme).await {
             Ok(target) => target,
             Err(err) => {
-                println!("{:?}", err);
+                error!("{:?}", err);
                 return Err(err);
             }
         };
         config.target = Some(chip_id);
     }
     let target = config.target.clone().unwrap().to_string();
+    debug!("Selected target: {}", target);
     // select version
     // TODO: verify the version support target
     if config.idf_version.is_none() {
         config.idf_version = Some(select_idf_version(&target, &theme).await.unwrap());
     }
     let idf_versions = config.idf_version.unwrap();
-    // let version: String = select_idf_version(&config.target).await.unwrap();
+    debug!("Selected idf version: {}", idf_versions);
     // select folder
     // instalation path consist from base path and idf version
     let mut instalation_path: PathBuf = PathBuf::new();
@@ -414,10 +384,12 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
 
     // download idf
     match download_idf(&idf_path.to_str().unwrap(), &idf_versions) {
-        Ok(_) => {}
+        Ok(_) => {
+            debug!("idf downloaded sucessfully");
+        }
         Err(err) => {
             // TODO: offer purging directory and retry
-            println!("Please choose valid instalation directory {:?}", err);
+            error!("Please choose valid instalation directory {:?}", err);
             return Err(err);
         }
     }
@@ -443,7 +415,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     match idf_im_lib::ensure_path(&tool_download_directory.display().to_string()) {
         Ok(_) => {}
         Err(err) => {
-            println!("{:?}", err);
+            error!("{:?}", err);
             return Err(err.to_string());
         }
     }
@@ -470,7 +442,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     match idf_im_lib::ensure_path(&tool_install_directory.display().to_string()) {
         Ok(_) => {}
         Err(err) => {
-            println!("{:?}", err);
+            error!("{:?}", err);
             return Err(err.to_string());
         }
     }
@@ -500,10 +472,10 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     // tools_json_file.push("tools");
     // tools_json_file.push("tools.json");
 
-    // println!("Tools json file: {}", tools_json_file.display());
+    debug!("Tools json file: {}", tools_json_file.display());
 
     if !fs::metadata(&tools_json_file).is_ok() {
-        println!("Tools.json file does not exist. Please select valied tools.json file");
+        warn!("Tools.json file does not exist. Please select valied tools.json file");
         unimplemented!(); // TODO: select tools.json file using file picker
                           // TODO: implement the retry logic -> in interactive mode the user should not be able to proceed until the files is found
     }
@@ -558,7 +530,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         config.idf_tools_path = Some(name);
     }
     if !fs::metadata(&idf_tools_path).is_ok() {
-        println!("idf_tools.py file not found. Please select valid idf_tools.py file");
+        warn!("idf_tools.py file not found. Please select valid idf_tools.py file");
         unimplemented!(); // TODO: select idf_tools.py file using file picker
     }
     let out = run_with_spinner::<_, Result<String, String>>(|| {
@@ -570,8 +542,8 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         )
     });
     match out {
-        Ok(_output) => {
-            // println!("{}", output) // if it's success we should onlyp rint the output to the debug
+        Ok(output) => {
+            trace!("idf_tools.py install output:\r\n{}", output) // if it's success we should onlyp rint the output to the debug
         }
         Err(err) => panic!("Failed to run idf tools: {:?}", err),
     }
@@ -582,8 +554,8 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         Some(&env_vars),
     );
     match output {
-        Ok(_output) => {
-            // println!("{}", output) // if it's success we should onlyp rint the output to the debug
+        Ok(output) => {
+            trace!("idf_tools.py install-python-env output:\r\n{}", output) // if it's success we should onlyp rint the output to the debug
         }
         Err(err) => panic!("Failed to run idf tools: {:?}", err),
     }
@@ -597,12 +569,10 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     );
     match output2 {
         Ok(output) => {
-            // println!("TADY: {}", output);
             let exports = env_vars
                 .into_iter()
                 .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
                 .collect::<Vec<String>>();
-            // println!("exportujeme: {}", exports.join(""));
             println!(
                 "please copy and paste the following lines to your terminal:\r\n\r\n {}",
                 format!("{} {}; ", exports.join(""), output)
