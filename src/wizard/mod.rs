@@ -194,22 +194,42 @@ async fn download_tools(
     let mut downloaded_tools: Vec<String> = vec![];
     for (tool_name, download_link) in download_links.iter() {
         println!("Downloading tool: {}", tool_name);
-        let progress_bar = ProgressBar::new(100);
+        let progress_bar = ProgressBar::new(download_link.size);
         progress_bar.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})").unwrap()
         .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
         .progress_chars("#>-"));
 
         let update_progress = |amount_downloaded: u64, total_size: u64| {
-            let current_progress = ((amount_downloaded as f64) / (total_size as f64)) * 100.0;
-            progress_bar.set_position(current_progress as u64);
+            // let current_progress = ((amount_downloaded as f64) / (total_size as f64)) * 100.0;
+            progress_bar.set_position(amount_downloaded);
         };
-        println!("Download link: {}", download_link);
+        println!("Download link: {}", download_link.url);
         println!("destination: {}", destination_path);
 
-        match idf_im_lib::download_file(download_link, destination_path, &update_progress).await {
+        let file_path = Path::new(&download_link.url);
+        let filename: &str = file_path.file_name().unwrap().to_str().unwrap();
+
+        let full_file_path = Path::new(&destination_path).join(Path::new(filename));
+        match idf_im_lib::verify_file_checksum(
+            &download_link.sha256,
+            full_file_path.to_str().unwrap(),
+        ) {
+            Ok(true) => {
+                downloaded_tools.push(filename.to_string()); // add it to the list for extraction even if it's already downloaded
+                println!("The file is already downloaded and the checksum matches.");
+                progress_bar.finish();
+                continue;
+            }
+            _ => {
+                println!("The checksum does not match or file was not avalible.");
+                // TODO: move to debug
+            }
+        }
+
+        match idf_im_lib::download_file(&download_link.url, destination_path, &update_progress)
+            .await
+        {
             Ok(_) => {
-                let file_path = Path::new(download_link);
-                let filename: &str = file_path.file_name().unwrap().to_str().unwrap();
                 downloaded_tools.push(filename.to_string());
                 progress_bar.finish();
                 println!("Downloaded {}", tool_name);
@@ -220,7 +240,6 @@ async fn download_tools(
                 panic!();
             }
         }
-        // TODO: check sha256 of downloaded files
     }
     downloaded_tools
 }
