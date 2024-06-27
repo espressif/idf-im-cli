@@ -318,8 +318,29 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             if list.is_empty() {
                 info!("All prerequisities are satisfied!");
             } else {
-                unimplemented!("Please install the following prerequisities: {:?}", list);
-                //TODO: offer to install prerequisities
+                info!("The following prerequisities are not satisfied: {:?}", list);
+                if Confirm::with_theme(&theme)
+                    .with_prompt("Do you want to install these prerequisities?")
+                    .default(false)
+                    .interact()
+                    .unwrap()
+                {
+                    //TODO: add progress or spinner
+                    match idf_im_lib::system_dependencies::install_prerequisites(list) {
+                        Ok(_) => {
+                            info!("Prerequisities installed successfully");
+                        }
+                        Err(err) => {
+                            error!("{:?}", err);
+                            return Err(err);
+                        }
+                    }
+                } else {
+                    error!("Please install the missing prerequisities and try again");
+                    return Err(
+                        "Please install the missing prerequisities and try again".to_string()
+                    );
+                }
             }
         }
         Err(err) => {
@@ -332,10 +353,37 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         Ok(_) => {
             info!("Your python meets the requirements")
         }
-        Err(err) => {
-            error!("{:?}", err); // python does not meets requirements: TODO: on windows proceeed with instalation of our python
-            return Err(err);
-        }
+        Err(err) => match std::env::consts::OS {
+            "windows" => {
+                info!("Python is missing or it does not meet the requirements");
+                if Confirm::with_theme(&theme)
+                    .with_prompt("Do you want to install python?")
+                    .default(false)
+                    .interact()
+                    .unwrap()
+                {
+                    match idf_im_lib::system_dependencies::install_prerequisites(Vec::from([
+                        String::from("python"),
+                    ])) {
+                        Ok(_) => {
+                            info!("Python installed successfully");
+                        }
+                        Err(err) => {
+                            error!("{:?}", err);
+                            return Err(err);
+                        }
+                    }
+                } else {
+                    return Err(
+                        "Please install python3 with pip and ssl support and try again".to_string(),
+                    );
+                }
+            }
+            _ => {
+                error!("{:?}", err);
+                return Err(err);
+            }
+        },
     }
     // select target
     if config.target.is_none() {

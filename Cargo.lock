@@ -1700,11 +1700,12 @@ dependencies = [
 [[package]]
 name = "idf-im-lib"
 version = "0.1.0"
-source = "git+https://github.com/espressif/idf-im-lib.git?branch=master#8b5fbd2813f2aa851728067e92bb9e9503288c43"
+source = "git+https://github.com/espressif/idf-im-lib.git?branch=prerequisitiers-install#2f1efbbf42c56456c98a8c36226b597c6268adcd"
 dependencies = [
  "colored",
  "decompress",
  "git2",
+ "log",
  "regex",
  "reqwest",
  "rustpython-stdlib",
