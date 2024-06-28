@@ -134,9 +134,33 @@ fn download_idf(path: &str, tag: &str) -> Result<String, String> {
     }
 }
 
+fn get_tools_export_paths(
+    tools_file: ToolsFile,
+    selected_chip: &str,
+    tools_install_path: &str,
+) -> Vec<String> {
+    let list = idf_im_lib::idf_tools::filter_tools_by_target(
+        tools_file.tools,
+        &selected_chip.to_lowercase(),
+    );
+    debug!("Creating export paths for: {:?}", list);
+    let mut paths = vec![];
+    for tool in &list {
+        tool.export_paths.iter().for_each(|path| {
+            let mut p = PathBuf::new();
+            p.push(tools_install_path);
+            for level in path {
+                p.push(level);
+            }
+            paths.push(p.to_str().unwrap().to_string());
+        });
+    }
+    debug!("Export paths: {:?}", paths);
+    paths
+}
 async fn download_tools(
     tools_file: ToolsFile,
-    selected_chip: String,
+    selected_chip: &str,
     destination_path: &str,
 ) -> Vec<String> {
     let tool_name_list: Vec<String> = tools_file
@@ -534,8 +558,12 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                 panic!("Failed to read tools.json file. Error: {:?}", err);
             }
         };
-    let downloaded_tools_list =
-        download_tools(tools, target, &tool_download_directory.to_str().unwrap()).await;
+    let downloaded_tools_list = download_tools(
+        tools.clone(),
+        &target,
+        &tool_download_directory.to_str().unwrap(),
+    )
+    .await;
     extract_tools(
         downloaded_tools_list,
         &tool_download_directory.to_str().unwrap(),
@@ -603,31 +631,64 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     );
     match output {
         Ok(output) => {
-            trace!("idf_tools.py install-python-env output:\r\n{}", output) // if it's success we should onlyp rint the output to the debug
+            trace!("idf_tools.py install-python-env output:\r\n{}", output)
         }
         Err(err) => panic!("Failed to run idf tools: {:?}", err),
     }
-    env_vars.push(("PATH".to_string(), env::var("PATH").unwrap_or_default()));
+    // env_vars.push(("PATH".to_string(), env::var("PATH").unwrap_or_default()));
     // TODO: this should be done in rust instead of python
-    let output2 = idf_im_lib::python_utils::run_python_script_from_file(
-        idf_tools_path.to_str().unwrap(),
-        Some("export"),
-        None,
-        Some(&env_vars),
-    );
-    match output2 {
-        Ok(output) => {
-            let exports = env_vars
-                .into_iter()
-                .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
-                .collect::<Vec<String>>();
-            println!(
-                "please copy and paste the following lines to your terminal:\r\n\r\n {}",
-                format!("{} {}; ", exports.join(""), output)
-            );
+    let export_paths =
+        get_tools_export_paths(tools, &target, tool_install_directory.to_str().unwrap());
+
+    #[cfg(windows)]
+    if std::env::consts::OS == "windows" {
+        for p in export_paths {
+            let _ = idf_im_lib::win_tools::add_to_win_path(p);
         }
-        Err(err) => panic!("Failed to run idf tools with param export: {:?}", err),
+        println!(
+          "\n\tYour environments variables have been updated! Shell may need to be restarted for changes to be effective"
+        );
     }
+    #[cfg(not(windows))]
+    if std::env::consts::OS != "windows" {
+        for p in export_paths {
+            let _ = idf_im_lib::add_path_to_path(&p);
+        }
+        let exports = env_vars
+            .into_iter()
+            .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
+            .collect::<Vec<String>>();
+        println!(
+            "please copy and paste the following lines to your terminal:\r\n\r\n {}",
+            format!(
+                "{}; export PATH={}; ",
+                exports.join(""),
+                env::var("PATH").unwrap_or_default()
+            )
+        );
+    }
+
+    // let output2 = idf_im_lib::python_utils::run_python_script_from_file(
+    //     idf_tools_path.to_str().unwrap(),
+    //     Some("export"),
+    //     None,
+    //     Some(&env_vars),
+    // );
+
+    // match output2 {
+    //     Ok(output) => {
+    //         let exports = env_vars
+    //             .into_iter()
+    //             .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
+    //             .collect::<Vec<String>>();
+    //         println!(
+    //             "please copy and paste the following lines to your terminal:\r\n\r\n {}",
+    //             format!("{} {}; ", exports.join(""), output)
+    //         );
+    //     }
+    //     Err(err) => panic!("Failed to run idf tools with param export: {:?}", err),
+    // }
+
     // TODO: offer to save settings
     Ok(())
 }
