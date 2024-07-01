@@ -643,7 +643,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     #[cfg(windows)]
     if std::env::consts::OS == "windows" {
         for p in export_paths {
-            let _ = idf_im_lib::win_tools::add_to_win_path(p);
+            let _ = idf_im_lib::win_tools::add_to_win_path(&p);
         }
         println!(
           "\n\tYour environments variables have been updated! Shell may need to be restarted for changes to be effective"
