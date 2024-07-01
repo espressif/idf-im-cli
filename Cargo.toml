@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 tokio = {version = "1.37.0", features=["full"]}
-idf-im-lib = { git = "https://github.com/espressif/idf-im-lib.git", rev="65fab90a5bbdb587f4645b8280c61fe830c1857e" }
+idf-im-lib = { git = "https://github.com/espressif/idf-im-lib.git", rev="05331fbd360acbb3216d289603bf9dce5bce2693" }
 clap = {version = "4.5", features = ["cargo", "derive"]}
 crossterm = "0.27.0"
 dialoguer = "0.11.0"
