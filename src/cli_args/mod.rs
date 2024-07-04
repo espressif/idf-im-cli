@@ -109,9 +109,8 @@ impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         let cli = Cli::parse();
         let log_level = match cli.verbose {
-            0 => log::LevelFilter::Warn,
-            1 => log::LevelFilter::Info,
-            2 => log::LevelFilter::Debug,
+            0 => log::LevelFilter::Info,
+            1 => log::LevelFilter::Debug,
             _ => log::LevelFilter::Trace,
         };
         match SimpleLogger::new().with_level(log_level).init() {

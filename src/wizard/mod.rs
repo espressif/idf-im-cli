@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 use std::{env, fs};
 // folder select
-use dialoguer::{Confirm, Input, Select};
+use dialoguer::{Confirm, FolderSelect, Input, Select};
 use walkdir::{DirEntry, WalkDir};
 
 fn run_with_spinner<F, T>(func: F) -> T
@@ -273,54 +273,6 @@ fn python_sanity_check() -> Result<(), String> {
 
 fn install_python_environment() {}
 
-fn folder_select(path: &str) -> String {
-    let theme = ColorfulTheme {
-        values_style: Style::new().yellow().dim(),
-        ..ColorfulTheme::default()
-    };
-    let current_folder: Vec<DirEntry> = WalkDir::new(path)
-        .min_depth(0)
-        .max_depth(0)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .collect();
-    let current_path = current_folder[0].path().to_str().unwrap().to_string();
-    let mut selects = vec!["."];
-    let ancestors = current_folder[0].path().ancestors().collect::<Vec<_>>();
-    if !current_folder.is_empty() && ancestors.len() > 1 {
-        selects.push("..");
-    }
-    let directories_in_current_folder: Vec<DirEntry> = WalkDir::new(path)
-        .min_depth(1)
-        .max_depth(1)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .collect();
-    let filenames = directories_in_current_folder
-        .iter()
-        .map(|entry| entry.file_name().to_str().unwrap())
-        .collect::<Vec<&str>>();
-    let select = Select::with_theme(&theme)
-        .clear(true)
-        .report(false)
-        // .with_prompt(format!("Current folder {}", current_path.as_str()))
-        .items(&selects)
-        .items(&filenames);
-    let selection = select.interact().unwrap();
-    match selection {
-        0 => {
-            return current_path;
-        } // select current folder
-        1 => folder_select(ancestors[1].to_str().unwrap()), // go up
-        _ => folder_select(
-            directories_in_current_folder[selection - 2]
-                .path()
-                .to_str()
-                .unwrap(),
-        ), // open subfolder
-    }
-}
-
 pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     debug!("Config entering wizard: {:?}", config);
 
@@ -351,9 +303,23 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                 {
                     //TODO: add progress or spinner
                     match idf_im_lib::system_dependencies::install_prerequisites(list) {
-                        Ok(_) => {
-                            info!("Prerequisities installed successfully");
-                        }
+                        Ok(_) => match check_prerequisites() {
+                            Ok(list) => {
+                                if list.is_empty() {
+                                    info!("Prerequisities installed successfully");
+                                } else {
+                                    error!(
+                                            "Something went teribly wrong. These prerequisities were not installed: {:?}",
+                                            list
+                                        );
+                                    panic!("Prerequisities not installed successfully");
+                                }
+                            }
+                            Err(err) => {
+                                error!("{:?}", err);
+                                return Err(err);
+                            }
+                        },
                         Err(err) => {
                             error!("{:?}", err);
                             return Err(err);
@@ -423,7 +389,6 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     let target = config.target.clone().unwrap().to_string();
     debug!("Selected target: {}", target);
     // select version
-    // TODO: verify the version support target
     if config.idf_version.is_none() {
         config.idf_version = Some(select_idf_version(&target, &theme).await.unwrap());
     }
@@ -435,9 +400,14 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     if let Some(path) = config.path {
         instalation_path.push(&path);
     } else {
+        let mut default_path = "/tmp/esp-new/".to_string();
+        if std::env::consts::OS == "windows" {
+            default_path = "C:\\esp\\".to_string();
+        }
+
         let path = match Input::with_theme(&theme)
             .with_prompt("base instalation path")
-            .default("/tmp/esp-new/".to_string()) // default testing folder TODO: remove and move to config
+            .default(default_path) // default testing folder TODO: remove and move to config
             .interact()
         {
             Ok(path) => path,
@@ -481,7 +451,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                 panic!("Need to select some folder name:{:?}", err);
             }
         };
-        tool_download_directory.push(&name); // default testing folder TODO: remove and move to config
+        tool_download_directory.push(&name);
         config.tool_download_folder_name = Some(name);
     }
     match idf_im_lib::ensure_path(&tool_download_directory.display().to_string()) {
@@ -506,7 +476,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                 panic!("Need to select some folder name:{:?}", err);
             }
         };
-        tool_install_directory.push(&name); // default testing folder TODO: remove and move to config
+        tool_install_directory.push(&name);
         config.tool_install_folder_name = Some(name);
     }
     idf_im_lib::add_path_to_path(tool_install_directory.to_str().unwrap());
@@ -536,21 +506,29 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                 panic!("Need to select some folder name:{:?}", err);
             }
         };
-        tools_json_file.push(&name); // this may need some multiplatform handling
+        tools_json_file.push(&name);
         config.tools_json_file = Some(name);
     }
-    // this approach works regardless platform:
-    // tools_json_file.push("esp-idf");
-    // tools_json_file.push("tools");
-    // tools_json_file.push("tools.json");
+
+    if !fs::metadata(&tools_json_file).is_ok() {
+        warn!("tools.json file does not exist. Please select valied tools.json file");
+        let tools_json_file_select = FolderSelect::with_theme(&theme)
+            .with_prompt("Select tools.json file manually")
+            .folder(idf_path.to_str().unwrap())
+            .file(true)
+            .interact()
+            .unwrap();
+        if fs::metadata(&tools_json_file_select).is_ok() {
+            tools_json_file = PathBuf::from(tools_json_file_select);
+            config.tools_json_file = Some(tools_json_file.to_str().unwrap().to_string());
+        } else {
+            // TODO: implement the retry logic -> in interactive mode the user should not be able to proceed until the files is found
+            panic!("tools.json file does not exist. File you've selected cannot be accessed.");
+        }
+    }
 
     debug!("Tools json file: {}", tools_json_file.display());
 
-    if !fs::metadata(&tools_json_file).is_ok() {
-        warn!("Tools.json file does not exist. Please select valied tools.json file");
-        unimplemented!(); // TODO: select tools.json file using file picker
-                          // TODO: implement the retry logic -> in interactive mode the user should not be able to proceed until the files is found
-    }
     let tools =
         match idf_im_lib::idf_tools::read_and_parse_tools_file(tools_json_file.to_str().unwrap()) {
             Ok(tools) => tools,
@@ -607,7 +585,19 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     }
     if !fs::metadata(&idf_tools_path).is_ok() {
         warn!("idf_tools.py file not found. Please select valid idf_tools.py file");
-        unimplemented!(); // TODO: select idf_tools.py file using file picker
+        let idf_tools_py_select = FolderSelect::with_theme(&theme)
+            .with_prompt("Select idf_tools.py file manually")
+            .folder(idf_path.to_str().unwrap())
+            .file(true)
+            .interact()
+            .unwrap();
+        if fs::metadata(&idf_tools_py_select).is_ok() {
+            idf_tools_path = PathBuf::from(&idf_tools_py_select);
+            config.idf_tools_path = Some(idf_tools_py_select);
+        } else {
+            // TODO: implement the retry logic -> in interactive mode the user should not be able to proceed until the files is found
+            panic!("idf_tools.py  file does not exist. File you've selected cannot be accessed.");
+        }
     }
     let out = run_with_spinner::<_, Result<String, String>>(|| {
         idf_im_lib::python_utils::run_python_script_from_file(
@@ -635,8 +625,6 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         }
         Err(err) => panic!("Failed to run idf tools: {:?}", err),
     }
-    // env_vars.push(("PATH".to_string(), env::var("PATH").unwrap_or_default()));
-    // TODO: this should be done in rust instead of python
     let export_paths =
         get_tools_export_paths(tools, &target, tool_install_directory.to_str().unwrap());
 
