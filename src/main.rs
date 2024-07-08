@@ -1,5 +1,4 @@
 use log::{error, info};
-use simple_logger::SimpleLogger;
 extern crate idf_im_lib;
 
 mod cli_args;
