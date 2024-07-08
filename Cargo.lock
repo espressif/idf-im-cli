@@ -1719,7 +1719,7 @@ dependencies = [
 [[package]]
 name = "idf-im-lib"
 version = "0.1.0"
-source = "git+https://github.com/espressif/idf-im-lib.git?branch=master#fabf81c47b73ea7b0bae35aec632f556d8f5971a"
+source = "git+https://github.com/espressif/idf-im-lib.git?branch=master#468d678c9c9e5f4798d8951da776182a68bdaeef"
 dependencies = [
  "colored",
  "decompress",
