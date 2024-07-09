@@ -74,7 +74,7 @@ async fn select_target(theme: &ColorfulTheme) -> Result<String, String> {
                 .interact()
                 .unwrap();
 
-            return Ok(avalible_targets[selection].clone());
+            Ok(avalible_targets[selection].clone())
         }
         Err(err) => Err(format!("We were unable to get avalible targets {:?}", err)),
     }
@@ -94,7 +94,7 @@ async fn select_idf_version(target: &str, theme: &ColorfulTheme) -> Result<Strin
     // println!("Selected IDF version {:?}", selected_target.to_string());
 }
 
-fn download_idf(path: &str, tag: &str) -> Result<String, String> {
+fn download_idf(path: &str, tag: &str, mirror: Option<&str>) -> Result<String, String> {
     let _: Result<String, String> = match idf_im_lib::ensure_path(&path.to_string()) {
         Ok(_) => Ok("ok".to_string()),
         Err(err) => return Err(err.to_string()), // probably panic
@@ -111,14 +111,18 @@ fn download_idf(path: &str, tag: &str) -> Result<String, String> {
         .progress_chars("#>-"),
     );
 
-    let output =
-        idf_im_lib::get_esp_idf_by_tag_name(&path.to_string(), &tag.to_string(), |stats| {
+    let output = idf_im_lib::get_esp_idf_by_tag_name(
+        &path.to_string(),
+        &tag.to_string(),
+        |stats| {
             let current_progress =
                 ((stats.received_objects() as f64) / (stats.total_objects() as f64)) * 100.0;
             progress_bar.set_position(current_progress as u64);
 
             true
-        });
+        },
+        mirror,
+    );
     match output {
         Ok(_) => Ok("ok".to_string()),
         Err(err) => match err.code() {
@@ -162,6 +166,7 @@ async fn download_tools(
     tools_file: ToolsFile,
     selected_chip: &str,
     destination_path: &str,
+    mirror: Option<&str>,
 ) -> Vec<String> {
     let tool_name_list: Vec<String> = tools_file
         .tools
@@ -184,7 +189,7 @@ async fn download_tools(
     let download_links = idf_im_lib::idf_tools::change_links_donwanload_mirror(
         idf_im_lib::idf_tools::get_download_link_by_platform(list, &platform),
         // Some("https://dl.espressif.com/github_assets"), // this switches mirror, should be parametrized
-        None,
+        mirror,
     );
     let mut downloaded_tools: Vec<String> = vec![];
     for (tool_name, download_link) in download_links.iter() {
@@ -424,8 +429,25 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     config.idf_path = Some(idf_path.clone());
     idf_im_lib::add_path_to_path(idf_path.to_str().unwrap());
 
+    let idf_mirror = match config.idf_mirror {
+        Some(mirror) => mirror,
+        None => {
+            let mirrors = vec!["https://github.com", "https://jihulab.com/esp-mirror"];
+            mirrors[Select::with_theme(&theme)
+                .with_prompt("Select mirror from which to download esp-idf")
+                .items(&mirrors)
+                .default(0)
+                .interact()
+                .unwrap()]
+            .to_string()
+        }
+    };
     // download idf
-    match download_idf(&idf_path.to_str().unwrap(), &idf_versions) {
+    match download_idf(
+        &idf_path.to_str().unwrap(),
+        &idf_versions,
+        Some(&idf_mirror),
+    ) {
         Ok(_) => {
             debug!("idf downloaded sucessfully");
         }
@@ -536,16 +558,34 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                 panic!("Failed to read tools.json file. Error: {:?}", err);
             }
         };
+    let dl_mirror = match config.mirror {
+        Some(mirror) => mirror,
+        None => {
+            let mirrors = vec![
+                "https://github.com",
+                "https://dl.espressif.com/github_assets",
+            ];
+            mirrors[Select::with_theme(&theme)
+                .with_prompt("Select download mirror")
+                .items(&mirrors)
+                .default(0)
+                .interact()
+                .unwrap()]
+            .to_string()
+        }
+    };
+
     let downloaded_tools_list = download_tools(
         tools.clone(),
         &target,
-        &tool_download_directory.to_str().unwrap(),
+        tool_download_directory.to_str().unwrap(),
+        Some(&dl_mirror),
     )
     .await;
     extract_tools(
         downloaded_tools_list,
-        &tool_download_directory.to_str().unwrap(),
-        &tool_install_directory.to_str().unwrap(),
+        tool_download_directory.to_str().unwrap(),
+        tool_install_directory.to_str().unwrap(),
     );
     idf_im_lib::add_path_to_path(tool_install_directory.to_str().unwrap());
     let mut env_vars = vec![];
@@ -640,7 +680,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     #[cfg(not(windows))]
     if std::env::consts::OS != "windows" {
         for p in export_paths {
-            let _ = idf_im_lib::add_path_to_path(&p);
+            idf_im_lib::add_path_to_path(&p);
         }
         let exports = env_vars
             .into_iter()

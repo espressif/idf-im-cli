@@ -21,6 +21,8 @@ pub struct Settings {
     pub idf_tools_path: Option<String>, // relative to idf path
     pub config_file: Option<PathBuf>,
     pub non_interactive: Option<bool>,
+    pub mirror: Option<String>,
+    pub idf_mirror: Option<String>,
 }
 
 #[derive(Parser, Debug)]
@@ -55,6 +57,19 @@ pub struct Cli {
     tools_json_file: Option<String>,
     #[arg(short, long)]
     non_interactive: Option<bool>,
+
+    #[arg(
+        short,
+        long,
+        help = "url for download mirror to use instead of github.com"
+    )]
+    mirror: Option<String>,
+
+    #[arg(
+        long,
+        help = "url for dowenload mirror to use instead of github.com for downloading esp-idf"
+    )]
+    idf_mirror: Option<String>,
 
     #[arg(
       short,
@@ -109,8 +124,9 @@ impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         let cli = Cli::parse();
         let log_level = match cli.verbose {
-            0 => log::LevelFilter::Info,
-            1 => log::LevelFilter::Debug,
+            0 => log::LevelFilter::Warn,
+            1 => log::LevelFilter::Info,
+            2 => log::LevelFilter::Debug,
             _ => log::LevelFilter::Trace,
         };
         match SimpleLogger::new().with_level(log_level).init() {
