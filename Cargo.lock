@@ -1763,6 +1763,7 @@ dependencies = [
  "console",
  "crossterm",
  "dialoguer",
+ "dirs",
  "git2",
  "idf-im-lib",
  "indicatif",

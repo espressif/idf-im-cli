@@ -6,6 +6,7 @@ use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use log::{debug, error, info, trace, warn};
 use rust_i18n::t;
 use std::fmt::Write;
+use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 use std::{env, fs};
@@ -95,8 +96,6 @@ async fn select_idf_version(target: &str, theme: &ColorfulTheme) -> Result<Strin
         .interact()
         .unwrap();
     return Ok(avalible_versions[selected_version].clone());
-    // custom_path = format!("{}/{}", base_install_path, selected_target).clone();
-    // println!("Selected IDF version {:?}", selected_target.to_string());
 }
 
 fn download_idf(path: &str, tag: Option<&str>, mirror: Option<&str>) -> Result<String, String> {
@@ -287,6 +286,34 @@ fn python_sanity_check() -> Result<(), String> {
     } else {
         Err(t!("python.sanitycheck.fail").to_string())
     }
+}
+
+fn add_to_shell_rc(content: &str) -> Result<(), String> {
+    let shell = env::var("SHELL").unwrap_or_else(|_| String::from(""));
+    let home = dirs::home_dir().unwrap();
+
+    let rc_file = match shell.as_str() {
+        "/bin/bash" => home.join(".bashrc"),
+        "/bin/zsh" => home.join(".zshrc"),
+        "/bin/fish" => home.join(".config/fish/config.fish"),
+        _ => return Err("Unsupported shell".to_string()),
+    };
+
+    let mut file = OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open(rc_file)
+        .unwrap();
+
+    match std::io::Write::write_all(&mut file, content.as_bytes()) {
+        Ok(_) => info!("{}", t!("wizard.shellrc.update.success")),
+        Err(err) => {
+            error!("{}", t!("wizard.shellrc.update.error"));
+            error!("Error: {:?}", err);
+        }
+    };
+
+    Ok(())
 }
 
 fn install_python_environment() {}
@@ -711,22 +738,31 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     }
     #[cfg(not(windows))]
     if std::env::consts::OS != "windows" {
-        for p in export_paths {
-            idf_im_lib::add_path_to_path(&p);
-        }
         let exports = env_vars
             .into_iter()
             .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
             .collect::<Vec<String>>();
-        println!(
-            "{}:\r\n\r\n{}",
-            t!("wizard.posix.succes_message"),
-            format!(
-                "{}; export PATH={}; ",
-                exports.join(""),
-                env::var("PATH").unwrap_or_default()
-            )
+        let exp_strig = format!(
+            "{}{}; ",
+            exports.join(""),
+            format!("export PATH=\"$PATH:{:?}\"", export_paths.join(":"))
         );
+
+        match Confirm::new()
+            .with_prompt(t!("wizard.after_install.add_to_path.prompt"))
+            .interact()
+        {
+            Ok(true) => match add_to_shell_rc(&exp_strig) {
+                Ok(_) => println!("{}", t!("wizard.posix.succes_message")),
+                Err(err) => panic!("{:?}", err.to_string()),
+            },
+            Ok(false) => println!(
+                "{}:\r\n\r\n{}\r\n\r\n",
+                t!("wizard.posix.succes_message"),
+                exp_strig
+            ),
+            Err(err) => panic!("{:?}", err.to_string()),
+        }
     }
 
     // TODO: offer to save settings
