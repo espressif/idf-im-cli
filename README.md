@@ -25,6 +25,8 @@ please refer to the --help for information about cli usage
 
 Download the executable for the suitable architecture.
 
+it is recomanded to first run the `--help` command 
+
 Run it and proceed according to instruction in the terminal and you will have IDF installed.
 
 for chinese run it with flag `-l=cn`
