@@ -86,9 +86,9 @@ async fn select_target(theme: &ColorfulTheme) -> Result<String, String> {
 }
 
 async fn select_idf_version(target: &str, theme: &ColorfulTheme) -> Result<String, String> {
-    let avalible_versions =
+    let mut avalible_versions =
         idf_im_lib::idf_versions::get_idf_name_by_target(&target.to_string().to_lowercase()).await;
-
+    avalible_versions.push("master".to_string());
     let selected_version = Select::with_theme(theme)
         .with_prompt(t!("wizard.select_idf_version.prompt"))
         .items(&avalible_versions)
@@ -99,7 +99,7 @@ async fn select_idf_version(target: &str, theme: &ColorfulTheme) -> Result<Strin
     // println!("Selected IDF version {:?}", selected_target.to_string());
 }
 
-fn download_idf(path: &str, tag: &str, mirror: Option<&str>) -> Result<String, String> {
+fn download_idf(path: &str, tag: Option<&str>, mirror: Option<&str>) -> Result<String, String> {
     let _: Result<String, String> = match idf_im_lib::ensure_path(&path.to_string()) {
         Ok(_) => Ok("ok".to_string()),
         Err(err) => return Err(err.to_string()), // probably panic
@@ -118,7 +118,7 @@ fn download_idf(path: &str, tag: &str, mirror: Option<&str>) -> Result<String, S
 
     let output = idf_im_lib::get_esp_idf_by_tag_name(
         &path.to_string(),
-        &tag.to_string(),
+        tag,
         |stats| {
             let current_progress =
                 ((stats.received_objects() as f64) / (stats.total_objects() as f64)) * 100.0;
@@ -408,7 +408,14 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     debug!("Selected target: {}", target);
     // select version
     if config.idf_version.is_none() {
-        config.idf_version = Some(select_idf_version(&target, &theme).await.unwrap());
+        let selected_idf_version = select_idf_version(&target, &theme).await;
+        match selected_idf_version {
+            Ok(selected_idf_version) => config.idf_version = Some(selected_idf_version),
+            Err(err) => {
+                error!("{:?}", err);
+                return Err(err);
+            }
+        }
     }
     let idf_versions = config.idf_version.unwrap();
     debug!("Selected idf version: {}", idf_versions);
@@ -456,9 +463,14 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         }
     };
     // download idf
+    let tag = if idf_versions == "master" {
+        None
+    } else {
+        Some(idf_versions.clone())
+    };
     match download_idf(
         &idf_path.to_str().unwrap(),
-        &idf_versions,
+        tag.as_deref(),
         Some(&idf_mirror),
     ) {
         Ok(_) => {

@@ -67,7 +67,7 @@ pub struct Cli {
 
     #[arg(
         long,
-        help = "url for dowenload mirror to use instead of github.com for downloading esp-idf"
+        help = "url for download mirror to use instead of github.com for downloading esp-idf"
     )]
     idf_mirror: Option<String>,
 
@@ -79,7 +79,7 @@ pub struct Cli {
   )]
     verbose: u8,
 
-    #[arg(short, long, help = "Set the language for the wizard")]
+    #[arg(short, long, help = "Set the language for the wizard (en, cn)")]
     locale: Option<String>,
 }
 
