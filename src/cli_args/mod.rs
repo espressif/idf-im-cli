@@ -1,7 +1,7 @@
 use clap::Parser;
 use clap::{arg, ValueEnum};
 use config::{Config, ConfigError, File};
-use log::error;
+use log::{error, info};
 use serde::Deserialize;
 use simple_logger::SimpleLogger;
 use std::path::PathBuf;
@@ -78,6 +78,9 @@ pub struct Cli {
       help = "Increase verbosity level (can be used multiple times)"
   )]
     verbose: u8,
+
+    #[arg(short, long, help = "Set the language for the wizard")]
+    locale: Option<String>,
 }
 
 impl IntoIterator for Cli {
@@ -115,6 +118,8 @@ impl IntoIterator for Cli {
                 "idf_tools_path".to_string(),
                 self.idf_tools_path.map(|s| s.into()),
             ),
+            ("mirror".to_string(), self.mirror.map(|s| s.into())),
+            ("idf_mirror".to_string(), self.idf_mirror.map(|s| s.into())),
         ]
         .into_iter()
     }
@@ -129,12 +134,22 @@ impl Settings {
             2 => log::LevelFilter::Debug,
             _ => log::LevelFilter::Trace,
         };
+
         match SimpleLogger::new().with_level(log_level).init() {
             Ok(_) => {}
             Err(e) => {
                 error!("Failed to initialize logger: {}", e);
             }
         }
+
+        let locale = cli.locale.clone();
+        match locale {
+            Some(l) => {
+                rust_i18n::set_locale(l.as_str());
+                info!("Set locale to: {}", l);
+            }
+            None => info!("No locale specified, defaulting to en"),
+        };
 
         let mut builder = Config::builder()
             // Start off by merging in the "default" configuration file

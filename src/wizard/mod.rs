@@ -4,6 +4,7 @@ use dialoguer::theme::ColorfulTheme;
 use idf_im_lib::idf_tools::ToolsFile;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use log::{debug, error, info, trace, warn};
+use rust_i18n::t;
 use std::fmt::Write;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
@@ -21,7 +22,7 @@ where
     spinner.set_style(
         ProgressStyle::default_spinner()
             .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ ")
-            .template("{spinner} Running...")
+            .template(&format!("{{spinner}} {}", t!("wizard.spinner.message")))
             .unwrap(),
     );
 
@@ -69,14 +70,18 @@ async fn select_target(theme: &ColorfulTheme) -> Result<String, String> {
     match avalible_targets_result {
         Ok(avalible_targets) => {
             let selection = Select::with_theme(theme)
-                .with_prompt("What target do you choose?")
+                .with_prompt(t!("wizard.select_target.prompt"))
                 .items(&avalible_targets)
                 .interact()
                 .unwrap();
 
             Ok(avalible_targets[selection].clone())
         }
-        Err(err) => Err(format!("We were unable to get avalible targets {:?}", err)),
+        Err(err) => Err(format!(
+            "{} {:?}",
+            t!("wizard.select_target.prompt.failure"),
+            err
+        )),
     }
 }
 
@@ -85,7 +90,7 @@ async fn select_idf_version(target: &str, theme: &ColorfulTheme) -> Result<Strin
         idf_im_lib::idf_versions::get_idf_name_by_target(&target.to_string().to_lowercase()).await;
 
     let selected_version = Select::with_theme(theme)
-        .with_prompt("What varsion do you choose?")
+        .with_prompt(t!("wizard.select_idf_version.prompt"))
         .items(&avalible_versions)
         .interact()
         .unwrap();
@@ -126,13 +131,17 @@ fn download_idf(path: &str, tag: &str, mirror: Option<&str>) -> Result<String, S
     match output {
         Ok(_) => Ok("ok".to_string()),
         Err(err) => match err.code() {
+            //TODO: give option to delete and retry
             git2::ErrorCode::Exists => {
-              match Confirm::new().with_prompt("The path already exists. Do you want to procees with instalation withoud redownloading IDF?").interact() {
-                Ok(true) => Ok("ok".to_string()),
-                Ok(false) => Err(err.to_string()),
-                Err(err) => Err(err.to_string()),
-              }
-            },
+                match Confirm::new()
+                    .with_prompt(t!("wizard.idf_path_exists.prompt"))
+                    .interact()
+                {
+                    Ok(true) => Ok("ok".to_string()),
+                    Ok(false) => Err(err.to_string()),
+                    Err(err) => Err(err.to_string()),
+                }
+            }
             _ => Err(err.to_string()),
         },
     }
@@ -173,7 +182,11 @@ async fn download_tools(
         .iter()
         .map(|tool| tool.name.clone())
         .collect();
-    info!("Downloading tools: {:?}", tool_name_list);
+    info!(
+        "{}: {:?}",
+        t!("wizard.tools_download.progress"),
+        tool_name_list
+    );
     let list = idf_im_lib::idf_tools::filter_tools_by_target(
         tools_file.tools,
         &selected_chip.to_lowercase(),
@@ -182,7 +195,7 @@ async fn download_tools(
     let platform = match idf_im_lib::idf_tools::get_platform_identification() {
         Ok(platform) => platform,
         Err(err) => {
-            panic!("Can not identify platfor for tools instalation.  {:?}", err);
+            panic!("{}.  {:?}", t!("wizard.tools_platform_error"), err);
         }
     };
     debug!("Python platform: {}", platform);
@@ -193,7 +206,7 @@ async fn download_tools(
     );
     let mut downloaded_tools: Vec<String> = vec![];
     for (tool_name, download_link) in download_links.iter() {
-        info!("Downloading tool: {}", tool_name);
+        info!("{}: {}", t!("wizard.tool_download.progress"), tool_name);
         let progress_bar = ProgressBar::new(download_link.size);
         progress_bar.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})").unwrap()
         .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
@@ -215,12 +228,12 @@ async fn download_tools(
         ) {
             Ok(true) => {
                 downloaded_tools.push(filename.to_string()); // add it to the list for extraction even if it's already downloaded
-                info!("The file is already downloaded and the checksum matches.");
+                info!("{}", t!("wizard.tool_file.present"));
                 progress_bar.finish();
                 continue;
             }
             _ => {
-                debug!("The checksum does not match or file was not avalible.");
+                debug!("{}", t!("wizard.tool_file.missing"));
             }
         }
 
@@ -230,10 +243,10 @@ async fn download_tools(
             Ok(_) => {
                 downloaded_tools.push(filename.to_string());
                 progress_bar.finish();
-                info!("Downloaded {}", tool_name);
+                info!("{} {}", t!("wizard.tool.downloaded"), tool_name);
             }
             Err(err) => {
-                error!("Failed to download tool: {}", tool_name);
+                error!("{}: {}", t!("wizard.tool.download_failed"), tool_name);
                 error!("Error: {:?}", err);
                 panic!();
             }
@@ -249,7 +262,7 @@ fn extract_tools(tools: Vec<String>, source_path: &str, destination_path: &str) 
         let out = idf_im_lib::decompress_archive(archive_path.to_str().unwrap(), destination_path);
         match out {
             Ok(_) => {
-                info!("extracted tool: {}", tool);
+                info!("{}: {}", t!("wizard.tool.extracted"), tool);
             }
             Err(err) => warn!("{:?}", err),
         }
@@ -272,7 +285,7 @@ fn python_sanity_check() -> Result<(), String> {
         debug!("Python sanity check passed.");
         Ok(())
     } else {
-        Err(" Your python does not meets the requirements!".to_string())
+        Err(t!("python.sanitycheck.fail").to_string())
     }
 }
 
@@ -297,11 +310,12 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     match run_with_spinner::<_, Result<Vec<String>, String>>(|| check_prerequisites()) {
         Ok(list) => {
             if list.is_empty() {
-                info!("All prerequisities are satisfied!");
+                info!("{}", t!("prerequisites.ok"));
             } else {
-                info!("The following prerequisities are not satisfied: {:?}", list);
+                info!("{}", t!("prerequisites.not_ok", l = list.join(", ")));
+                // info!("The following prerequisities are not satisfied: {:?}", list);
                 if Confirm::with_theme(&theme)
-                    .with_prompt("Do you want to install these prerequisities?")
+                    .with_prompt(t!("prerequisites.install.prompt"))
                     .default(false)
                     .interact()
                     .unwrap()
@@ -311,13 +325,16 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                         Ok(_) => match check_prerequisites() {
                             Ok(list) => {
                                 if list.is_empty() {
-                                    info!("Prerequisities installed successfully");
+                                    info!("{}", t!("prerequisites.install.success"));
                                 } else {
                                     error!(
-                                            "Something went teribly wrong. These prerequisities were not installed: {:?}",
-                                            list
-                                        );
-                                    panic!("Prerequisities not installed successfully");
+                                        "{}",
+                                        t!(
+                                            "prerequisites.install.catastrophic",
+                                            l = list.join(", ")
+                                        )
+                                    );
+                                    panic!("{}", t!("prerequisites.install.failure"));
                                 }
                             }
                             Err(err) => {
@@ -331,10 +348,8 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                         }
                     }
                 } else {
-                    error!("Please install the missing prerequisities and try again");
-                    return Err(
-                        "Please install the missing prerequisities and try again".to_string()
-                    );
+                    error!("{}", t!("prerequisites.install.ask"));
+                    return Err(t!("prerequisites.install.ask").to_string());
                 }
             }
         }
@@ -343,16 +358,16 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             return Err(err);
         }
     }
-    info!("Running python sanity check");
+    info!("{}", t!("python.sanitycheck.info"));
     match run_with_spinner::<_, Result<(), String>>(|| python_sanity_check()) {
         Ok(_) => {
-            info!("Your python meets the requirements")
+            info!("{}", t!("python.sanitycheck.ok"))
         }
         Err(err) => match std::env::consts::OS {
             "windows" => {
-                info!("Python is missing or it does not meet the requirements");
+                info!("{}", t!("python.sanitycheck.fail"));
                 if Confirm::with_theme(&theme)
-                    .with_prompt("Do you want to install python?")
+                    .with_prompt(t!("pythhon.install.prompt"))
                     .default(false)
                     .interact()
                     .unwrap()
@@ -361,21 +376,19 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                         String::from("python"),
                     ])) {
                         Ok(_) => {
-                            info!("Python installed successfully");
+                            info!("{}", t!("python.install.success"));
                         }
                         Err(err) => {
-                            error!("{:?}", err);
+                            error!("{} {:?}", t!("python.install.failure"), err);
                             return Err(err);
                         }
                     }
                 } else {
-                    return Err(
-                        "Please install python3 with pip and ssl support and try again".to_string(),
-                    );
+                    return Err(t!("python.install.refuse").to_string());
                 }
             }
             _ => {
-                error!("{:?}", err);
+                error!("{} {:?}", t!("python.sanitycheck.fail"), err);
                 return Err(err);
             }
         },
@@ -411,13 +424,13 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         }
 
         let path = match Input::with_theme(&theme)
-            .with_prompt("base instalation path")
+            .with_prompt(t!("wizard.instalation_path.prompt"))
             .default(default_path) // default testing folder TODO: remove and move to config
             .interact()
         {
             Ok(path) => path,
             Err(err) => {
-                panic!("Need to select some instalation path:{:?}", err);
+                panic!("{} :{:?}", t!("wizard.instalation_path.unselected"), err);
             }
         };
         instalation_path.push(path); // default testing folder TODO: remove and move to config
@@ -434,7 +447,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         None => {
             let mirrors = vec!["https://github.com", "https://jihulab.com/esp-mirror"];
             mirrors[Select::with_theme(&theme)
-                .with_prompt("Select mirror from which to download esp-idf")
+                .with_prompt(t!("wizard.idf.mirror"))
                 .items(&mirrors)
                 .default(0)
                 .interact()
@@ -449,11 +462,11 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         Some(&idf_mirror),
     ) {
         Ok(_) => {
-            debug!("idf downloaded sucessfully");
+            debug!("{}", t!("wizard.idf.sucess"));
         }
         Err(err) => {
             // TODO: offer purging directory and retry
-            error!("Please choose valid instalation directory {:?}", err);
+            error!("{} {:?}", t!("wizard.idf.failure"), err);
             return Err(err);
         }
     }
@@ -464,13 +477,13 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         tool_download_directory.push(&name);
     } else {
         let name = match Input::with_theme(&theme)
-            .with_prompt("name folder where the tools will be downloaded")
+            .with_prompt(t!("wizard.tools.donwload.prompt"))
             .default("dist".to_string())
             .interact()
         {
             Ok(path) => path,
             Err(err) => {
-                panic!("Need to select some folder name:{:?}", err);
+                panic!("{} :{:?}", t!("wizard.tools.donwload.prompt.failure"), err);
             }
         };
         tool_download_directory.push(&name);
@@ -489,13 +502,13 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         tool_install_directory.push(&name);
     } else {
         let name = match Input::with_theme(&theme)
-            .with_prompt("name folder where the tools will be installed")
+            .with_prompt(t!("wizard.tools.install.prompt"))
             .default("tools".to_string())
             .interact()
         {
             Ok(path) => path,
             Err(err) => {
-                panic!("Need to select some folder name:{:?}", err);
+                panic!("{} :{:?}", t!("wizard.tools.install.prompt.failure"), err);
             }
         };
         tool_install_directory.push(&name);
@@ -519,13 +532,13 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         tools_json_file.push(&file);
     } else {
         let name = match Input::with_theme(&theme)
-            .with_prompt("specify the relative (from instalation path) path to tools.json file")
+            .with_prompt(t!("wizard.tooljs_json.prompt"))
             .default("tools/tools.json".to_string()) // TODO: test on windows
             .interact()
         {
             Ok(path) => path,
             Err(err) => {
-                panic!("Need to select some folder name:{:?}", err);
+                panic!("{} :{:?}", t!("wizard.tools_json.prompt.failure"), err);
             }
         };
         tools_json_file.push(&name);
@@ -533,9 +546,9 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     }
 
     if !fs::metadata(&tools_json_file).is_ok() {
-        warn!("tools.json file does not exist. Please select valied tools.json file");
+        warn!("{}", t!("wizard.tools_json.not_found"));
         let tools_json_file_select = FolderSelect::with_theme(&theme)
-            .with_prompt("Select tools.json file manually")
+            .with_prompt(t!("wizard.tools_json.select.prompt"))
             .folder(idf_path.to_str().unwrap())
             .file(true)
             .interact()
@@ -545,7 +558,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             config.tools_json_file = Some(tools_json_file.to_str().unwrap().to_string());
         } else {
             // TODO: implement the retry logic -> in interactive mode the user should not be able to proceed until the files is found
-            panic!("tools.json file does not exist. File you've selected cannot be accessed.");
+            panic!("{}", t!("wizard.tools_json.unreachable"));
         }
     }
 
@@ -555,7 +568,10 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         match idf_im_lib::idf_tools::read_and_parse_tools_file(tools_json_file.to_str().unwrap()) {
             Ok(tools) => tools,
             Err(err) => {
-                panic!("Failed to read tools.json file. Error: {:?}", err);
+                panic!(
+                    "{}",
+                    t!("wizard.tools_json.unparsable", e = err.to_string())
+                );
             }
         };
     let dl_mirror = match config.mirror {
@@ -566,7 +582,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                 "https://dl.espressif.com/github_assets",
             ];
             mirrors[Select::with_theme(&theme)
-                .with_prompt("Select download mirror")
+                .with_prompt(t!("wizard.tools.mirror"))
                 .items(&mirrors)
                 .default(0)
                 .interact()
@@ -611,22 +627,22 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         idf_tools_path.push(&file);
     } else {
         let name = match Input::with_theme(&theme)
-            .with_prompt("specify the relative (from instalation path) path to idf_tools.py file")
+            .with_prompt(t!("wizard.idf_tools.prompt"))
             .default("tools/idf_tools.py".to_string()) // TODO: test on windows
             .interact()
         {
             Ok(path) => path,
             Err(err) => {
-                panic!("Need to select the idf_tools.py file location:{:?}", err);
+                panic!("{} :{:?}", t!("wizard.idf_tools.select.prompt"), err);
             }
         };
         idf_tools_path.push(&name); // this may need some multiplatform handling
         config.idf_tools_path = Some(name);
     }
     if !fs::metadata(&idf_tools_path).is_ok() {
-        warn!("idf_tools.py file not found. Please select valid idf_tools.py file");
+        warn!("{}", t!("wizard.idf_tools.not_found"));
         let idf_tools_py_select = FolderSelect::with_theme(&theme)
-            .with_prompt("Select idf_tools.py file manually")
+            .with_prompt(t!("wizard.idf_tools.select.prompt"))
             .folder(idf_path.to_str().unwrap())
             .file(true)
             .interact()
@@ -636,7 +652,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             config.idf_tools_path = Some(idf_tools_py_select);
         } else {
             // TODO: implement the retry logic -> in interactive mode the user should not be able to proceed until the files is found
-            panic!("idf_tools.py  file does not exist. File you've selected cannot be accessed.");
+            panic!("{}", t!("wizard.idf_tools.unreachable"));
         }
     }
     let out = run_with_spinner::<_, Result<String, String>>(|| {
@@ -651,7 +667,10 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         Ok(output) => {
             trace!("idf_tools.py install output:\r\n{}", output) // if it's success we should onlyp rint the output to the debug
         }
-        Err(err) => panic!("Failed to run idf tools: {:?}", err),
+        Err(err) => panic!(
+            "{}",
+            t!("wizard.idf_tools.failed_to_run", e = err.to_string())
+        ),
     }
     let output = idf_im_lib::python_utils::run_python_script_from_file(
         idf_tools_path.to_str().unwrap(),
@@ -663,7 +682,10 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         Ok(output) => {
             trace!("idf_tools.py install-python-env output:\r\n{}", output)
         }
-        Err(err) => panic!("Failed to run idf tools: {:?}", err),
+        Err(err) => panic!(
+            "{}",
+            t!("wizard.idf_tools.failed_to_run", e = err.to_string())
+        ),
     }
     let export_paths =
         get_tools_export_paths(tools, &target, tool_install_directory.to_str().unwrap());
@@ -673,9 +695,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         for p in export_paths {
             let _ = idf_im_lib::win_tools::add_to_win_path(&p);
         }
-        println!(
-          "\n\tYour environments variables have been updated! Shell may need to be restarted for changes to be effective"
-        );
+        println!("{}", t!("wizard.windows.succes_message"));
     }
     #[cfg(not(windows))]
     if std::env::consts::OS != "windows" {
@@ -687,7 +707,8 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
             .collect::<Vec<String>>();
         println!(
-            "please copy and paste the following lines to your terminal:\r\n\r\n {}",
+            "{}:\r\n\r\n{}",
+            t!("wizard.posix.succes_message"),
             format!(
                 "{}; export PATH={}; ",
                 exports.join(""),
