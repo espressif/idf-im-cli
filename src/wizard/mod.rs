@@ -99,7 +99,12 @@ async fn select_idf_version(target: &str, theme: &ColorfulTheme) -> Result<Strin
     // println!("Selected IDF version {:?}", selected_target.to_string());
 }
 
-fn download_idf(path: &str, tag: Option<&str>, mirror: Option<&str>) -> Result<String, String> {
+fn download_idf(
+    path: &str,
+    tag: Option<&str>,
+    mirror: Option<&str>,
+    group_name: Option<&str>,
+) -> Result<String, String> {
     let _: Result<String, String> = match idf_im_lib::ensure_path(&path.to_string()) {
         Ok(_) => Ok("ok".to_string()),
         Err(err) => return Err(err.to_string()), // probably panic
@@ -127,6 +132,7 @@ fn download_idf(path: &str, tag: Option<&str>, mirror: Option<&str>) -> Result<S
             true
         },
         mirror,
+        group_name,
     );
     match output {
         Ok(_) => Ok("ok".to_string()),
@@ -452,7 +458,11 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     let idf_mirror = match config.idf_mirror {
         Some(mirror) => mirror,
         None => {
-            let mirrors = vec!["https://github.com", "https://jihulab.com/esp-mirror"];
+            let mirrors = vec![
+                "https://github.com",
+                "https://jihulab.com/esp-mirror",
+                "https://gitee.com/",
+            ];
             mirrors[Select::with_theme(&theme)
                 .with_prompt(t!("wizard.idf.mirror"))
                 .items(&mirrors)
@@ -461,6 +471,11 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                 .unwrap()]
             .to_string()
         }
+    };
+    let group_name = if idf_mirror.contains("https://gitee.com/") {
+        Some("EspressifSystems")
+    } else {
+        None
     };
     // download idf
     let tag = if idf_versions == "master" {
@@ -472,6 +487,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         &idf_path.to_str().unwrap(),
         tag.as_deref(),
         Some(&idf_mirror),
+        group_name,
     ) {
         Ok(_) => {
             debug!("{}", t!("wizard.idf.sucess"));
@@ -592,6 +608,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             let mirrors = vec![
                 "https://github.com",
                 "https://dl.espressif.com/github_assets",
+                "https://dl.espressif.cn/github_assets",
             ];
             mirrors[Select::with_theme(&theme)
                 .with_prompt(t!("wizard.tools.mirror"))
