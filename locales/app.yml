@@ -155,3 +155,12 @@ wizard.tool.download_failed:
 wizard.tool.extracted:
  en: extracted tool
  cn: 已解压工具
+wizard.after_install.add_to_path.prompt:
+ en: Do you want to add ESP-IDF to your PATH permanently?
+ cn: 是否要永久加入 ESP-IDF 到 PATH 中?
+wizard.shellrc.update.success:
+ en: ESP-IDF shellrc updated successfully
+ cn: ESP-IDF shellrc 已更新成功
+wizard.shellrc.update.error:
+ en: ESP-IDF shellrc update failed
+ cn: ESP-IDF shellrc 更新失败
