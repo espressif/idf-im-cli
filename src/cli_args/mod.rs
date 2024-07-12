@@ -1,7 +1,7 @@
 use clap::Parser;
 use clap::{arg, ValueEnum};
 use config::{Config, ConfigError, File};
-use log::{error, info};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use simple_logger::SimpleLogger;
 use std::fs::OpenOptions;
@@ -164,6 +164,7 @@ impl Settings {
 
         // If a config file was specified via cli arg, add it here
         if let Some(config_path) = cli.config.clone() {
+            debug!("Using config file: {}", config_path.display());
             builder = builder.add_source(File::from(config_path));
         }
 
@@ -174,13 +175,15 @@ impl Settings {
         // Now that we've gathered all our config sources, let's merge them
         let mut cfg = builder.build()?;
 
+        // Add in cli-specified values
         for (key, value) in cli.into_iter() {
             if let Some(v) = value {
-                cfg.set(&key, v)?;
+                if key != "config" {
+                    debug!("Setting {} to {:?}", key, v);
+                    cfg.set(&key, v)?;
+                }
             }
         }
-
-        // Add in cli-specified values
 
         // You can deserialize (and thus freeze) the entire configuration
         cfg.try_deserialize()

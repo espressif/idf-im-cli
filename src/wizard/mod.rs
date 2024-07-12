@@ -499,6 +499,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             .to_string()
         }
     };
+    config.idf_mirror = Some(idf_mirror.clone());
     let group_name = if idf_mirror.contains("https://gitee.com/") {
         Some("EspressifSystems")
     } else {
@@ -646,7 +647,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             .to_string()
         }
     };
-
+    config.mirror = Some(dl_mirror.clone());
     let downloaded_tools_list = download_tools(
         tools.clone(),
         &target,
