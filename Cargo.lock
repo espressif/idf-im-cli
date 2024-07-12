@@ -1774,13 +1774,14 @@ dependencies = [
  "serde",
  "simple_logger",
  "tokio",
+ "toml 0.8.14",
  "walkdir",
 ]
 
 [[package]]
 name = "idf-im-lib"
 version = "0.1.0"
-source = "git+https://github.com/espressif/idf-im-lib.git?branch=master#828fabcb78fb9a8ac092ff248094e9ffe775c9e2"
+source = "git+https://github.com/espressif/idf-im-lib.git?branch=master#9d0913152a1e8562c9670ead3edcad3605ad52e4"
 dependencies = [
  "colored",
  "decompress",

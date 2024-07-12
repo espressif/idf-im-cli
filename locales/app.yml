@@ -164,3 +164,12 @@ wizard.shellrc.update.success:
 wizard.shellrc.update.error:
  en: ESP-IDF shellrc update failed
  cn: ESP-IDF shellrc 更新失败
+wizard.after_install.save_config.prompt:
+ en: Do you want to save the installer configuration?
+ cn: 是否要保存安装器配置
+wizard.after_install.config.saved:
+ en: Configuration saved successfully to config.toml
+ cn: 配置已保存成功到 config.toml
+wizard.after_install.config.save_failed:
+ en: Configuration save failed
+ cn: 配置保存失败
