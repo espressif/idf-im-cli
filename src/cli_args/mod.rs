@@ -1,15 +1,18 @@
 use clap::Parser;
 use clap::{arg, ValueEnum};
 use config::{Config, ConfigError, File};
-use log::{error, info};
-use serde::Deserialize;
+use log::{debug, error, info};
+use serde::{Deserialize, Serialize};
 use simple_logger::SimpleLogger;
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::path::PathBuf;
 use std::{fmt, str::FromStr};
+use toml::Value;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Serialize)]
 pub struct Settings {
     pub path: Option<PathBuf>,
     pub idf_path: Option<PathBuf>,
@@ -161,6 +164,7 @@ impl Settings {
 
         // If a config file was specified via cli arg, add it here
         if let Some(config_path) = cli.config.clone() {
+            debug!("Using config file: {}", config_path.display());
             builder = builder.add_source(File::from(config_path));
         }
 
@@ -171,16 +175,31 @@ impl Settings {
         // Now that we've gathered all our config sources, let's merge them
         let mut cfg = builder.build()?;
 
+        // Add in cli-specified values
         for (key, value) in cli.into_iter() {
             if let Some(v) = value {
-                cfg.set(&key, v)?;
+                if key != "config" {
+                    debug!("Setting {} to {:?}", key, v);
+                    cfg.set(&key, v)?;
+                }
             }
         }
 
-        // Add in cli-specified values
-
         // You can deserialize (and thus freeze) the entire configuration
         cfg.try_deserialize()
+    }
+
+    pub fn save(&self, file_path: &str) -> Result<(), config::ConfigError> {
+        let toml_value = toml::to_string(&self).unwrap();
+        let mut file = OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(file_path)
+            .unwrap();
+        file.write_all(toml_value.as_bytes()).unwrap();
+
+        Ok(())
     }
 }
 

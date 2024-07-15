@@ -450,12 +450,12 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             }
         }
     }
-    let idf_versions = config.idf_version.unwrap();
+    let idf_versions = config.idf_version.clone().unwrap();
     debug!("Selected idf version: {}", idf_versions);
     // select folder
     // instalation path consist from base path and idf version
     let mut instalation_path: PathBuf = PathBuf::new();
-    if let Some(path) = config.path {
+    if let Some(path) = config.path.clone() {
         instalation_path.push(&path);
     } else {
         let mut default_path = "/tmp/esp-new/".to_string();
@@ -482,7 +482,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     config.idf_path = Some(idf_path.clone());
     idf_im_lib::add_path_to_path(idf_path.to_str().unwrap());
 
-    let idf_mirror = match config.idf_mirror {
+    let idf_mirror = match config.idf_mirror.clone() {
         Some(mirror) => mirror,
         None => {
             let mirrors = vec![
@@ -499,6 +499,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             .to_string()
         }
     };
+    config.idf_mirror = Some(idf_mirror.clone());
     let group_name = if idf_mirror.contains("https://gitee.com/") {
         Some("EspressifSystems")
     } else {
@@ -528,7 +529,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
 
     let mut tool_download_directory = PathBuf::new();
     tool_download_directory.push(&instalation_path);
-    if let Some(name) = config.tool_download_folder_name {
+    if let Some(name) = config.tool_download_folder_name.clone() {
         tool_download_directory.push(&name);
     } else {
         let name = match Input::with_theme(&theme)
@@ -553,7 +554,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     }
     let mut tool_install_directory = PathBuf::new();
     tool_install_directory.push(&instalation_path);
-    if let Some(name) = config.tool_install_folder_name {
+    if let Some(name) = config.tool_install_folder_name.clone() {
         tool_install_directory.push(&name);
     } else {
         let name = match Input::with_theme(&theme)
@@ -583,7 +584,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
 
     let mut tools_json_file = PathBuf::new();
     tools_json_file.push(&idf_path);
-    if let Some(file) = config.tools_json_file {
+    if let Some(file) = config.tools_json_file.clone() {
         tools_json_file.push(&file);
     } else {
         let name = match Input::with_theme(&theme)
@@ -629,7 +630,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                 );
             }
         };
-    let dl_mirror = match config.mirror {
+    let dl_mirror = match config.mirror.clone() {
         Some(mirror) => mirror,
         None => {
             let mirrors = vec![
@@ -646,7 +647,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             .to_string()
         }
     };
-
+    config.mirror = Some(dl_mirror.clone());
     let downloaded_tools_list = download_tools(
         tools.clone(),
         &target,
@@ -672,6 +673,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     python_env_path.push("python");
 
     env::set_var("IDF_PYTHON_ENV_PATH", &python_env_path);
+    debug!("Python env path: {}", python_env_path.display());
     env_vars.push((
         "IDF_PYTHON_ENV_PATH".to_string(),
         python_env_path.to_str().unwrap().to_string(),
@@ -679,7 +681,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
 
     let mut idf_tools_path = PathBuf::new();
     idf_tools_path.push(&idf_path);
-    if let Some(file) = config.idf_tools_path {
+    if let Some(file) = config.idf_tools_path.clone() {
         idf_tools_path.push(&file);
     } else {
         let name = match Input::with_theme(&theme)
@@ -782,6 +784,21 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         }
     }
 
-    // TODO: offer to save settings
+    match Confirm::new()
+        .with_prompt(t!("wizard.after_install.save_config.prompt"))
+        .interact()
+    {
+        Ok(true) => match config.save("config.toml") {
+            // TODO: make path configurable
+            Ok(_) => println!("{}", t!("wizard.after_install.config.saved")),
+            Err(err) => panic!(
+                "{} {:?}",
+                t!("wizard.after_install.config.save_failed"),
+                err.to_string()
+            ),
+        },
+        _ => (),
+    }
+
     Ok(())
 }

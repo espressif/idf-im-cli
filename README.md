@@ -13,6 +13,20 @@ If you go trought the wizard, your choices will have the higher precedence.
 
 the installer takes config toml file. it serches for it in the default location ./config/default.toml but you can specify path to the config with `--config` cli argument
 
+example config:
+```toml
+path = "/tmp/esp-new/"
+idf_path = "/tmp/esp-new/v5.2.2/esp-idf"
+tool_download_folder_name = "dist"
+tool_install_folder_name = "tools"
+target = "esp32"
+idf_version = "v5.2.2"
+tools_json_file = "tools/tools.json"
+idf_tools_path = "tools/idf_tools.py"
+mirror = "https://github.com"
+idf_mirror = "https://github.com"
+```
+
 ### Env variables
 
 you can override any of the settings by exporting env variable prefixed by `ESP_` like `ESP_TARGET`
