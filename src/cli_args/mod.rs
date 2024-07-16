@@ -35,15 +35,15 @@ fn custom_styles() -> Styles {
             Style::new()
                 .bold()
                 .underline()
-                .fg_color(Some(Color::Ansi(AnsiColor::Yellow))),
+                .fg_color(Some(Color::Ansi(AnsiColor::Green))),
         )
         .usage(
             Style::new()
                 .bold()
                 .fg_color(Some(Color::Ansi(AnsiColor::Green))),
         )
-        .literal(Style::new().fg_color(Some(Color::Ansi(AnsiColor::Magenta))))
-        .placeholder(Style::new().fg_color(Some(Color::Ansi(AnsiColor::Red))))
+        .literal(Style::new().fg_color(Some(Color::Ansi(AnsiColor::Cyan))))
+        .placeholder(Style::new().fg_color(Some(Color::Ansi(AnsiColor::Blue))))
 }
 
 #[derive(Parser, Debug)]
