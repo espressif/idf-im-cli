@@ -1,21 +1,18 @@
 use clap::builder::styling::{AnsiColor, Color, Style, Styles};
-use clap::CommandFactory;
 use clap::{arg, command, value_parser, ColorChoice, Parser, ValueEnum};
 use config::{Config, ConfigError, File};
+use idf_im_lib::get_log_directory;
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
-use simple_logger::SimpleLogger;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 use std::{fmt, str::FromStr};
-use toml::Value;
 
 use log4rs::{
     append::{console::ConsoleAppender, file::FileAppender},
     config::{Appender, Root},
     encode::pattern::PatternEncoder,
-    Handle,
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -164,7 +161,13 @@ impl Settings {
 
         let log_file_name = match cli.log_file.clone() {
             Some(log_file) => PathBuf::from(log_file),
-            None => PathBuf::from("eim.log"),
+            None => match get_log_directory() {
+                Some(dir) => dir.join("eim.log"),
+                None => {
+                    eprintln!("Failed to get log directory, using default eim.log");
+                    PathBuf::from("eim.log")
+                }
+            },
         };
 
         let logfile = FileAppender::builder()
@@ -204,13 +207,6 @@ impl Settings {
                 panic!("Failed to initialize logger: {}", e);
             }
         };
-
-        // match SimpleLogger::new().with_level(log_level).init() {
-        //     Ok(_) => {}
-        //     Err(e) => {
-        //         error!("Failed to initialize logger: {}", e);
-        //     }
-        // }
 
         let locale = cli.locale.clone();
         match locale {
