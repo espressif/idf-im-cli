@@ -1,5 +1,6 @@
-use clap::Parser;
-use clap::{arg, ValueEnum};
+use clap::builder::styling::{AnsiColor, Color, Style, Styles};
+use clap::CommandFactory;
+use clap::{arg, command, value_parser, ColorChoice, Parser, ValueEnum};
 use config::{Config, ConfigError, File};
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
@@ -28,12 +29,31 @@ pub struct Settings {
     pub idf_mirror: Option<String>,
 }
 
+fn custom_styles() -> Styles {
+    Styles::styled()
+        .header(
+            Style::new()
+                .bold()
+                .underline()
+                .fg_color(Some(Color::Ansi(AnsiColor::Green))),
+        )
+        .usage(
+            Style::new()
+                .bold()
+                .fg_color(Some(Color::Ansi(AnsiColor::Green))),
+        )
+        .literal(Style::new().fg_color(Some(Color::Ansi(AnsiColor::Cyan))))
+        .placeholder(Style::new().fg_color(Some(Color::Ansi(AnsiColor::Blue))))
+}
+
 #[derive(Parser, Debug)]
 #[command(
     author,
     version = VERSION,
     about = "ESP-IDF Install Manager",
-    long_about = "All you need to manage your ESP-IDF installations"
+    long_about = "All you need to manage your ESP-IDF installations",
+    color = ColorChoice::Always,
+    styles = custom_styles()
 )]
 pub struct Cli {
     #[arg(short, long, value_name = "FILE")]
