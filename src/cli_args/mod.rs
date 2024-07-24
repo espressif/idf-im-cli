@@ -1,15 +1,19 @@
 use clap::builder::styling::{AnsiColor, Color, Style, Styles};
-use clap::CommandFactory;
 use clap::{arg, command, value_parser, ColorChoice, Parser, ValueEnum};
 use config::{Config, ConfigError, File};
+use idf_im_lib::get_log_directory;
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
-use simple_logger::SimpleLogger;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 use std::{fmt, str::FromStr};
-use toml::Value;
+
+use log4rs::{
+    append::{console::ConsoleAppender, file::FileAppender},
+    config::{Appender, Root},
+    encode::pattern::PatternEncoder,
+};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -104,6 +108,9 @@ pub struct Cli {
 
     #[arg(short, long, help = "Set the language for the wizard (en, cn)")]
     locale: Option<String>,
+
+    #[arg(long, help = "file in which logs will be stored (default: eim.log)")]
+    log_file: Option<String>,
 }
 
 impl IntoIterator for Cli {
@@ -151,6 +158,27 @@ impl IntoIterator for Cli {
 impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         let cli = Cli::parse();
+
+        let log_file_name = match cli.log_file.clone() {
+            Some(log_file) => PathBuf::from(log_file),
+            None => match get_log_directory() {
+                Some(dir) => dir.join("eim.log"),
+                None => {
+                    eprintln!("Failed to get log directory, using default eim.log");
+                    PathBuf::from("eim.log")
+                }
+            },
+        };
+
+        let logfile = FileAppender::builder()
+            .encoder(Box::new(PatternEncoder::new("{d} - {l} - {m}\n")))
+            .build(log_file_name)
+            .unwrap();
+
+        let stdout = ConsoleAppender::builder()
+            .encoder(Box::new(PatternEncoder::new("{d} - {l} - {m}\n")))
+            .build();
+
         let log_level = match cli.verbose {
             0 => log::LevelFilter::Warn,
             1 => log::LevelFilter::Info,
@@ -158,12 +186,27 @@ impl Settings {
             _ => log::LevelFilter::Trace,
         };
 
-        match SimpleLogger::new().with_level(log_level).init() {
-            Ok(_) => {}
+        let config = match log4rs::Config::builder()
+            .appender(Appender::builder().build("file", Box::new(logfile)))
+            .appender(Appender::builder().build("stdout", Box::new(stdout)))
+            .build(
+                Root::builder()
+                    .appender("stdout")
+                    .appender("file")
+                    .build(log_level),
+            ) {
+            Ok(c) => c,
             Err(e) => {
-                error!("Failed to initialize logger: {}", e);
+                panic!("Failed to build log4rs config: {}", e);
             }
-        }
+        };
+
+        let _handle = match log4rs::init_config(config) {
+            Ok(h) => h,
+            Err(e) => {
+                panic!("Failed to initialize logger: {}", e);
+            }
+        };
 
         let locale = cli.locale.clone();
         match locale {
