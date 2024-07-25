@@ -667,6 +667,10 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         "IDF_TOOLS_PATH".to_string(),
         tool_install_directory.to_str().unwrap().to_string(),
     ));
+    env_vars.push((
+        "IDF_PATH".to_string(),
+        idf_path.to_str().unwrap().to_string(),
+    ));
 
     let mut python_env_path = PathBuf::new();
     python_env_path.push(&tool_install_directory);
@@ -713,6 +717,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             panic!("{}", t!("wizard.idf_tools.unreachable"));
         }
     }
+    println!("ENV before install {:?}", env_vars);
     let out = run_with_spinner::<_, Result<String, String>>(|| {
         idf_im_lib::python_utils::run_python_script_from_file(
             idf_tools_path.to_str().unwrap(),
@@ -730,6 +735,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             t!("wizard.idf_tools.failed_to_run", e = err.to_string())
         ),
     }
+    println!("ENV before install-python-env {:?}", env_vars);
     let output = idf_im_lib::python_utils::run_python_script_from_file(
         idf_tools_path.to_str().unwrap(),
         Some("install-python-env"),
