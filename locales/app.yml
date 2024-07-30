@@ -173,3 +173,9 @@ wizard.after_install.config.saved:
 wizard.after_install.config.save_failed:
  en: Configuration save failed
  cn: 配置保存失败
+wizard.after_install.desktop_shortcut.created:
+ en: Desktop shortcut created successfully
+ cn: 已创建 desktop 快捷方式
+wizard.after_install.desktop_shortcut.failed:
+ en: Failed to create desktop shortcut
+ cn: 创建 desktop 快捷方式失败

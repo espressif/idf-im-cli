@@ -754,14 +754,28 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     let export_paths =
         get_tools_export_paths(tools, &target, tool_install_directory.to_str().unwrap());
 
-    #[cfg(windows)]
     if std::env::consts::OS == "windows" {
-        for p in export_paths {
-            let _ = idf_im_lib::win_tools::add_to_win_path(&p);
-        }
+        // for p in export_paths {
+        //     let _ = idf_im_lib::win_tools::add_to_win_path(&p);
+        // }
         println!("{}", t!("wizard.windows.succes_message"));
+        // Creating desktop shortcut
+        match idf_im_lib::create_desktop_shortcut(
+            instalation_path.to_str().unwrap(),
+            idf_path.to_str().unwrap(),
+            tool_install_directory.to_str().unwrap(),
+        ) {
+            Ok(_) => info!("{}", t!("wizard.after_install.desktop_shortcut.created")),
+            Err(err) => {
+                error!(
+                    "{} {:?}",
+                    t!("wizard.after_install.desktop_shortcut.failed"),
+                    err.to_string()
+                )
+            }
+        }
     }
-    #[cfg(not(windows))]
+
     if std::env::consts::OS != "windows" {
         let exports = env_vars
             .into_iter()
