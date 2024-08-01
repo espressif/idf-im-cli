@@ -667,6 +667,10 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         "IDF_TOOLS_PATH".to_string(),
         tool_install_directory.to_str().unwrap().to_string(),
     ));
+    env_vars.push((
+        "IDF_PATH".to_string(),
+        idf_path.to_str().unwrap().to_string(),
+    ));
 
     let mut python_env_path = PathBuf::new();
     python_env_path.push(&tool_install_directory);
@@ -713,6 +717,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             panic!("{}", t!("wizard.idf_tools.unreachable"));
         }
     }
+    println!("ENV before install {:?}", env_vars);
     let out = run_with_spinner::<_, Result<String, String>>(|| {
         idf_im_lib::python_utils::run_python_script_from_file(
             idf_tools_path.to_str().unwrap(),
@@ -730,6 +735,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             t!("wizard.idf_tools.failed_to_run", e = err.to_string())
         ),
     }
+    println!("ENV before install-python-env {:?}", env_vars);
     let output = idf_im_lib::python_utils::run_python_script_from_file(
         idf_tools_path.to_str().unwrap(),
         Some("install-python-env"),
@@ -748,14 +754,28 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     let export_paths =
         get_tools_export_paths(tools, &target, tool_install_directory.to_str().unwrap());
 
-    #[cfg(windows)]
     if std::env::consts::OS == "windows" {
-        for p in export_paths {
-            let _ = idf_im_lib::win_tools::add_to_win_path(&p);
-        }
+        // for p in export_paths {
+        //     let _ = idf_im_lib::win_tools::add_to_win_path(&p);
+        // }
         println!("{}", t!("wizard.windows.succes_message"));
+        // Creating desktop shortcut
+        match idf_im_lib::create_desktop_shortcut(
+            instalation_path.to_str().unwrap(),
+            idf_path.to_str().unwrap(),
+            tool_install_directory.to_str().unwrap(),
+        ) {
+            Ok(_) => info!("{}", t!("wizard.after_install.desktop_shortcut.created")),
+            Err(err) => {
+                error!(
+                    "{} {:?}",
+                    t!("wizard.after_install.desktop_shortcut.failed"),
+                    err.to_string()
+                )
+            }
+        }
     }
-    #[cfg(not(windows))]
+
     if std::env::consts::OS != "windows" {
         let exports = env_vars
             .into_iter()
