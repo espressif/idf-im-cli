@@ -23,7 +23,7 @@ pub struct Settings {
     pub idf_path: Option<PathBuf>,
     pub tool_download_folder_name: Option<String>,
     pub tool_install_folder_name: Option<String>,
-    pub target: Option<String>,
+    pub target: Option<Vec<String>>,
     pub idf_versions: Option<Vec<String>>,
     pub tools_json_file: Option<String>,
     pub idf_tools_path: Option<String>, // relative to idf path
@@ -133,7 +133,11 @@ impl IntoIterator for Cli {
                 "non_interactive".to_string(),
                 self.non_interactive.map(|b| b.into()),
             ),
-            ("target".to_string(), self.target.map(|p| p.into())),
+            (
+                "target".to_string(),
+                self.target
+                    .map(|s| s.split(",").collect::<Vec<&str>>().into()),
+            ),
             (
                 "idf_version".to_string(),
                 self.idf_versions
@@ -187,9 +191,8 @@ impl Settings {
             .build();
 
         let log_level = match cli.verbose {
-            0 => log::LevelFilter::Warn,
-            1 => log::LevelFilter::Info,
-            2 => log::LevelFilter::Debug,
+            0 => log::LevelFilter::Info,
+            1 => log::LevelFilter::Debug,
             _ => log::LevelFilter::Trace,
         };
 

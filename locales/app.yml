@@ -9,7 +9,7 @@ prerequisites.missing:
   en: The following prerequisites are not satisfied:%{l}
   cn: 以下依赖项不满足:%{l}
 prerequisites.install.prompt:
-  en: Do you want to install these prerequisites?
+  en: Do you want to install prerequisites?
   cn: 是否要安装这些依赖项？
 prerequisites.install.success:
   en: Prerequisites installed successfully

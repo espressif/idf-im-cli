@@ -65,7 +65,7 @@ fn check_prerequisites() -> Result<Vec<String>, String> {
     }
 }
 
-async fn select_target(theme: &ColorfulTheme) -> Result<String, String> {
+async fn select_target(theme: &ColorfulTheme) -> Result<Vec<String>, String> {
     let avalible_targets_result = idf_im_lib::idf_versions::get_avalible_targets().await;
     match avalible_targets_result {
         Ok(mut avalible_targets) => {
@@ -79,7 +79,14 @@ async fn select_target(theme: &ColorfulTheme) -> Result<String, String> {
                 .interact()
                 .unwrap();
 
-            Ok(avalible_targets[selection[0]].clone()) //todo return all selected
+            if selection.is_empty() {
+                return Err("You must select target".to_string());
+            }
+            let result = selection
+                .into_iter()
+                .map(|i| avalible_targets[i].clone())
+                .collect();
+            Ok(result)
         }
         Err(err) => Err(format!(
             "{} {:?}",
@@ -171,13 +178,10 @@ fn download_idf(
 
 fn get_tools_export_paths(
     tools_file: ToolsFile,
-    selected_chip: &str,
+    selected_chip: Vec<String>,
     tools_install_path: &str,
 ) -> Vec<String> {
-    let list = idf_im_lib::idf_tools::filter_tools_by_target(
-        tools_file.tools,
-        &selected_chip.to_lowercase(),
-    );
+    let list = idf_im_lib::idf_tools::filter_tools_by_target(tools_file.tools, &selected_chip);
     debug!("Creating export paths for: {:?}", list);
     let mut paths = vec![];
     for tool in &list {
@@ -195,7 +199,7 @@ fn get_tools_export_paths(
 }
 async fn download_tools(
     tools_file: ToolsFile,
-    selected_chip: &str,
+    selected_chip: Vec<String>,
     destination_path: &str,
     mirror: Option<&str>,
 ) -> Vec<String> {
@@ -209,10 +213,7 @@ async fn download_tools(
         t!("wizard.tools_download.progress"),
         tool_name_list
     );
-    let list = idf_im_lib::idf_tools::filter_tools_by_target(
-        tools_file.tools,
-        &selected_chip.to_lowercase(),
-    );
+    let list = idf_im_lib::idf_tools::filter_tools_by_target(tools_file.tools, &selected_chip);
 
     let platform = match idf_im_lib::idf_tools::get_platform_identification() {
         Ok(platform) => platform,
@@ -454,11 +455,11 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         };
         config.target = Some(chip_id);
     }
-    let target = config.target.clone().unwrap().to_string();
-    debug!("Selected target: {}", target);
+    let target = config.target.clone().unwrap();
+    debug!("Selected target: {:?}", target);
     // select version
     if config.idf_versions.is_none() {
-        let selected_idf_version = select_idf_version(&target, &theme).await;
+        let selected_idf_version = select_idf_version(&target.clone()[0], &theme).await; // TODO: handle multiple targets
         match selected_idf_version {
             Ok(selected_idf_version) => config.idf_versions = Some(selected_idf_version),
             Err(err) => {
@@ -691,7 +692,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
 
         let downloaded_tools_list = download_tools(
             tools.clone(),
-            &target,
+            target.clone(),
             tool_download_directory.to_str().unwrap(),
             Some(&dl_mirror),
         )
@@ -796,8 +797,11 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
                 t!("wizard.idf_tools.failed_to_run", e = err.to_string())
             ),
         }
-        let export_paths =
-            get_tools_export_paths(tools, &target, tool_install_directory.to_str().unwrap());
+        let export_paths = get_tools_export_paths(
+            tools,
+            target.clone(),
+            tool_install_directory.to_str().unwrap(),
+        );
 
         if std::env::consts::OS == "windows" {
             // for p in export_paths {
@@ -808,6 +812,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             match idf_im_lib::create_desktop_shortcut(
                 version_instalation_path.to_str().unwrap(),
                 idf_path.to_str().unwrap(),
+                &idf_version,
                 tool_install_directory.to_str().unwrap(),
             ) {
                 Ok(_) => info!("{}", t!("wizard.after_install.desktop_shortcut.created")),
