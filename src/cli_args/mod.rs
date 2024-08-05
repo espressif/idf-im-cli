@@ -24,11 +24,12 @@ pub struct Settings {
     pub tool_download_folder_name: Option<String>,
     pub tool_install_folder_name: Option<String>,
     pub target: Option<String>,
-    pub idf_version: Option<String>,
+    pub idf_versions: Option<Vec<String>>,
     pub tools_json_file: Option<String>,
     pub idf_tools_path: Option<String>, // relative to idf path
     pub config_file: Option<PathBuf>,
     pub non_interactive: Option<bool>,
+    pub wizard_all_questions: Option<bool>,
     pub mirror: Option<String>,
     pub idf_mirror: Option<String>,
 }
@@ -67,7 +68,7 @@ pub struct Cli {
     target: Option<String>,
 
     #[arg(short, long)]
-    idf_version: Option<String>,
+    idf_versions: Option<String>,
     #[arg(long)]
     tool_download_folder_name: Option<String>,
     #[arg(long)]
@@ -85,6 +86,11 @@ pub struct Cli {
     #[arg(short, long)]
     non_interactive: Option<bool>,
 
+    // #[arg(
+    //   long,
+    //   help = "The wizard will ask for every configurable option" //TODO: needs to be enabled inside wizard
+    // )]
+    // wizard_all_questions: Option<String>,
     #[arg(
         short,
         long,
@@ -130,7 +136,8 @@ impl IntoIterator for Cli {
             ("target".to_string(), self.target.map(|p| p.into())),
             (
                 "idf_version".to_string(),
-                self.idf_version.map(|s| s.into()),
+                self.idf_versions
+                    .map(|s| s.split(",").collect::<Vec<&str>>().into()),
             ),
             (
                 "tool_download_folder_name".to_string(),

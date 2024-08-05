@@ -120,8 +120,8 @@ wizard.spinner.message:
  en: Doing something...
  cn: 执行中
 wizard.select_target.prompt:
- en: Please select the target platform (esp chip)
- cn: 请选择目标平台（ESP 芯片）
+ en: Please select all of the the target platforms (esp chips)
+ cn: 请选择所有的目标平台（esp 芯片）
 wizard.select_target.prompt.failure:
  en: We were unable to fetch avalible targets
  cn: 无法获取可用的目标平台
