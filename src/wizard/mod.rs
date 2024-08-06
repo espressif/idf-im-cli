@@ -11,8 +11,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 use std::{env, fs};
 // folder select
-use dialoguer::{Confirm, FolderSelect, Input, Select};
-use walkdir::{DirEntry, WalkDir};
+use dialoguer::{Confirm, FolderSelect, Input, MultiSelect, Select};
 
 fn run_with_spinner<F, T>(func: F) -> T
 where
@@ -66,17 +65,28 @@ fn check_prerequisites() -> Result<Vec<String>, String> {
     }
 }
 
-async fn select_target(theme: &ColorfulTheme) -> Result<String, String> {
+async fn select_target(theme: &ColorfulTheme) -> Result<Vec<String>, String> {
     let avalible_targets_result = idf_im_lib::idf_versions::get_avalible_targets().await;
     match avalible_targets_result {
-        Ok(avalible_targets) => {
-            let selection = Select::with_theme(theme)
+        Ok(mut avalible_targets) => {
+            avalible_targets.insert(0, "all".to_string());
+            let mut defaults = vec![true];
+            defaults.extend(vec![false; avalible_targets.len() - 1]);
+            let selection = MultiSelect::with_theme(theme)
                 .with_prompt(t!("wizard.select_target.prompt"))
-                .items(&avalible_targets)
+                .items(avalible_targets.clone())
+                .defaults(&defaults)
                 .interact()
                 .unwrap();
 
-            Ok(avalible_targets[selection].clone())
+            if selection.is_empty() {
+                return Err("You must select target".to_string());
+            }
+            let result = selection
+                .into_iter()
+                .map(|i| avalible_targets[i].clone())
+                .collect();
+            Ok(result)
         }
         Err(err) => Err(format!(
             "{} {:?}",
@@ -86,16 +96,30 @@ async fn select_target(theme: &ColorfulTheme) -> Result<String, String> {
     }
 }
 
-async fn select_idf_version(target: &str, theme: &ColorfulTheme) -> Result<String, String> {
-    let mut avalible_versions =
-        idf_im_lib::idf_versions::get_idf_name_by_target(&target.to_string().to_lowercase()).await;
+async fn select_idf_version(target: &str, theme: &ColorfulTheme) -> Result<Vec<String>, String> {
+    let mut avalible_versions = if target == "all" {
+        //todo process vector of targets
+        idf_im_lib::idf_versions::get_idf_names().await
+    } else {
+        idf_im_lib::idf_versions::get_idf_name_by_target(&target.to_string().to_lowercase()).await
+    };
     avalible_versions.push("master".to_string());
-    let selected_version = Select::with_theme(theme)
+    let mut defaults = vec![true];
+    defaults.extend(vec![false; avalible_versions.len() - 1]);
+    let selected_version = MultiSelect::with_theme(theme)
         .with_prompt(t!("wizard.select_idf_version.prompt"))
         .items(&avalible_versions)
+        .defaults(&defaults)
         .interact()
         .unwrap();
-    return Ok(avalible_versions[selected_version].clone());
+    if selected_version.is_empty() {
+        return Err("You must select IDF version".to_string());
+    }
+
+    return Ok(selected_version
+        .into_iter()
+        .map(|i| avalible_versions[i].clone())
+        .collect());
 }
 
 fn download_idf(
@@ -154,13 +178,10 @@ fn download_idf(
 
 fn get_tools_export_paths(
     tools_file: ToolsFile,
-    selected_chip: &str,
+    selected_chip: Vec<String>,
     tools_install_path: &str,
 ) -> Vec<String> {
-    let list = idf_im_lib::idf_tools::filter_tools_by_target(
-        tools_file.tools,
-        &selected_chip.to_lowercase(),
-    );
+    let list = idf_im_lib::idf_tools::filter_tools_by_target(tools_file.tools, &selected_chip);
     debug!("Creating export paths for: {:?}", list);
     let mut paths = vec![];
     for tool in &list {
@@ -178,7 +199,7 @@ fn get_tools_export_paths(
 }
 async fn download_tools(
     tools_file: ToolsFile,
-    selected_chip: &str,
+    selected_chip: Vec<String>,
     destination_path: &str,
     mirror: Option<&str>,
 ) -> Vec<String> {
@@ -192,10 +213,7 @@ async fn download_tools(
         t!("wizard.tools_download.progress"),
         tool_name_list
     );
-    let list = idf_im_lib::idf_tools::filter_tools_by_target(
-        tools_file.tools,
-        &selected_chip.to_lowercase(),
-    );
+    let list = idf_im_lib::idf_tools::filter_tools_by_target(tools_file.tools, &selected_chip);
 
     let platform = match idf_im_lib::idf_tools::get_platform_identification() {
         Ok(platform) => platform,
@@ -437,50 +455,23 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         };
         config.target = Some(chip_id);
     }
-    let target = config.target.clone().unwrap().to_string();
-    debug!("Selected target: {}", target);
+    let target = config.target.clone().unwrap();
+    debug!("Selected target: {:?}", target);
     // select version
-    if config.idf_version.is_none() {
-        let selected_idf_version = select_idf_version(&target, &theme).await;
+    if config.idf_versions.is_none() {
+        let selected_idf_version = select_idf_version(&target.clone()[0], &theme).await; // TODO: handle multiple targets
         match selected_idf_version {
-            Ok(selected_idf_version) => config.idf_version = Some(selected_idf_version),
+            Ok(selected_idf_version) => config.idf_versions = Some(selected_idf_version),
             Err(err) => {
                 error!("{:?}", err);
                 return Err(err);
             }
         }
     }
-    let idf_versions = config.idf_version.clone().unwrap();
-    debug!("Selected idf version: {}", idf_versions);
-    // select folder
-    // instalation path consist from base path and idf version
-    let mut instalation_path: PathBuf = PathBuf::new();
-    if let Some(path) = config.path.clone() {
-        instalation_path.push(&path);
-    } else {
-        let mut default_path = "/tmp/esp-new/".to_string();
-        if std::env::consts::OS == "windows" {
-            default_path = "C:\\esp\\".to_string();
-        }
+    let idf_versions = config.idf_versions.clone().unwrap();
+    debug!("Selected idf version: {:?}", idf_versions);
 
-        let path = match Input::with_theme(&theme)
-            .with_prompt(t!("wizard.instalation_path.prompt"))
-            .default(default_path) // default testing folder TODO: remove and move to config
-            .interact()
-        {
-            Ok(path) => path,
-            Err(err) => {
-                panic!("{} :{:?}", t!("wizard.instalation_path.unselected"), err);
-            }
-        };
-        instalation_path.push(path); // default testing folder TODO: remove and move to config
-        config.path = Some(instalation_path.clone());
-    }
-    instalation_path.push(&idf_versions);
-    let mut idf_path = instalation_path.clone();
-    idf_path.push("esp-idf");
-    config.idf_path = Some(idf_path.clone());
-    idf_im_lib::add_path_to_path(idf_path.to_str().unwrap());
+    // mirrors select
 
     let idf_mirror = match config.idf_mirror.clone() {
         Some(mirror) => mirror,
@@ -505,131 +496,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     } else {
         None
     };
-    // download idf
-    let tag = if idf_versions == "master" {
-        None
-    } else {
-        Some(idf_versions.clone())
-    };
-    match download_idf(
-        &idf_path.to_str().unwrap(),
-        tag.as_deref(),
-        Some(&idf_mirror),
-        group_name,
-    ) {
-        Ok(_) => {
-            debug!("{}", t!("wizard.idf.sucess"));
-        }
-        Err(err) => {
-            // TODO: offer purging directory and retry
-            error!("{} {:?}", t!("wizard.idf.failure"), err);
-            return Err(err);
-        }
-    }
 
-    let mut tool_download_directory = PathBuf::new();
-    tool_download_directory.push(&instalation_path);
-    if let Some(name) = config.tool_download_folder_name.clone() {
-        tool_download_directory.push(&name);
-    } else {
-        let name = match Input::with_theme(&theme)
-            .with_prompt(t!("wizard.tools.donwload.prompt"))
-            .default("dist".to_string())
-            .interact()
-        {
-            Ok(path) => path,
-            Err(err) => {
-                panic!("{} :{:?}", t!("wizard.tools.donwload.prompt.failure"), err);
-            }
-        };
-        tool_download_directory.push(&name);
-        config.tool_download_folder_name = Some(name);
-    }
-    match idf_im_lib::ensure_path(&tool_download_directory.display().to_string()) {
-        Ok(_) => {}
-        Err(err) => {
-            error!("{:?}", err);
-            return Err(err.to_string());
-        }
-    }
-    let mut tool_install_directory = PathBuf::new();
-    tool_install_directory.push(&instalation_path);
-    if let Some(name) = config.tool_install_folder_name.clone() {
-        tool_install_directory.push(&name);
-    } else {
-        let name = match Input::with_theme(&theme)
-            .with_prompt(t!("wizard.tools.install.prompt"))
-            .default("tools".to_string())
-            .interact()
-        {
-            Ok(path) => path,
-            Err(err) => {
-                panic!("{} :{:?}", t!("wizard.tools.install.prompt.failure"), err);
-            }
-        };
-        tool_install_directory.push(&name);
-        config.tool_install_folder_name = Some(name);
-    }
-    idf_im_lib::add_path_to_path(tool_install_directory.to_str().unwrap());
-
-    match idf_im_lib::ensure_path(&tool_install_directory.display().to_string()) {
-        Ok(_) => {}
-        Err(err) => {
-            error!("{:?}", err);
-            return Err(err.to_string());
-        }
-    }
-
-    // tools_json_file
-
-    let mut tools_json_file = PathBuf::new();
-    tools_json_file.push(&idf_path);
-    if let Some(file) = config.tools_json_file.clone() {
-        tools_json_file.push(&file);
-    } else {
-        let name = match Input::with_theme(&theme)
-            .with_prompt(t!("wizard.tooljs_json.prompt"))
-            .default("tools/tools.json".to_string()) // TODO: test on windows
-            .interact()
-        {
-            Ok(path) => path,
-            Err(err) => {
-                panic!("{} :{:?}", t!("wizard.tools_json.prompt.failure"), err);
-            }
-        };
-        tools_json_file.push(&name);
-        config.tools_json_file = Some(name);
-    }
-
-    if !fs::metadata(&tools_json_file).is_ok() {
-        warn!("{}", t!("wizard.tools_json.not_found"));
-        let tools_json_file_select = FolderSelect::with_theme(&theme)
-            .with_prompt(t!("wizard.tools_json.select.prompt"))
-            .folder(idf_path.to_str().unwrap())
-            .file(true)
-            .interact()
-            .unwrap();
-        if fs::metadata(&tools_json_file_select).is_ok() {
-            tools_json_file = PathBuf::from(tools_json_file_select);
-            config.tools_json_file = Some(tools_json_file.to_str().unwrap().to_string());
-        } else {
-            // TODO: implement the retry logic -> in interactive mode the user should not be able to proceed until the files is found
-            panic!("{}", t!("wizard.tools_json.unreachable"));
-        }
-    }
-
-    debug!("Tools json file: {}", tools_json_file.display());
-
-    let tools =
-        match idf_im_lib::idf_tools::read_and_parse_tools_file(tools_json_file.to_str().unwrap()) {
-            Ok(tools) => tools,
-            Err(err) => {
-                panic!(
-                    "{}",
-                    t!("wizard.tools_json.unparsable", e = err.to_string())
-                );
-            }
-        };
     let dl_mirror = match config.mirror.clone() {
         Some(mirror) => mirror,
         None => {
@@ -648,159 +515,343 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         }
     };
     config.mirror = Some(dl_mirror.clone());
-    let downloaded_tools_list = download_tools(
-        tools.clone(),
-        &target,
-        tool_download_directory.to_str().unwrap(),
-        Some(&dl_mirror),
-    )
-    .await;
-    extract_tools(
-        downloaded_tools_list,
-        tool_download_directory.to_str().unwrap(),
-        tool_install_directory.to_str().unwrap(),
-    );
-    idf_im_lib::add_path_to_path(tool_install_directory.to_str().unwrap());
-    let mut env_vars = vec![];
-    env::set_var("IDF_TOOLS_PATH", &tool_install_directory);
-    env_vars.push((
-        "IDF_TOOLS_PATH".to_string(),
-        tool_install_directory.to_str().unwrap().to_string(),
-    ));
-    env_vars.push((
-        "IDF_PATH".to_string(),
-        idf_path.to_str().unwrap().to_string(),
-    ));
 
-    let mut python_env_path = PathBuf::new();
-    python_env_path.push(&tool_install_directory);
-    python_env_path.push("python");
-
-    env::set_var("IDF_PYTHON_ENV_PATH", &python_env_path);
-    debug!("Python env path: {}", python_env_path.display());
-    env_vars.push((
-        "IDF_PYTHON_ENV_PATH".to_string(),
-        python_env_path.to_str().unwrap().to_string(),
-    ));
-
-    let mut idf_tools_path = PathBuf::new();
-    idf_tools_path.push(&idf_path);
-    if let Some(file) = config.idf_tools_path.clone() {
-        idf_tools_path.push(&file);
+    // select folder
+    // instalation path consist from base path and idf version
+    let mut instalation_path: PathBuf = PathBuf::new();
+    if let Some(path) = config.path.clone() {
+        instalation_path.push(&path);
     } else {
-        let name = match Input::with_theme(&theme)
-            .with_prompt(t!("wizard.idf_tools.prompt"))
-            .default("tools/idf_tools.py".to_string()) // TODO: test on windows
+        let mut default_path = "/tmp/esp-new/".to_string();
+        if std::env::consts::OS == "windows" {
+            default_path = "C:\\esp\\".to_string();
+        }
+
+        let path = match Input::with_theme(&theme)
+            .with_prompt(t!("wizard.instalation_path.prompt"))
+            .default(default_path) // default testing folder TODO: remove and move to config
             .interact()
         {
             Ok(path) => path,
             Err(err) => {
-                panic!("{} :{:?}", t!("wizard.idf_tools.select.prompt"), err);
+                panic!("{} :{:?}", t!("wizard.instalation_path.unselected"), err);
             }
         };
-        idf_tools_path.push(&name); // this may need some multiplatform handling
-        config.idf_tools_path = Some(name);
+        instalation_path.push(path); // default testing folder TODO: remove and move to config
+        config.path = Some(instalation_path.clone());
     }
-    if !fs::metadata(&idf_tools_path).is_ok() {
-        warn!("{}", t!("wizard.idf_tools.not_found"));
-        let idf_tools_py_select = FolderSelect::with_theme(&theme)
-            .with_prompt(t!("wizard.idf_tools.select.prompt"))
-            .folder(idf_path.to_str().unwrap())
-            .file(true)
-            .interact()
-            .unwrap();
-        if fs::metadata(&idf_tools_py_select).is_ok() {
-            idf_tools_path = PathBuf::from(&idf_tools_py_select);
-            config.idf_tools_path = Some(idf_tools_py_select);
-        } else {
-            // TODO: implement the retry logic -> in interactive mode the user should not be able to proceed until the files is found
-            panic!("{}", t!("wizard.idf_tools.unreachable"));
-        }
-    }
-    println!("ENV before install {:?}", env_vars);
-    let out = run_with_spinner::<_, Result<String, String>>(|| {
-        idf_im_lib::python_utils::run_python_script_from_file(
-            idf_tools_path.to_str().unwrap(),
-            Some("install"),
-            None,
-            Some(&env_vars),
-        )
-    });
-    match out {
-        Ok(output) => {
-            trace!("idf_tools.py install output:\r\n{}", output) // if it's success we should onlyp rint the output to the debug
-        }
-        Err(err) => panic!(
-            "{}",
-            t!("wizard.idf_tools.failed_to_run", e = err.to_string())
-        ),
-    }
-    println!("ENV before install-python-env {:?}", env_vars);
-    let output = idf_im_lib::python_utils::run_python_script_from_file(
-        idf_tools_path.to_str().unwrap(),
-        Some("install-python-env"),
-        None,
-        Some(&env_vars),
-    );
-    match output {
-        Ok(output) => {
-            trace!("idf_tools.py install-python-env output:\r\n{}", output)
-        }
-        Err(err) => panic!(
-            "{}",
-            t!("wizard.idf_tools.failed_to_run", e = err.to_string())
-        ),
-    }
-    let export_paths =
-        get_tools_export_paths(tools, &target, tool_install_directory.to_str().unwrap());
 
-    if std::env::consts::OS == "windows" {
-        // for p in export_paths {
-        //     let _ = idf_im_lib::win_tools::add_to_win_path(&p);
-        // }
-        println!("{}", t!("wizard.windows.succes_message"));
-        // Creating desktop shortcut
-        match idf_im_lib::create_desktop_shortcut(
-            instalation_path.to_str().unwrap(),
-            idf_path.to_str().unwrap(),
-            tool_install_directory.to_str().unwrap(),
+    // Multiple version starts here
+
+    for idf_version in idf_versions {
+        let mut version_instalation_path = instalation_path.clone();
+        version_instalation_path.push(&idf_version);
+        let mut idf_path = version_instalation_path.clone();
+        idf_path.push("esp-idf");
+        config.idf_path = Some(idf_path.clone());
+        idf_im_lib::add_path_to_path(idf_path.to_str().unwrap());
+
+        // download idf
+        let tag = if idf_version == "master" {
+            None
+        } else {
+            Some(idf_version.clone())
+        };
+        match download_idf(
+            &idf_path.to_str().unwrap(),
+            tag.as_deref(),
+            Some(&idf_mirror),
+            group_name,
         ) {
-            Ok(_) => info!("{}", t!("wizard.after_install.desktop_shortcut.created")),
+            Ok(_) => {
+                debug!("{}", t!("wizard.idf.sucess"));
+            }
             Err(err) => {
-                error!(
-                    "{} {:?}",
-                    t!("wizard.after_install.desktop_shortcut.failed"),
-                    err.to_string()
-                )
+                // TODO: offer purging directory and retry
+                error!("{} {:?}", t!("wizard.idf.failure"), err);
+                return Err(err);
             }
         }
-    }
 
-    if std::env::consts::OS != "windows" {
-        let exports = env_vars
-            .into_iter()
-            .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
-            .collect::<Vec<String>>();
-        let exp_strig = format!(
-            "{}{}; ",
-            exports.join(""),
-            format!("export PATH=\"$PATH:{:?}\"", export_paths.join(":"))
+        let mut tool_download_directory = PathBuf::new();
+        tool_download_directory.push(&version_instalation_path);
+        let default_tools_download_folder_name = "dist"; // TODO: move to config too?
+        if let Some(name) = config.tool_download_folder_name.clone() {
+            tool_download_directory.push(&name);
+        } else if config.wizard_all_questions.is_some() && config.wizard_all_questions.unwrap() {
+            let name = match Input::with_theme(&theme)
+                .with_prompt(t!("wizard.tools.donwload.prompt"))
+                .default(default_tools_download_folder_name.to_string())
+                .interact()
+            {
+                Ok(path) => path,
+                Err(err) => {
+                    panic!("{} :{:?}", t!("wizard.tools.donwload.prompt.failure"), err);
+                }
+            };
+            tool_download_directory.push(&name);
+            config.tool_download_folder_name = Some(name);
+        } else {
+            tool_download_directory.push(default_tools_download_folder_name);
+            config.tool_download_folder_name = Some(default_tools_download_folder_name.to_string());
+        }
+        match idf_im_lib::ensure_path(&tool_download_directory.display().to_string()) {
+            Ok(_) => {}
+            Err(err) => {
+                error!("{:?}", err);
+                return Err(err.to_string());
+            }
+        }
+        let mut tool_install_directory = PathBuf::new();
+        tool_install_directory.push(&version_instalation_path);
+        let default_tools_install_folder_name = "tools"; // TODO: move to config too?
+        if let Some(name) = config.tool_install_folder_name.clone() {
+            tool_install_directory.push(&name);
+        } else if config.wizard_all_questions.is_some() && config.wizard_all_questions.unwrap() {
+            let name = match Input::with_theme(&theme)
+                .with_prompt(t!("wizard.tools.install.prompt"))
+                .default(default_tools_install_folder_name.to_string())
+                .interact()
+            {
+                Ok(path) => path,
+                Err(err) => {
+                    panic!("{} :{:?}", t!("wizard.tools.install.prompt.failure"), err);
+                }
+            };
+            tool_install_directory.push(&name);
+            config.tool_install_folder_name = Some(name);
+        } else {
+            tool_install_directory.push(default_tools_install_folder_name);
+            config.tool_install_folder_name = Some(default_tools_install_folder_name.to_string());
+        }
+        idf_im_lib::add_path_to_path(tool_install_directory.to_str().unwrap());
+
+        match idf_im_lib::ensure_path(&tool_install_directory.display().to_string()) {
+            Ok(_) => {}
+            Err(err) => {
+                error!("{:?}", err);
+                return Err(err.to_string());
+            }
+        }
+
+        // tools_json_file
+
+        let mut tools_json_file = PathBuf::new();
+        tools_json_file.push(&idf_path);
+        let default_tools_json_file_location = "tools/tools.json"; // TODO: move to config too?
+        if let Some(file) = config.tools_json_file.clone() {
+            tools_json_file.push(&file);
+        } else if config.wizard_all_questions.is_some() && config.wizard_all_questions.unwrap() {
+            let name = match Input::with_theme(&theme)
+                .with_prompt(t!("wizard.tooljs_json.prompt"))
+                .default(default_tools_json_file_location.to_string())
+                .interact()
+            {
+                Ok(path) => path,
+                Err(err) => {
+                    panic!("{} :{:?}", t!("wizard.tools_json.prompt.failure"), err);
+                }
+            };
+            tools_json_file.push(&name);
+            config.tools_json_file = Some(name);
+        } else {
+            tools_json_file.push(default_tools_json_file_location);
+            config.tools_json_file = Some(default_tools_json_file_location.to_string());
+        }
+
+        if !fs::metadata(&tools_json_file).is_ok() {
+            warn!("{}", t!("wizard.tools_json.not_found"));
+            let tools_json_file_select = FolderSelect::with_theme(&theme)
+                .with_prompt(t!("wizard.tools_json.select.prompt"))
+                .folder(idf_path.to_str().unwrap())
+                .file(true)
+                .interact()
+                .unwrap();
+            if fs::metadata(&tools_json_file_select).is_ok() {
+                tools_json_file = PathBuf::from(tools_json_file_select);
+                config.tools_json_file = Some(tools_json_file.to_str().unwrap().to_string());
+            } else {
+                // TODO: implement the retry logic -> in interactive mode the user should not be able to proceed until the files is found
+                panic!("{}", t!("wizard.tools_json.unreachable"));
+            }
+        }
+
+        debug!("Tools json file: {}", tools_json_file.display());
+
+        let tools = match idf_im_lib::idf_tools::read_and_parse_tools_file(
+            tools_json_file.to_str().unwrap(),
+        ) {
+            Ok(tools) => tools,
+            Err(err) => {
+                panic!(
+                    "{}",
+                    t!("wizard.tools_json.unparsable", e = err.to_string())
+                );
+            }
+        };
+
+        let downloaded_tools_list = download_tools(
+            tools.clone(),
+            target.clone(),
+            tool_download_directory.to_str().unwrap(),
+            Some(&dl_mirror),
+        )
+        .await;
+        extract_tools(
+            downloaded_tools_list,
+            tool_download_directory.to_str().unwrap(),
+            tool_install_directory.to_str().unwrap(),
+        );
+        idf_im_lib::add_path_to_path(tool_install_directory.to_str().unwrap());
+        let mut env_vars = vec![];
+        env::set_var("IDF_TOOLS_PATH", &tool_install_directory);
+        env_vars.push((
+            "IDF_TOOLS_PATH".to_string(),
+            tool_install_directory.to_str().unwrap().to_string(),
+        ));
+        env_vars.push((
+            "IDF_PATH".to_string(),
+            idf_path.to_str().unwrap().to_string(),
+        ));
+
+        let mut python_env_path = PathBuf::new();
+        python_env_path.push(&tool_install_directory);
+        python_env_path.push("python");
+
+        env::set_var("IDF_PYTHON_ENV_PATH", &python_env_path);
+        debug!("Python env path: {}", python_env_path.display());
+        env_vars.push((
+            "IDF_PYTHON_ENV_PATH".to_string(),
+            python_env_path.to_str().unwrap().to_string(),
+        ));
+
+        let mut idf_tools_path = PathBuf::new();
+        idf_tools_path.push(&idf_path);
+        let default_idf_tools_py_file_location: &str = "./tools/idf_tools.py"; // TODO: move to config too?
+        if let Some(file) = config.idf_tools_path.clone() {
+            idf_tools_path.push(&file);
+        } else if config.wizard_all_questions.is_some() && config.wizard_all_questions.unwrap() {
+            let name = match Input::with_theme(&theme)
+                .with_prompt(t!("wizard.idf_tools.prompt"))
+                .default(default_idf_tools_py_file_location.to_string())
+                .interact()
+            {
+                Ok(path) => path,
+                Err(err) => {
+                    panic!("{} :{:?}", t!("wizard.idf_tools.select.prompt"), err);
+                }
+            };
+            idf_tools_path.push(&name); // this may need some multiplatform handling
+            config.idf_tools_path = Some(name);
+        } else {
+            idf_tools_path.push(default_idf_tools_py_file_location);
+            config.idf_tools_path = Some(default_idf_tools_py_file_location.to_string());
+        }
+        if !fs::metadata(&idf_tools_path).is_ok() {
+            warn!("{}", t!("wizard.idf_tools.not_found"));
+            let idf_tools_py_select = FolderSelect::with_theme(&theme)
+                .with_prompt(t!("wizard.idf_tools.select.prompt"))
+                .folder(idf_path.to_str().unwrap())
+                .file(true)
+                .interact()
+                .unwrap();
+            if fs::metadata(&idf_tools_py_select).is_ok() {
+                idf_tools_path = PathBuf::from(&idf_tools_py_select);
+                config.idf_tools_path = Some(idf_tools_py_select);
+            } else {
+                // TODO: implement the retry logic -> in interactive mode the user should not be able to proceed until the files is found
+                panic!("{}", t!("wizard.idf_tools.unreachable"));
+            }
+        }
+        println!("ENV before install {:?}", env_vars);
+        let out = run_with_spinner::<_, Result<String, String>>(|| {
+            idf_im_lib::python_utils::run_python_script_from_file(
+                idf_tools_path.to_str().unwrap(),
+                Some("install"),
+                None,
+                Some(&env_vars),
+            )
+        });
+        match out {
+            Ok(output) => {
+                trace!("idf_tools.py install output:\r\n{}", output) // if it's success we should onlyp rint the output to the debug
+            }
+            Err(err) => panic!(
+                "{}",
+                t!("wizard.idf_tools.failed_to_run", e = err.to_string())
+            ),
+        }
+        println!("ENV before install-python-env {:?}", env_vars);
+        let output = idf_im_lib::python_utils::run_python_script_from_file(
+            idf_tools_path.to_str().unwrap(),
+            Some("install-python-env"),
+            None,
+            Some(&env_vars),
+        );
+        match output {
+            Ok(output) => {
+                trace!("idf_tools.py install-python-env output:\r\n{}", output)
+            }
+            Err(err) => panic!(
+                "{}",
+                t!("wizard.idf_tools.failed_to_run", e = err.to_string())
+            ),
+        }
+        let export_paths = get_tools_export_paths(
+            tools,
+            target.clone(),
+            tool_install_directory.to_str().unwrap(),
         );
 
-        match Confirm::new()
-            .with_prompt(t!("wizard.after_install.add_to_path.prompt"))
-            .interact()
-        {
-            Ok(true) => match add_to_shell_rc(&exp_strig) {
-                Ok(_) => println!("{}", t!("wizard.posix.succes_message")),
+        if std::env::consts::OS == "windows" {
+            // for p in export_paths {
+            //     let _ = idf_im_lib::win_tools::add_to_win_path(&p);
+            // }
+            println!("{}", t!("wizard.windows.succes_message"));
+            // Creating desktop shortcut
+            match idf_im_lib::create_desktop_shortcut(
+                version_instalation_path.to_str().unwrap(),
+                idf_path.to_str().unwrap(),
+                &idf_version,
+                tool_install_directory.to_str().unwrap(),
+            ) {
+                Ok(_) => info!("{}", t!("wizard.after_install.desktop_shortcut.created")),
+                Err(err) => {
+                    error!(
+                        "{} {:?}",
+                        t!("wizard.after_install.desktop_shortcut.failed"),
+                        err.to_string()
+                    )
+                }
+            }
+        }
+
+        if std::env::consts::OS != "windows" {
+            let exports = env_vars
+                .into_iter()
+                .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
+                .collect::<Vec<String>>();
+            let exp_strig = format!(
+                "{}{}; ",
+                exports.join(""),
+                format!("export PATH=\"$PATH:{:?}\"", export_paths.join(":"))
+            );
+
+            match Confirm::new()
+                .with_prompt(t!("wizard.after_install.add_to_path.prompt"))
+                .interact()
+            {
+                Ok(true) => match add_to_shell_rc(&exp_strig) {
+                    Ok(_) => println!("{}", t!("wizard.posix.succes_message")),
+                    Err(err) => panic!("{:?}", err.to_string()),
+                },
+                Ok(false) => println!(
+                    "{}:\r\n\r\n{}\r\n\r\n",
+                    t!("wizard.posix.succes_message"),
+                    exp_strig
+                ),
                 Err(err) => panic!("{:?}", err.to_string()),
-            },
-            Ok(false) => println!(
-                "{}:\r\n\r\n{}\r\n\r\n",
-                t!("wizard.posix.succes_message"),
-                exp_strig
-            ),
-            Err(err) => panic!("{:?}", err.to_string()),
+            }
         }
     }
 
@@ -808,7 +859,8 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         .with_prompt(t!("wizard.after_install.save_config.prompt"))
         .interact()
     {
-        Ok(true) => match config.save("config.toml") {
+        Ok(true) => match config.save("eim_config.toml") {
+            // TODO: make the name configurable
             // TODO: make path configurable
             Ok(_) => println!("{}", t!("wizard.after_install.config.saved")),
             Err(err) => panic!(
