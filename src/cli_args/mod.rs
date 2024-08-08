@@ -1,13 +1,12 @@
 use clap::builder::styling::{AnsiColor, Color, Style, Styles};
-use clap::{arg, command, value_parser, ColorChoice, Parser, ValueEnum};
+use clap::{arg, command, ColorChoice, Parser};
 use config::{Config, ConfigError, File};
 use idf_im_lib::get_log_directory;
-use log::{debug, error, info};
+use log::{debug, info, LevelFilter};
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
-use std::{fmt, str::FromStr};
 
 use log4rs::{
     append::{console::ConsoleAppender, file::FileAppender},
@@ -26,7 +25,7 @@ pub struct Settings {
     pub target: Option<Vec<String>>,
     pub idf_versions: Option<Vec<String>>,
     pub tools_json_file: Option<String>,
-    pub idf_tools_path: Option<String>, // relative to idf path
+    pub idf_tools_path: Option<String>,
     pub config_file: Option<PathBuf>,
     pub non_interactive: Option<bool>,
     pub wizard_all_questions: Option<bool>,
@@ -69,28 +68,28 @@ pub struct Cli {
 
     #[arg(short, long)]
     idf_versions: Option<String>,
+
     #[arg(long)]
     tool_download_folder_name: Option<String>,
+
     #[arg(long)]
     tool_install_folder_name: Option<String>,
+
     #[arg(
         long,
         help = "Path to tools.json file relative from ESP-IDF installation folder"
     )]
     idf_tools_path: Option<String>,
+
     #[arg(
         long,
         help = "Path to idf_tools.py file relative from ESP-IDF installation folder"
     )]
     tools_json_file: Option<String>,
+
     #[arg(short, long)]
     non_interactive: Option<bool>,
 
-    // #[arg(
-    //   long,
-    //   help = "The wizard will ask for every configurable option" //TODO: needs to be enabled inside wizard
-    // )]
-    // wizard_all_questions: Option<String>,
     #[arg(
         short,
         long,
@@ -105,11 +104,11 @@ pub struct Cli {
     idf_mirror: Option<String>,
 
     #[arg(
-      short,
-      long,
-      action = clap::ArgAction::Count,
-      help = "Increase verbosity level (can be used multiple times)"
-  )]
+        short,
+        long,
+        action = clap::ArgAction::Count,
+        help = "Increase verbosity level (can be used multiple times)"
+    )]
     verbose: u8,
 
     #[arg(short, long, help = "Set the language for the wizard (en, cn)")]
@@ -117,6 +116,108 @@ pub struct Cli {
 
     #[arg(long, help = "file in which logs will be stored (default: eim.log)")]
     log_file: Option<String>,
+}
+
+impl Settings {
+    pub fn new() -> Result<Self, ConfigError> {
+        let cli = Cli::parse();
+
+        Self::setup_logging(&cli)?;
+        Self::set_locale(&cli.locale);
+
+        let mut builder = Config::builder()
+            .add_source(File::with_name("config/default").required(false))
+            .add_source(File::with_name("config/development").required(false));
+
+        if let Some(config_path) = cli.config.clone() {
+            debug!("Using config file: {}", config_path.display());
+            builder = builder.add_source(File::from(config_path));
+        }
+
+        builder = builder.add_source(config::Environment::with_prefix("ESP").separator("_"));
+
+        let mut cfg = builder.build()?;
+
+        for (key, value) in cli.into_iter() {
+            if let Some(v) = value {
+                if key != "config" {
+                    debug!("Setting {} to {:?}", key, v);
+                    cfg.set(&key, v)?;
+                }
+            }
+        }
+
+        cfg.try_deserialize()
+    }
+
+    fn setup_logging(cli: &Cli) -> Result<(), ConfigError> {
+        let log_file_name = cli.log_file.clone().map_or_else(
+            || {
+                get_log_directory()
+                    .map(|dir| dir.join("eim.log"))
+                    .unwrap_or_else(|| {
+                        eprintln!("Failed to get log directory, using default eim.log");
+                        PathBuf::from("eim.log")
+                    })
+            },
+            PathBuf::from,
+        );
+
+        let logfile = FileAppender::builder()
+            .encoder(Box::new(PatternEncoder::new("{d} - {l} - {m}\n")))
+            .build(log_file_name)
+            .map_err(|e| ConfigError::Message(format!("Failed to build file appender: {}", e)))?;
+
+        let stdout = ConsoleAppender::builder()
+            .encoder(Box::new(PatternEncoder::new("{d} - {l} - {m}\n")))
+            .build();
+
+        let log_level = match cli.verbose {
+            0 => LevelFilter::Info,
+            1 => LevelFilter::Debug,
+            _ => LevelFilter::Trace,
+        };
+
+        let config = log4rs::Config::builder()
+            .appender(Appender::builder().build("file", Box::new(logfile)))
+            .appender(Appender::builder().build("stdout", Box::new(stdout)))
+            .build(
+                Root::builder()
+                    .appender("stdout")
+                    .appender("file")
+                    .build(log_level),
+            )
+            .map_err(|e| ConfigError::Message(format!("Failed to build log4rs config: {}", e)))?;
+
+        log4rs::init_config(config)
+            .map_err(|e| ConfigError::Message(format!("Failed to initialize logger: {}", e)))?;
+
+        Ok(())
+    }
+
+    fn set_locale(locale: &Option<String>) {
+        match locale {
+            Some(l) => {
+                rust_i18n::set_locale(l);
+                info!("Set locale to: {}", l);
+            }
+            None => debug!("No locale specified, defaulting to en"),
+        }
+    }
+
+    pub fn save(&self, file_path: &str) -> Result<(), ConfigError> {
+        let toml_value = toml::to_string(self).map_err(|e| ConfigError::Message(e.to_string()))?;
+        let mut file = OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(file_path)
+            .map_err(|e| ConfigError::Message(e.to_string()))?;
+        file.write_all(toml_value.as_bytes())
+            .map_err(|e| ConfigError::Message(e.to_string()))?;
+
+        Ok(())
+    }
 }
 
 impl IntoIterator for Cli {
@@ -131,229 +232,37 @@ impl IntoIterator for Cli {
             ),
             (
                 "non_interactive".to_string(),
-                self.non_interactive.map(|b| b.into()),
+                self.non_interactive.map(Into::into),
             ),
             (
                 "target".to_string(),
                 self.target
-                    .map(|s| s.split(",").collect::<Vec<&str>>().into()),
+                    .map(|s| s.split(',').collect::<Vec<&str>>().into()),
             ),
             (
                 "idf_version".to_string(),
                 self.idf_versions
-                    .map(|s| s.split(",").collect::<Vec<&str>>().into()),
+                    .map(|s| s.split(',').collect::<Vec<&str>>().into()),
             ),
             (
                 "tool_download_folder_name".to_string(),
-                self.tool_download_folder_name.map(|s| s.into()),
+                self.tool_download_folder_name.map(Into::into),
             ),
             (
                 "tool_install_folder_name".to_string(),
-                self.tool_install_folder_name.map(|s| s.into()),
+                self.tool_install_folder_name.map(Into::into),
             ),
             (
                 "tools_json_file".to_string(),
-                self.tools_json_file.map(|s| s.into()),
+                self.tools_json_file.map(Into::into),
             ),
             (
                 "idf_tools_path".to_string(),
-                self.idf_tools_path.map(|s| s.into()),
+                self.idf_tools_path.map(Into::into),
             ),
-            ("mirror".to_string(), self.mirror.map(|s| s.into())),
-            ("idf_mirror".to_string(), self.idf_mirror.map(|s| s.into())),
+            ("mirror".to_string(), self.mirror.map(Into::into)),
+            ("idf_mirror".to_string(), self.idf_mirror.map(Into::into)),
         ]
         .into_iter()
-    }
-}
-
-impl Settings {
-    pub fn new() -> Result<Self, ConfigError> {
-        let cli = Cli::parse();
-
-        let log_file_name = match cli.log_file.clone() {
-            Some(log_file) => PathBuf::from(log_file),
-            None => match get_log_directory() {
-                Some(dir) => dir.join("eim.log"),
-                None => {
-                    eprintln!("Failed to get log directory, using default eim.log");
-                    PathBuf::from("eim.log")
-                }
-            },
-        };
-
-        let logfile = FileAppender::builder()
-            .encoder(Box::new(PatternEncoder::new("{d} - {l} - {m}\n")))
-            .build(log_file_name)
-            .unwrap();
-
-        let stdout = ConsoleAppender::builder()
-            .encoder(Box::new(PatternEncoder::new("{d} - {l} - {m}\n")))
-            .build();
-
-        let log_level = match cli.verbose {
-            0 => log::LevelFilter::Info,
-            1 => log::LevelFilter::Debug,
-            _ => log::LevelFilter::Trace,
-        };
-
-        let config = match log4rs::Config::builder()
-            .appender(Appender::builder().build("file", Box::new(logfile)))
-            .appender(Appender::builder().build("stdout", Box::new(stdout)))
-            .build(
-                Root::builder()
-                    .appender("stdout")
-                    .appender("file")
-                    .build(log_level),
-            ) {
-            Ok(c) => c,
-            Err(e) => {
-                panic!("Failed to build log4rs config: {}", e);
-            }
-        };
-
-        let _handle = match log4rs::init_config(config) {
-            Ok(h) => h,
-            Err(e) => {
-                panic!("Failed to initialize logger: {}", e);
-            }
-        };
-
-        let locale = cli.locale.clone();
-        match locale {
-            Some(l) => {
-                rust_i18n::set_locale(l.as_str());
-                info!("Set locale to: {}", l);
-            }
-            None => info!("No locale specified, defaulting to en"),
-        };
-
-        let mut builder = Config::builder()
-            // Start off by merging in the "default" configuration file
-            .add_source(File::with_name("config/default").required(false))
-            // Add in the current environment file
-            // Default to 'development' env
-            // Note that this file is _optional_
-            .add_source(File::with_name("config/development").required(false));
-
-        // If a config file was specified via cli arg, add it here
-        if let Some(config_path) = cli.config.clone() {
-            debug!("Using config file: {}", config_path.display());
-            builder = builder.add_source(File::from(config_path));
-        }
-
-        // Add in settings from the environment (with a prefix of ESP)
-        // Eg.. `ESP_TARGET=esp32` would set the `target` key
-        builder = builder.add_source(config::Environment::with_prefix("ESP").separator("_"));
-
-        // Now that we've gathered all our config sources, let's merge them
-        let mut cfg = builder.build()?;
-
-        // Add in cli-specified values
-        for (key, value) in cli.into_iter() {
-            if let Some(v) = value {
-                if key != "config" {
-                    debug!("Setting {} to {:?}", key, v);
-                    cfg.set(&key, v)?;
-                }
-            }
-        }
-
-        // You can deserialize (and thus freeze) the entire configuration
-        cfg.try_deserialize()
-    }
-
-    pub fn save(&self, file_path: &str) -> Result<(), config::ConfigError> {
-        let toml_value = toml::to_string(&self).unwrap();
-        let mut file = OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .create(true)
-            .open(file_path)
-            .unwrap();
-        file.write_all(toml_value.as_bytes()).unwrap();
-
-        Ok(())
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum ChipId {
-    Esp32,
-    Esp32s2,
-    Esp32s3,
-    Esp32c2,
-    Esp32c3,
-    Esp32c6,
-    Esp32h2,
-    Esp32p4,
-}
-
-impl fmt::Display for ChipId {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            ChipId::Esp32 => write!(f, "ESP32"),
-            ChipId::Esp32s2 => write!(f, "ESP32-S2"),
-            ChipId::Esp32s3 => write!(f, "ESP32-S3"),
-            ChipId::Esp32c2 => write!(f, "ESP32-C2"),
-            ChipId::Esp32c3 => write!(f, "ESP32-C3"),
-            ChipId::Esp32c6 => write!(f, "ESP32-C6"),
-            ChipId::Esp32h2 => write!(f, "ESP32-H2"),
-            ChipId::Esp32p4 => write!(f, "ESP32-P4"),
-        }
-    }
-}
-
-// this is hardcoded enum but in the future this should be checked on build time agains the idf_versions.json file from idf/idf-versions
-// TODO: should we accept any string as argument ang check it on the fly?
-impl FromStr for ChipId {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_uppercase().as_str() {
-            "ESP32" => Ok(ChipId::Esp32),
-            "ESP32-S2" => Ok(ChipId::Esp32s2),
-            "ESP32S2" => Ok(ChipId::Esp32s2),
-            "ESP32-S3" => Ok(ChipId::Esp32s3),
-            "ESP32S3" => Ok(ChipId::Esp32s3),
-            "ESP32-C2" => Ok(ChipId::Esp32c2),
-            "ESP32C2" => Ok(ChipId::Esp32c2),
-            "ESP32-C3" => Ok(ChipId::Esp32c3),
-            "ESP32C3" => Ok(ChipId::Esp32c3),
-            "ESP32-C6" => Ok(ChipId::Esp32c6),
-            "ESP32C6" => Ok(ChipId::Esp32c6),
-            "ESP32-H2" => Ok(ChipId::Esp32h2),
-            "ESP32H2" => Ok(ChipId::Esp32h2),
-            "ESP32-P4" => Ok(ChipId::Esp32p4),
-            "ESP32P4" => Ok(ChipId::Esp32p4),
-            _ => Err(format!("'{}' is not a valid value", s)),
-        }
-    }
-}
-
-impl ValueEnum for ChipId {
-    fn value_variants<'a>() -> &'a [Self] {
-        &[
-            ChipId::Esp32,
-            ChipId::Esp32s2,
-            ChipId::Esp32s3,
-            ChipId::Esp32c2,
-            ChipId::Esp32c3,
-            ChipId::Esp32c6,
-            ChipId::Esp32h2,
-            ChipId::Esp32p4,
-        ]
-    }
-
-    fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
-        Some(match self {
-            ChipId::Esp32 => clap::builder::PossibleValue::new("ESP32"),
-            ChipId::Esp32s2 => clap::builder::PossibleValue::new("ESP32-S2"),
-            ChipId::Esp32s3 => clap::builder::PossibleValue::new("ESP32-S3"),
-            ChipId::Esp32c2 => clap::builder::PossibleValue::new("ESP32-C2"),
-            ChipId::Esp32c3 => clap::builder::PossibleValue::new("ESP32-C3"),
-            ChipId::Esp32c6 => clap::builder::PossibleValue::new("ESP32-C6"),
-            ChipId::Esp32h2 => clap::builder::PossibleValue::new("ESP32-H2"),
-            ChipId::Esp32p4 => clap::builder::PossibleValue::new("ESP32-P4"),
-        })
     }
 }

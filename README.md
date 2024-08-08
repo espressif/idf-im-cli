@@ -16,13 +16,13 @@ the installer takes config toml file. it serches for it in the default location 
 example config:
 ```toml
 path = "/tmp/esp-new/"
-idf_path = "/tmp/esp-new/v5.2.2/esp-idf"
+idf_path = "/tmp/esp-new/v5.3/esp-idf"
 tool_download_folder_name = "dist"
 tool_install_folder_name = "tools"
-target = "esp32"
-idf_version = "v5.2.2"
+target = ["all"]
+idf_versions = ["v5.3"]
 tools_json_file = "tools/tools.json"
-idf_tools_path = "tools/idf_tools.py"
+idf_tools_path = "./tools/idf_tools.py"
 mirror = "https://github.com"
 idf_mirror = "https://github.com"
 ```
