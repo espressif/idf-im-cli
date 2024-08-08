@@ -179,3 +179,18 @@ wizard.after_install.desktop_shortcut.created:
 wizard.after_install.desktop_shortcut.failed:
  en: Failed to create desktop shortcut
  cn: 创建 desktop 快捷方式失败
+wizard.posix.finish_steps.line_1:
+ en: You have successfully installed ESP-IDF
+ cn: 已成功安装 ESP-IDF
+wizard.posix.finish_steps.line_2:
+ en: for using the ESP-IDF tools inside the terminal, you fill find activation scripts inside the base install folder
+ cn: 用于在终端内使用 ESP-IDF 工具，你可以在基础安装文件夹中找到激活脚本
+wizard.posix.finish_steps.line_3:
+ en: running the activation script will setup envirozment in the current terminal session
+ cn: 运行激活脚本将会在当前的终端会话中设置环境变量
+wizard.windows.finish_steps.line_1:
+ en: You have successfully installed ESP-IDF
+ cn: 已成功安装 ESP-IDF
+wizard.windows.finish_steps.line_2:
+ en: the installer placed shortcuts for powershell terminal with activated ESP-IDF environment to your desktop
+ cn: 安装器将在桌面上放置带有激活 ESP-IDF 环境的 PowerShell 终端快捷方式
