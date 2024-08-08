@@ -3,11 +3,10 @@ use std::path::PathBuf;
 use crate::cli_args::Settings;
 pub use crate::wizard::helpers;
 use helpers::{
-    create_progress_bar, create_theme, first_defaulted_multiselect, generic_confirm, generic_input,
-    generic_select, run_with_spinner, update_progress_bar,
+    first_defaulted_multiselect, generic_confirm, generic_input, generic_select, run_with_spinner,
 };
 use idf_im_lib::system_dependencies;
-use log::{debug, info, warn};
+use log::{debug, info};
 use rust_i18n::t;
 
 pub async fn select_target() -> Result<Vec<String>, String> {
@@ -168,7 +167,7 @@ pub fn select_installation_path(mut config: Settings) -> Result<Settings, String
     Ok(config)
 }
 
-pub fn save_config_if_desired(config: Settings) -> Result<(), String> {
+pub fn save_config_if_desired(config: &Settings) -> Result<(), String> {
     if let Ok(true) = generic_confirm("wizard.after_install.save_config.prompt") {
         config
             .save("eim_config.toml")

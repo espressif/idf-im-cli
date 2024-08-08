@@ -454,7 +454,7 @@ fn single_version_post_install(
     idf_version: &str,
     tool_install_directory: &str,
     export_paths: Vec<String>,
-    env_vars: Vec<(String, String)>,
+    env_vars: Vec<(String, String)>, //probably dupliocate of idf_path and IDF_python_env_path
 ) {
     match std::env::consts::OS {
         "windows" => {
@@ -465,6 +465,7 @@ fn single_version_post_install(
                 idf_path,
                 &idf_version,
                 tool_install_directory,
+                export_paths,
             ) {
                 error!(
                     "{} {:?}",
@@ -476,28 +477,38 @@ fn single_version_post_install(
             }
         }
         _ => {
-            let exports = env_vars
-                .into_iter()
-                .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
-                .collect::<Vec<String>>();
-            let exp_strig = format!(
-                "{}export PATH=\"$PATH:{:?}\"; ",
-                exports.join(""),
-                export_paths.join(":")
+            let install_folder = PathBuf::from(version_instalation_path);
+            let install_path = install_folder.parent().unwrap().to_str().unwrap();
+            let _ = idf_im_lib::create_activation_shell_script(
+                // todo: handle error
+                install_path,
+                idf_path,
+                tool_install_directory,
+                &idf_version,
+                export_paths,
             );
 
-            match generic_confirm("wizard.after_install.add_to_path.prompt") {
-                Ok(true) => match add_to_shell_rc(&exp_strig) {
-                    Ok(_) => println!("{}", t!("wizard.posix.succes_message")),
-                    Err(err) => panic!("{:?}", err.to_string()),
-                },
-                Ok(false) => println!(
-                    "{}:\r\n\r\n{}\r\n\r\n",
-                    t!("wizard.posix.succes_message"),
-                    exp_strig
-                ),
-                Err(err) => panic!("{:?}", err.to_string()),
-            }
+            // let exports = env_vars
+            //     .into_iter()
+            //     .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
+            //     .collect::<Vec<String>>();
+            // let exp_strig = format!(
+            //     "{}export PATH=\"$PATH:{:?}\"; ",
+            //     exports.join(""),
+            //     export_paths.join(":")
+            // );
+            // match generic_confirm("wizard.after_install.add_to_path.prompt") {
+            //     Ok(true) => match add_to_shell_rc(&exp_strig) {
+            //         Ok(_) => println!("{}", t!("wizard.posix.succes_message")),
+            //         Err(err) => panic!("{:?}", err.to_string()),
+            //     },
+            //     Ok(false) => println!(
+            //         "{}:\r\n\r\n{}\r\n\r\n",
+            //         t!("wizard.posix.succes_message"),
+            //         exp_strig
+            //     ),
+            //     Err(err) => panic!("{:?}", err.to_string()),
+            // }
         }
     }
 }
@@ -620,6 +631,18 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             env_vars,
         )
     }
-    save_config_if_desired(config)?;
+    save_config_if_desired(&config)?;
+    match std::env::consts::OS {
+        "windows" => {
+            println!("{}", t!("wizard.windows.finish_steps.line_1"));
+            println!("{}", t!("wizard.windows.finish_steps.line_2"));
+        }
+        _ => {
+            println!("{}", t!("wizard.posix.finish_steps.line_1"));
+            println!("{}", t!("wizard.posix.finish_steps.line_2"));
+            println!("{:?}", config.path.clone().unwrap());
+            println!("{}", t!("wizard.posix.finish_steps.line_3"));
+        }
+    }
     Ok(())
 }
