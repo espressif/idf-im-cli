@@ -61,25 +61,28 @@ jobs:
 
       - name: Create release directory
         run: mkdir -p release
+      
+      - name: Create release system directory
+        run: mkdir -p release/${{ matrix.os }}
 
       - name: Copy binary to release directory Windows
         if: matrix.os == 'windows-latest'
-        run: cp target/release/idf-im-cli.exe release/idf-im-cli-${{ matrix.os }}.exe
+        run: cp target/release/idf-im-cli.exe release/${{ matrix.os }}/eim.exe
 
       - name: Copy binary to release directory POSIX
         if: matrix.os != 'windows-latest'
-        run: cp target/release/idf-im-cli release/idf-im-cli-${{ matrix.os }}
+        run: cp target/release/idf-im-cli release/${{ matrix.os }}/eim
 
       - name: Upload build artifacts for POSIX
         uses: actions/upload-artifact@v4
         if: matrix.os != 'windows-latest'
         with:
-          name: idf-im-cli-${{ matrix.os }}
-          path: release/idf-im-cli-${{ matrix.os }}
+          name: ${{ matrix.os }}-eim
+          path: release/${{ matrix.os }}/eim
 
       - name: Upload build artifacts for Windows
         uses: actions/upload-artifact@v4
         if: matrix.os == 'windows-latest'
         with:
-          name: idf-im-cli-${{ matrix.os }}.exe
-          path: release/idf-im-cli-${{ matrix.os }}.exe
+          name: ${{ matrix.os }}-eim
+          path: release/${{ matrix.os }}/eim.exe
