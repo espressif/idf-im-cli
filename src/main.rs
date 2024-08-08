@@ -3,7 +3,6 @@ extern crate idf_im_lib;
 
 mod cli_args;
 mod wizard;
-use rust_i18n::t;
 
 rust_i18n::i18n!("locales", fallback = "en");
 
