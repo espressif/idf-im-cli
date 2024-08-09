@@ -30,8 +30,8 @@ python.sanitycheck.ok:
  en: Your Python meets the requirements
  cn: 你的 python 符合要求
 python.sanitycheck.fail:
- en: Python is missing or it does not meet the requirements
- cn: 你的 python 缺少或不符合要求
+ en: Python is missing or it does not meet the requirements. Please install python3 with pip, venv and ssl support and try again
+ cn: Python 缺失或不符合要求。请安装 python3，pip 和 ssl 支持并重试 
 pythhon.install.prompt:
  en: Do you want to install Python?
  cn: 是否要安装 python?
@@ -186,8 +186,8 @@ wizard.posix.finish_steps.line_2:
  en: for using the ESP-IDF tools inside the terminal, you fill find activation scripts inside the base install folder
  cn: 用于在终端内使用 ESP-IDF 工具，你可以在基础安装文件夹中找到激活脚本
 wizard.posix.finish_steps.line_3:
- en: running the activation script will setup envirozment in the current terminal session
- cn: 运行激活脚本将会在当前的终端会话中设置环境变量
+ en: sourcing the activation script will setup environment in the current terminal session
+ cn: 激活脚本会在当前的终端会话中设置环境变量
 wizard.windows.finish_steps.line_1:
  en: You have successfully installed ESP-IDF
  cn: 已成功安装 ESP-IDF
