@@ -31,7 +31,7 @@ fn get_tools_export_paths(
     tools_install_path: &str,
 ) -> Vec<String> {
     let list = idf_im_lib::idf_tools::filter_tools_by_target(tools_file.tools, &selected_chip);
-    debug!("Creating export paths for: {:?}", list);
+    // debug!("Creating export paths for: {:?}", list);
     let mut paths = vec![];
     for tool in &list {
         tool.export_paths.iter().for_each(|path| {

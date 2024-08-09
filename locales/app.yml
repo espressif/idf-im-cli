@@ -5,6 +5,9 @@ hello:
 prerequisites.ok:
   en: All prerequisites are satisfied!
   cn: 所有依赖项都满足！
+prerequisites.not_ok:
+  en: Some prerequisites are not satisfied
+  cn: 有些依赖项不满足
 prerequisites.missing:
   en: The following prerequisites are not satisfied:%{l}
   cn: 以下依赖项不满足:%{l}
@@ -30,8 +33,8 @@ python.sanitycheck.ok:
  en: Your Python meets the requirements
  cn: 你的 python 符合要求
 python.sanitycheck.fail:
- en: Python is missing or it does not meet the requirements
- cn: 你的 python 缺少或不符合要求
+ en: Python is missing or it does not meet the requirements. Please install python3 with pip, venv and ssl support and try again
+ cn: Python 缺失或不符合要求。请安装 python3, pip 和 ssl 支持并重试 
 pythhon.install.prompt:
  en: Do you want to install Python?
  cn: 是否要安装 python?
@@ -108,11 +111,11 @@ wizard.idf_tools.unreachable:
  en: "idf_tools.py file does not exist. The file you've selected cannot be accessed."
  cn: "idf_tools.py 文件不存在。所选文件无法被访问。"
 wizard.idf_tools.failed_to_run:
- en: Failed to run idf_tools.py file. Error：%{e}
- cn: idf_tools.py 文件无法运行。错误：%{e}
+ en: Failed to run idf_tools.py file. Error
+ cn: idf_tools.py 文件无法运行。错误
 wizard.windows.succes_message:
  en: \n\rYour environment variables have been updated! Shell may need to be restarted for changes to be effective.
- cn: \n\r你的环境变量已更新，Shell 需要重启才能生效
+ cn: \n\r你的环境变量已更新 Shell 需要重启才能生效
 wizard.posix.succes_message:
  en: please copy and paste the following lines to your terminal
  cn: 请复制并粘贴以下行到终端
@@ -121,7 +124,7 @@ wizard.spinner.message:
  cn: 执行中
 wizard.select_target.prompt:
  en: Please select all of the the target platforms (esp chips)
- cn: 请选择所有的目标平台（esp 芯片）
+ cn: 请选择所有的目标平台 esp 芯片）
 wizard.select_target.prompt.failure:
  en: We were unable to fetch avalible targets
  cn: 无法获取可用的目标平台
@@ -186,11 +189,12 @@ wizard.posix.finish_steps.line_2:
  en: for using the ESP-IDF tools inside the terminal, you fill find activation scripts inside the base install folder
  cn: 用于在终端内使用 ESP-IDF 工具，你可以在基础安装文件夹中找到激活脚本
 wizard.posix.finish_steps.line_3:
- en: running the activation script will setup envirozment in the current terminal session
- cn: 运行激活脚本将会在当前的终端会话中设置环境变量
+ en: sourcing the activation script will setup environment in the current terminal session
+ cn: 激活脚本会在当前的终端会话中设置环境变量
 wizard.windows.finish_steps.line_1:
  en: You have successfully installed ESP-IDF
  cn: 已成功安装 ESP-IDF
 wizard.windows.finish_steps.line_2:
  en: the installer placed shortcuts for powershell terminal with activated ESP-IDF environment to your desktop
  cn: 安装器将在桌面上放置带有激活 ESP-IDF 环境的 PowerShell 终端快捷方式
+
