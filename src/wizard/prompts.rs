@@ -30,13 +30,10 @@ fn check_prerequisites() -> Result<Vec<String>, String> {
     match system_dependencies::check_prerequisites() {
         Ok(prerequisites) => {
             if prerequisites.is_empty() {
-                debug!("All prerequisites are satisfied!");
+                debug!("{}", t!("prerequisites.ok"));
                 Ok(vec![])
             } else {
-                info!(
-                    "The following prerequisites are not satisfied: {:?}",
-                    prerequisites
-                );
+                info!("{} {:?}", t!("prerequisites.missing"), prerequisites);
                 Ok(prerequisites.into_iter().map(|p| p.to_string()).collect())
             }
         }
@@ -53,19 +50,24 @@ pub fn check_and_install_prerequisites() -> Result<(), String> {
                 l = unsatisfied_prerequisites.join(", ")
             )
         );
-        if generic_confirm("prerequisites.install.prompt").map_err(|e| e.to_string())? {
-            system_dependencies::install_prerequisites(unsatisfied_prerequisites)
-                .map_err(|e| e.to_string())?;
+        if std::env::consts::OS == "windows" {
+            //TODO: remove afte prerequisities install fix in linux
+            if generic_confirm("prerequisites.install.prompt").map_err(|e| e.to_string())? {
+                system_dependencies::install_prerequisites(unsatisfied_prerequisites)
+                    .map_err(|e| e.to_string())?;
 
-            let remaining_prerequisites = check_prerequisites()?;
-            if !remaining_prerequisites.is_empty() {
-                return Err(format!(
-                    "{}",
-                    t!(
-                        "prerequisites.install.catastrophic",
-                        l = remaining_prerequisites.join(", ")
-                    ),
-                ));
+                let remaining_prerequisites = check_prerequisites()?;
+                if !remaining_prerequisites.is_empty() {
+                    return Err(format!(
+                        "{}",
+                        t!(
+                            "prerequisites.install.catastrophic",
+                            l = remaining_prerequisites.join(", ")
+                        ),
+                    ));
+                }
+            } else {
+                return Err(t!("prerequisites.install.ask").to_string());
             }
         } else {
             return Err(t!("prerequisites.install.ask").to_string());
