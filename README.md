@@ -1,17 +1,17 @@
 # ESP-IDF Installation Manager - CLI
 
-idf-im-cli for the CLI tool. Please check more details on this project [here](https://gitlab.espressif.cn:6688/idf/idf-im-ui/-/wikis/ESP-IDF-Installation-Manager).
+idf-im-cli for the CLI tool.
 
 ## configuration
 
-there are several ways how to configure the installer, you can supply config file, specify cli arguments, set enviromental variables or go trough wizard on command line.
+there are several ways how to configure the installer, you can supply a config file, specify cli arguments, set environmental variables or go through a wizard on the command line.
 
-The precendence is that config file is overwriten by env variables which can be overriden by cli arguments.
-If you go trought the wizard, your choices will have the higher precedence.
+The precedence is that the config file is overwritten by env variables which can be overridden by cli arguments.
+If you go through the wizard, your choices will have the higher precedence.
 
 ### file
 
-the installer takes config toml file. it serches for it in the default location ./config/default.toml but you can specify path to the config with `--config` cli argument
+the installer takes the config toml file. it searches for it in the default location ./config/default.toml but you can specify the path to the config with `--config` cli argument
 
 example config:
 ```toml
@@ -39,8 +39,8 @@ please refer to the --help for information about cli usage
 
 Download the executable for the suitable architecture.
 
-it is recomanded to first run the `--help` command 
+it is recommended first to run the `--help` command 
 
-Run it and proceed according to instruction in the terminal and you will have IDF installed.
+Run it and proceed according to instructions in the terminal and you will have IDF installed.
 
-for chinese run it with flag `-l=cn`
+for Chinese run it with the flag `-l=cn`
