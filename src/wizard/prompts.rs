@@ -156,8 +156,8 @@ pub fn select_installation_path(mut config: Settings) -> Result<Settings, String
         };
         let mut installation_path = PathBuf::new();
         let path = generic_input(
-            "wizard.installation_path.prompt",
-            "wizard.installation_path.unselected",
+            "wizard.instalation_path.prompt",
+            "wizard.instalation_path.unselected",
             &default_path,
         )
         .unwrap();
