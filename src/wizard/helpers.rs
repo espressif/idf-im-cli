@@ -58,7 +58,7 @@ pub fn generic_multiselect(
     defaults: &[bool],
 ) -> Result<Vec<String>, String> {
     let selection = MultiSelect::with_theme(&create_theme())
-        .with_prompt(prompt_key)
+        .with_prompt(t!(prompt_key))
         .items(options)
         .defaults(defaults)
         .interact()
