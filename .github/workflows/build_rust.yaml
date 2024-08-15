@@ -86,3 +86,19 @@ jobs:
         with:
           name: ${{ matrix.os }}-eim
           path: release/${{ matrix.os }}/eim.exe
+      
+      - name: Create aarch64-linux build
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          rustup target add aarch64-unknown-linux-gnu
+          cargo install cross
+          cross build --target aarch64-unknown-linux-gnu --release
+          mkdir -p release/aarch64-unknown-linux-gnu
+          cp target/aarch64-unknown-linux-gnu/release/idf-im-cli release/aarch64-unknown-linux-gnu/eim
+      
+      - name: Upload build artifacts for aarch64-linux
+        uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: aarch64-linux-eim
+          path: release/aarch64-unknown-linux-gnu/eim
