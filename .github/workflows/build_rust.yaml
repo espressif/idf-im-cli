@@ -74,6 +74,21 @@ jobs:
       - name: Copy binary to release directory POSIX
         if: matrix.os != 'windows-latest'
         run: cp target/release/idf-im-cli release/${{ matrix.os }}/eim
+      
+      - name: Codesign macOS build artifacts
+        env: 
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        run: |
+          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+          /usr/bin/security create-keychain -p espressif build.keychain
+          /usr/bin/security default-keychain -s build.keychain
+          /usr/bin/security unlock-keychain -p espressif build.keychain
+          /usr/bin/security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
+          /usr/bin/security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k espressif build.keychain
+
+          /usr/bin/codesign --options runtime --force -s "ESPRESSIF SYSTEMS (SHANGHAI) CO., LTD. (QWXF6GB4AV)" release/${{ matrix.os }}/eim -v
+          /usr/bin/codesign -v -vvv --deep release/${{ matrix.os }}/eim
 
       - name: Upload build artifacts for POSIX
         uses: actions/upload-artifact@v4
