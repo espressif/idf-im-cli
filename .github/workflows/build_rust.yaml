@@ -76,7 +76,7 @@ jobs:
         run: cp target/release/idf-im-cli release/${{ matrix.os }}/eim
       
       - name: Codesign macOS build artifacts
-        if: matrix.os == 'macos-latest'
+        if: startsWith(matrix.os, 'macos')
         env: 
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
