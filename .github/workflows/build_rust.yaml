@@ -75,6 +75,18 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: cp target/release/idf-im-cli release/${{ matrix.os }}/eim
 
+      - name: Import Code-Signing Certificates
+        if: startsWith(matrix.os, 'macos')
+        uses: apple-actions/import-codesign-certs@v1
+        with:
+          p12-file-base64: ${{ secrets.MACOS_CERTIFICATE }}
+          p12-password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          
+      - name: Sign the Mac App
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          codesign --force --options runtime --sign "${{ secrets.MACOS_CERTIFICATE_NAME }}" release/${{ matrix.os }}/eim
+
       - name: Upload build artifacts for POSIX
         uses: actions/upload-artifact@v4
         if: matrix.os != 'windows-latest'
