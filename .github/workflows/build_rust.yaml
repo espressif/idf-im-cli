@@ -73,7 +73,9 @@ jobs:
 
       - name: Copy binary to release directory POSIX
         if: matrix.os != 'windows-latest'
-        run: cp target/release/idf-im-cli release/${{ matrix.os }}/eim
+        run: |
+          cp target/release/idf-im-cli release/${{ matrix.os }}/eim
+          chmod +x release/${{ matrix.os }}/eim
       
       - name: Codesign macOS build artifacts
         if: startsWith(matrix.os, 'macos')
@@ -95,7 +97,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: matrix.os != 'windows-latest'
         with:
-          name: eim-${{ matrix.os }}
+          name: eim-${{ github.run_id }}-${{ matrix.os }}
           path: release/${{ matrix.os }}/eim
 
       - name: Upload artifact for tag on POSIX
@@ -109,7 +111,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: matrix.os == 'windows-latest'
         with:
-          name: eim-${{ matrix.os }}
+          name: eim-${{ github.run_id }}-${{ matrix.os }}
           path: release/${{ matrix.os }}/eim.exe
 
       - name: Upload artifact for tag on Windows
@@ -127,12 +129,13 @@ jobs:
           cross build --target aarch64-unknown-linux-gnu --release
           mkdir -p release/aarch64-unknown-linux-gnu
           cp target/aarch64-unknown-linux-gnu/release/idf-im-cli release/aarch64-unknown-linux-gnu/eim
+          chmod +x release/aarch64-unknown-linux-gnu/eim
       
       - name: Upload build artifacts for aarch64-linux
         uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-latest'
         with:
-          name: eim-linux-arm64
+          name: eim-${{ github.run_id }}-linux-arm64
           path: release/aarch64-unknown-linux-gnu/eim
       
       - name: Upload artifact for tag on aarch64-linux
