@@ -115,7 +115,7 @@ jobs:
             xcrun notarytool submit release/${{ matrix.os }}/eim.zip --keychain-profile "eim-notarytool-profile" --wait
           
             echo "Unzipping the executable"
-            unzip release/${{ matrix.os }}/eim.zip -d release/${{ matrix.os }}
+            unzip -o release/${{ matrix.os }}/eim.zip -d release/${{ matrix.os }}
          
             echo "Attach staple for eim executable"
             xcrun stapler staple release/${{ matrix.os }}/eim
