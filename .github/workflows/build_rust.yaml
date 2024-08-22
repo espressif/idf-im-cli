@@ -90,7 +90,13 @@ jobs:
 
           /usr/bin/codesign --options runtime --force -s "ESPRESSIF SYSTEMS (SHANGHAI) CO., LTD. (QWXF6GB4AV)" release/${{ matrix.os }}/eim -v
           /usr/bin/codesign -v -vvv --deep release/${{ matrix.os }}/eim
-      
+    
+      - name: Zip eim executable for notarization
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          cd release/${{ matrix.os }}
+          zip eim.zip eim      
+          
       - name: Notarization of macOS eim executables
         # && github.ref == 'refs/heads/master'
         if: startsWith(matrix.os, 'macos') 
@@ -106,20 +112,20 @@ jobs:
       
             echo "Create keychain profile"
             xcrun notarytool store-credentials "eim-notarytool-profile" --apple-id $NOTARIZATION_USERNAME --team-id $NOTARIZATION_TEAM_ID --password $NOTARIZATION_PASSWORD
-            xcrun notarytool submit release/${{ matrix.os }}/eim --keychain-profile "eim-notarytool-profile" --wait
+            xcrun notarytool submit release/${{ matrix.os }}/eim.zip --keychain-profile "eim-notarytool-profile" --wait
               
             echo "Attach staple for eim executable"
-            xcrun stapler staple release/${{ matrix.os }}/eim
+            xcrun stapler staple release/${{ matrix.os }}/eim.zip
               
             echo "Unlock the notary keychain"
             /usr/bin/security unlock-keychain -p espressif notary.keychain
-            
+    
       - name: Upload build artifacts for POSIX
         uses: actions/upload-artifact@v4
         if: matrix.os != 'windows-latest'
         with:
           name: eim-${{ matrix.os }}
-          path: release/${{ matrix.os }}/eim
+          path: release/${{ matrix.os }}/eim.zip
 
       - name: Upload artifact for tag on POSIX
         if: startsWith(github.ref, 'refs/tags/') && matrix.os != 'windows-latest'
