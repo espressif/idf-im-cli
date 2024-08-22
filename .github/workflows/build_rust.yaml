@@ -75,7 +75,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: cp target/release/idf-im-cli release/${{ matrix.os }}/eim
       
-      - name: Codesign macOS build artifacts
+      - name: Codesign macOS eim executables
         if: startsWith(matrix.os, 'macos')
         env: 
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
@@ -88,9 +88,38 @@ jobs:
           /usr/bin/security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
           /usr/bin/security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k espressif build.keychain
 
-          /usr/bin/codesign --options runtime --force -s "ESPRESSIF SYSTEMS (SHANGHAI) CO., LTD. (QWXF6GB4AV)" release/${{ matrix.os }}/eim -v
+          /usr/bin/codesign --entitlements eim.entitlement --options runtime --force -s "ESPRESSIF SYSTEMS (SHANGHAI) CO., LTD. (QWXF6GB4AV)" release/${{ matrix.os }}/eim -v
           /usr/bin/codesign -v -vvv --deep release/${{ matrix.os }}/eim
-
+    
+      - name: Zip eim executable for notarization
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          cd release/${{ matrix.os }}
+          zip eim.zip eim      
+          
+      - name: Notarization of macOS eim executables
+        # && github.ref == 'refs/heads/master'
+        if: startsWith(matrix.os, 'macos') 
+        env: 
+          NOTARIZATION_USERNAME: ${{ secrets.NOTARIZATION_USERNAME }}
+          NOTARIZATION_PASSWORD: ${{ secrets.NOTARIZATION_PASSWORD }}
+          NOTARIZATION_TEAM_ID: ${{ secrets.NOTARIZATION_TEAM_ID }}
+        run: |
+            echo "Create notary keychain"
+            /usr/bin/security create-keychain -p espressif notary.keychain
+            /usr/bin/security default-keychain -s notary.keychain
+            /usr/bin/security unlock-keychain -p espressif notary.keychain
+      
+            echo "Create keychain profile"
+            xcrun notarytool store-credentials "eim-notarytool-profile" --apple-id $NOTARIZATION_USERNAME --team-id $NOTARIZATION_TEAM_ID --password $NOTARIZATION_PASSWORD
+            xcrun notarytool submit release/${{ matrix.os }}/eim.zip --keychain-profile "eim-notarytool-profile" --wait
+          
+            echo "Unzipping the executable"
+            unzip -o release/${{ matrix.os }}/eim.zip -d release/${{ matrix.os }}
+         
+            # echo "Attach staple for eim executable"
+            # xcrun stapler staple release/${{ matrix.os }}/eim
+              
       - name: Upload build artifacts for POSIX
         uses: actions/upload-artifact@v4
         if: matrix.os != 'windows-latest'
