@@ -117,8 +117,8 @@ jobs:
             echo "Unzipping the executable"
             unzip -o release/${{ matrix.os }}/eim.zip -d release/${{ matrix.os }}
          
-            echo "Attach staple for eim executable"
-            xcrun stapler staple release/${{ matrix.os }}/eim
+            # echo "Attach staple for eim executable"
+            # xcrun stapler staple release/${{ matrix.os }}/eim
               
       - name: Upload build artifacts for POSIX
         uses: actions/upload-artifact@v4
