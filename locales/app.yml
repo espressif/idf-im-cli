@@ -186,7 +186,7 @@ wizard.posix.finish_steps.line_1:
  en: You have successfully installed ESP-IDF
  cn: 已成功安装 ESP-IDF
 wizard.posix.finish_steps.line_2:
- en: for using the ESP-IDF tools inside the terminal, you fill find activation scripts inside the base install folder
+ en: for using the ESP-IDF tools inside the terminal, you will find activation scripts inside the base install folder
  cn: 用于在终端内使用 ESP-IDF 工具，你可以在基础安装文件夹中找到激活脚本
 wizard.posix.finish_steps.line_3:
  en: sourcing the activation script will setup environment in the current terminal session
