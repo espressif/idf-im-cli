@@ -1,3 +1,14 @@
+Before Installation 
+===============================
+
+Windows
+-------------------------
+Please note that EIM is a command-line application. It is recommended to run it manually from the command shell, with PowerShell being the only supported shell on the Windows platform. To start PowerShell, open the Start menu and begin typing "PowerShell." The system should present the PowerShell terminal option after the first few letters. Ensure that you do not use the x86 version of PowerShell. Navigate to the directory containing the EIM binary within PowerShell, and launch it using the command `.\eim`. For example, running `.\eim --help` is a good starting point.
+
+macOS & Linux
+---------------------------------
+After downloading and unzipping the release artifact, you will need to set the execute (`x`) permission on the EIM binary. This can be done by executing the command `chmod +x ./eim`. Once the permission is set, you can run the installer from the command line using `./eim --help`.
+
 Installation of IDF
 ===============================
 Installing the ESP-IDF using the Espressif Installation Manager (EIM) is a straightforward process. Begin by opening your preferred command shell (PowerShell is recommended for Windows users) and running EIM. You can specify your installation preferences using any of the available configuration <configuration> methods. If any required options are not specified, an interactive wizard will guide you through the remaining steps.
