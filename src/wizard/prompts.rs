@@ -56,7 +56,7 @@ pub fn check_and_install_prerequisites() -> Result<(), String> {
                 system_dependencies::install_prerequisites(unsatisfied_prerequisites)
                     .map_err(|e| e.to_string())?;
 
-                let remaining_prerequisites = check_prerequisites()?;
+                let remaining_prerequisites = run_with_spinner(check_prerequisites)?;
                 if !remaining_prerequisites.is_empty() {
                     return Err(format!(
                         "{}",
@@ -65,6 +65,8 @@ pub fn check_and_install_prerequisites() -> Result<(), String> {
                             l = remaining_prerequisites.join(", ")
                         ),
                     ));
+                } else {
+                    info!("{}", t!("prerequisites.ok"));
                 }
             } else {
                 return Err(t!("prerequisites.install.ask").to_string());
