@@ -643,10 +643,10 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             println!("{:?}", config.path.clone().unwrap());
             println!("{}", t!("wizard.posix.finish_steps.line_3"));
             println!("============================================");
-            println!("{}", t!("wizard.posix.finish_steps.line_4"));
+            println!("{}:", t!("wizard.posix.finish_steps.line_4"));
             for idf_version in config.idf_versions.clone().unwrap() {
                 println!(
-                    "{} {}/{}",
+                    "       {} {}/{}",
                     t!("wizard.posix.finish_steps.line_5"),
                     config.path.clone().unwrap().to_str().unwrap(),
                     format!("activate_idf_{}.sh", idf_version),
