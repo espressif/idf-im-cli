@@ -98,7 +98,7 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: |
           cd release/${{ matrix.os }}
-          zip eim.zip eim      
+          zip -r eim.zip eim      
           
       - name: Notarization of macOS eim executables
         # && github.ref == 'refs/heads/master'
@@ -122,34 +122,31 @@ jobs:
          
             # echo "Attach staple for eim executable"
             # xcrun stapler staple release/${{ matrix.os }}/eim
-              
-      - name: Upload build artifacts for POSIX
-        uses: actions/upload-artifact@v4
+
+      - name: Zip artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd release/${{ matrix.os }}
+          7z a -tzip eim.zip eim.exe
+
+      - name: Zip artifacts (POSIX)
         if: matrix.os != 'windows-latest'
+        run: |
+          cd release/${{ matrix.os }}
+          zip -r eim.zip eim
+              
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: eim-${{ github.run_id }}-${{ matrix.os }}
-          path: release/${{ matrix.os }}/eim
+          path: release/${{ matrix.os }}/eim.zip
 
-      - name: Upload artifact for tag on POSIX
+      - name: Upload artifact for tag
         if: startsWith(github.ref, 'refs/tags/') && matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: eim-${{ github.ref_name }}-${{ runner.os }}
-          path: release/${{ matrix.os }}/eim
-
-      - name: Upload build artifacts for Windows
-        uses: actions/upload-artifact@v4
-        if: matrix.os == 'windows-latest'
-        with:
-          name: eim-${{ github.run_id }}-${{ matrix.os }}
-          path: release/${{ matrix.os }}/eim.exe
-
-      - name: Upload artifact for tag on Windows
-        if: startsWith(github.ref, 'refs/tags/') && runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
-        with:
-          name: eim-${{ github.ref_name }}-${{ runner.os }}
-          path: release/${{ matrix.os }}/eim.exe
+          path: release/${{ matrix.os }}/eim.zip
       
       - name: Create aarch64-linux build
         if: matrix.os == 'ubuntu-latest'
@@ -160,17 +157,19 @@ jobs:
           mkdir -p release/aarch64-unknown-linux-gnu
           cp target/aarch64-unknown-linux-gnu/release/idf-im-cli release/aarch64-unknown-linux-gnu/eim
           chmod +x release/aarch64-unknown-linux-gnu/eim
+          cd release/aarch64-unknown-linux-gnu
+          zip -r eim.zip eim
       
       - name: Upload build artifacts for aarch64-linux
         uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-latest'
         with:
           name: eim-${{ github.run_id }}-linux-arm64
-          path: release/aarch64-unknown-linux-gnu/eim
+          path: release/aarch64-unknown-linux-gnu/eim.zip
       
       - name: Upload artifact for tag on aarch64-linux
         if: startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: eim-${{ github.ref_name }}-linux-arm64
-          path: release/aarch64-unknown-linux-gnu/eim
+          path: release/aarch64-unknown-linux-gnu/eim.zip
