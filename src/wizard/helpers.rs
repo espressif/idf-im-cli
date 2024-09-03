@@ -3,6 +3,8 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect, Select};
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use log::debug;
 use rust_i18n::t;
+use std::sync::mpsc;
+use std::thread;
 use std::{
     fmt::Write,
     time::{Duration, Instant},
@@ -107,4 +109,8 @@ pub fn update_progress_bar(pb: &ProgressBar, stats: &git2::Progress) {
     let current_progress =
         ((stats.received_objects() as f64) / (stats.total_objects() as f64) * 100.0) as u64;
     pb.set_position(current_progress);
+}
+
+pub fn update_progress_bar_number(pb: &ProgressBar, value: u64) {
+    pb.set_position(value);
 }

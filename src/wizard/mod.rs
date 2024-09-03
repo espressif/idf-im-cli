@@ -1,9 +1,12 @@
 use crate::cli_args::Settings;
 use dialoguer::FolderSelect;
 use idf_im_lib::idf_tools::ToolsFile;
+use idf_im_lib::ProgressMessage;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use log::{debug, error, info, trace, warn};
 use rust_i18n::t;
+use std::sync::mpsc;
+use std::thread;
 use std::{
     env,
     fmt::Write,
@@ -20,6 +23,7 @@ const DEFAULT_IDF_TOOLS_PY_LOCATION: &str = "./tools/idf_tools.py";
 pub mod helpers;
 use helpers::{
     create_progress_bar, create_theme, generic_confirm, generic_input, update_progress_bar,
+    update_progress_bar_number,
 };
 
 mod prompts;
@@ -213,7 +217,31 @@ pub fn download_idf(config: DownloadConfig) -> Result<(), DownloadError> {
     idf_im_lib::ensure_path(&config.idf_path)
         .map_err(|err| DownloadError::PathCreationFailed(err.to_string()))?;
 
-    let progress_bar = create_progress_bar();
+    let (tx, rx) = mpsc::channel();
+
+    // Spawn a thread to handle progress bar updates
+    let handle = thread::spawn(move || {
+        let mut progress_bar = create_progress_bar();
+
+        loop {
+            match rx.recv() {
+                Ok(ProgressMessage::Finish) => {
+                    update_progress_bar_number(&progress_bar, 100);
+                    progress_bar.finish();
+                    progress_bar = create_progress_bar();
+                }
+                Ok(ProgressMessage::Update(value)) => {
+                    update_progress_bar_number(&progress_bar, value);
+                }
+                Err(_) => {
+                    println!("Channel closed, exiting.");
+                    break;
+                }
+            }
+        }
+    });
+
+    // let progress_bar = create_progress_bar();
 
     let tag = if config.idf_version == "master" {
         None
@@ -235,15 +263,13 @@ pub fn download_idf(config: DownloadConfig) -> Result<(), DownloadError> {
     match idf_im_lib::get_esp_idf_by_tag_name(
         &config.idf_path,
         tag.as_deref(),
-        |stats| {
-            update_progress_bar(&progress_bar, &stats);
-            true
-        },
+        tx,
         config.idf_mirror.as_deref(),
         group_name,
     ) {
         Ok(_) => {
             debug!("{}", t!("wizard.idf.success"));
+            handle.join().unwrap();
             Ok(())
         }
         Err(err) => handle_download_error(err),
