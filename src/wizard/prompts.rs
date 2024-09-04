@@ -108,7 +108,10 @@ pub fn check_and_install_python() -> Result<(), String> {
             if generic_confirm("pythhon.install.prompt").map_err(|e| e.to_string())? {
                 system_dependencies::install_prerequisites(vec!["python".to_string()])
                     .map_err(|e| e.to_string())?;
-                info!("{}", t!("python.install.success"));
+                match run_with_spinner(python_sanity_check) {
+                    Ok(_) => info!("{}", t!("python.install.success")),
+                    Err(err) => return Err(format!("{} {:?}", t!("python.install.failure"), err)),
+                }
             } else {
                 return Err(t!("python.install.refuse").to_string());
             }
