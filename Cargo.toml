@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 tokio = {version = "1.37.0", features=["full"]}
-idf-im-lib = { git = "https://github.com/espressif/idf-im-lib.git", branch="master" }
+idf-im-lib = { git = "https://github.com/espressif/idf-im-lib.git", rev="62d16091ce14665ac09eb6a0548664af668bab9d" }
 clap = {version = "4.5", features = ["cargo", "derive", "color"]}
 crossterm = "0.27.0"
 dialoguer = { git = "https://github.com/Hahihula/dialoguer.git", branch = "folder-select", features = ["folder-select"] }
