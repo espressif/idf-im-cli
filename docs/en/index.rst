@@ -2,14 +2,17 @@ ESP-IDF Installation Manager
 =============================
 :link_to_translation:`zh_CN:[中文]`
 
-The ESP-IDF Installation Manager(EIM) streamlines the setup process for working with ESP-IDF and integrated development environments (IDEs) across various platforms. This cross-platform installer simplifies the installation of prerequisites, ESP-IDF itself, and essential tools, providing a consistent and user-friendly experience on macOS, Linux, and Windows.
+The ESP-IDF Installation Manager (EIM) simplifies the setup process for ESP-IDF and integrated development environments (IDEs) across multiple platforms. This cross-platform installer facilitates the installation of prerequisites, ESP-IDF itself, and essential tools, offering a consistent and user-friendly experience on macOS, Linux, and Windows.
 
 Features
 ----------------
 
-- feature 1
-- feature 2
-
+- cross-platform
+- configurable
+- repeatable
+- easy to use
+- multilingual
+- easily deployable
 
 For more about this project please see https://github.com/espressif/idf-im-cli
 
@@ -17,5 +20,7 @@ For more about this project please see https://github.com/espressif/idf-im-cli
     :maxdepth: 1
 
     Prerequisites <prerequisites>
-    Installation <installation>
+    Configuration <configuration>
+    Installation of IDF <installation>
     FAQs<faqs>
+

@@ -191,6 +191,12 @@ wizard.posix.finish_steps.line_2:
 wizard.posix.finish_steps.line_3:
  en: sourcing the activation script will setup environment in the current terminal session
  cn: 激活脚本会在当前的终端会话中设置环境变量
+wizard.posix.finish_steps.line_4:
+ en: to activate the environment, run the following command in your terminal
+ cn: 运行以下命令来激活环境
+wizard.posix.finish_steps.line_5:
+ en: source
+ cn: source
 wizard.windows.finish_steps.line_1:
  en: You have successfully installed ESP-IDF
  cn: 已成功安装 ESP-IDF
