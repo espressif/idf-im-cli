@@ -68,10 +68,30 @@ async fn download_tools(
     );
     let list = idf_im_lib::idf_tools::filter_tools_by_target(tools_file.tools, &selected_chip);
 
-    let platform = match idf_im_lib::idf_tools::get_platform_identification() {
+    let platform = match idf_im_lib::idf_tools::get_platform_identification(None) {
         Ok(platform) => platform,
         Err(err) => {
-            panic!("{}.  {:?}", t!("wizard.tools_platform_error"), err);
+            if std::env::consts::OS == "windows" {
+                // All this is for cases when on windows microsoft store creates "pseudolinks" for python
+                let scp = idf_im_lib::system_dependencies::get_scoop_path();
+                let usable_python = match scp {
+                    Some(path) => {
+                        let mut python_path = PathBuf::from(path);
+                        python_path.push("python3.exe");
+                        python_path.to_str().unwrap().to_string()
+                    }
+                    None => "python3.exe".to_string(),
+                };
+                match idf_im_lib::idf_tools::get_platform_identification(Some(&usable_python)) {
+                    Ok(platform) => platform,
+                    Err(err) => {
+                        error!("Unable to identify platform: {}", err);
+                        panic!("{}.  {:?}", t!("wizard.tools_platform_error"), err);
+                    }
+                }
+            } else {
+                panic!("{}.  {:?}", t!("wizard.tools_platform_error"), err);
+            }
         }
     };
     debug!("Python platform: {}", platform);
@@ -570,7 +590,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         version_instalation_path.push(&idf_version);
         let mut idf_path = version_instalation_path.clone();
         idf_path.push("esp-idf");
-        config.idf_path = Some(idf_path.clone()); // TODO: handle multiple versions
+        config.idf_path = Some(idf_path.clone());
         idf_im_lib::add_path_to_path(idf_path.to_str().unwrap());
 
         // download idf
