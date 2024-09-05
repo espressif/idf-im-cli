@@ -270,6 +270,10 @@ impl IntoIterator for Cli {
             ),
             ("mirror".to_string(), self.mirror.map(Into::into)),
             ("idf_mirror".to_string(), self.idf_mirror.map(Into::into)),
+            (
+                "recurse_submodules".to_string(),
+                self.recurse_submodules.map(Into::into),
+            ),
         ]
         .into_iter()
     }
