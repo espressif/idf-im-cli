@@ -81,8 +81,8 @@ pub fn check_and_install_prerequisites() -> Result<(), String> {
     Ok(())
 }
 
-fn python_sanity_check() -> Result<(), String> {
-    let outpusts = idf_im_lib::python_utils::python_sanity_check(None);
+fn python_sanity_check(python: Option<&str>) -> Result<(), String> {
+    let outpusts = idf_im_lib::python_utils::python_sanity_check(python);
     let mut all_ok = true;
     for output in outpusts {
         match output {
@@ -102,13 +102,29 @@ fn python_sanity_check() -> Result<(), String> {
 }
 pub fn check_and_install_python() -> Result<(), String> {
     info!("{}", t!("python.sanitycheck.info"));
-    if let Err(err) = run_with_spinner(python_sanity_check) {
+    if let Err(err) = run_with_spinner(|| python_sanity_check(None)) {
         if std::env::consts::OS == "windows" {
             info!("{}", t!("python.sanitycheck.fail"));
             if generic_confirm("pythhon.install.prompt").map_err(|e| e.to_string())? {
                 system_dependencies::install_prerequisites(vec!["python".to_string()])
                     .map_err(|e| e.to_string())?;
-                info!("{}", t!("python.install.success"));
+                let scp = system_dependencies::get_scoop_path();
+                let usable_python = match scp {
+                    Some(path) => {
+                        let mut python_path = PathBuf::from(path);
+                        python_path.push("python3.exe");
+                        python_path
+                            .to_str()
+                            .map(|s| s.to_string())
+                            .ok_or_else(|| "Unable to convert path to string".to_string())?
+                    }
+                    None => "python3.exe".to_string(),
+                };
+                debug!("Using Python: {}", usable_python);
+                match run_with_spinner(|| python_sanity_check(Some(&usable_python))) {
+                    Ok(_) => info!("{}", t!("python.install.success")),
+                    Err(err) => return Err(format!("{} {:?}", t!("python.install.failure"), err)),
+                }
             } else {
                 return Err(t!("python.install.refuse").to_string());
             }
