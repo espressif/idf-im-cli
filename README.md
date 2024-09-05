@@ -25,6 +25,7 @@ tools_json_file = "tools/tools.json"
 idf_tools_path = "./tools/idf_tools.py"
 mirror = "https://github.com"
 idf_mirror = "https://github.com"
+recurse_submodules = false
 ```
 
 ### Env variables

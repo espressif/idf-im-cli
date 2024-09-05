@@ -31,6 +31,7 @@ pub struct Settings {
     pub wizard_all_questions: Option<bool>,
     pub mirror: Option<String>,
     pub idf_mirror: Option<String>,
+    pub recurse_submodules: Option<bool>,
 }
 
 fn custom_styles() -> Styles {
@@ -116,6 +117,13 @@ pub struct Cli {
 
     #[arg(long, help = "file in which logs will be stored (default: eim.log)")]
     log_file: Option<String>,
+
+    #[arg(
+        short,
+        long,
+        help = "Should the installer recurse into submodules of the ESP-IDF repository?"
+    )]
+    recurse_submodules: Option<bool>,
 }
 
 impl Settings {

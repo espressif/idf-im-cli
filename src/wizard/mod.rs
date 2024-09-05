@@ -214,6 +214,7 @@ pub struct DownloadConfig {
     pub idf_path: String,
     pub idf_version: String,
     pub idf_mirror: Option<String>,
+    pub recurse_submodules: Option<bool>,
 }
 
 pub enum DownloadError {
@@ -286,6 +287,7 @@ pub fn download_idf(config: DownloadConfig) -> Result<(), DownloadError> {
         tx,
         config.idf_mirror.as_deref(),
         group_name,
+        config.recurse_submodules.unwrap_or(false),
     ) {
         Ok(_) => {
             debug!("{}", t!("wizard.idf.success"));
@@ -598,6 +600,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             idf_path: idf_path.to_str().unwrap().to_string(),
             idf_version: idf_version.to_string(),
             idf_mirror: config.idf_mirror.clone(),
+            recurse_submodules: config.recurse_submodules,
         };
 
         match download_idf(download_config) {
