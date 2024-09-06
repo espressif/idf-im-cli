@@ -187,13 +187,25 @@ impl Settings {
         };
 
         let config = log4rs::Config::builder()
-            .appender(Appender::builder().build("file", Box::new(logfile)))
-            .appender(Appender::builder().build("stdout", Box::new(stdout)))
+            .appender(
+                Appender::builder()
+                    .filter(Box::new(log4rs::filter::threshold::ThresholdFilter::new(
+                        LevelFilter::Trace,
+                    )))
+                    .build("file", Box::new(logfile)),
+            )
+            .appender(
+                Appender::builder()
+                    .filter(Box::new(log4rs::filter::threshold::ThresholdFilter::new(
+                        log_level,
+                    )))
+                    .build("stdout", Box::new(stdout)),
+            )
             .build(
                 Root::builder()
                     .appender("stdout")
                     .appender("file")
-                    .build(log_level),
+                    .build(LevelFilter::Trace),
             )
             .map_err(|e| ConfigError::Message(format!("Failed to build log4rs config: {}", e)))?;
 
