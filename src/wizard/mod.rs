@@ -395,20 +395,37 @@ fn setup_environment_variables(
     let mut env_vars = vec![];
 
     // env::set_var("IDF_TOOLS_PATH", tool_install_directory);
+    let instal_dir_string = tool_install_directory.to_str().unwrap().to_string();
     env_vars.push((
         "IDF_TOOLS_PATH".to_string(),
-        tool_install_directory.to_str().unwrap().to_string(),
+        if instal_dir_string.contains(" ") {
+            format!("\"{}\"", instal_dir_string)
+        } else {
+            instal_dir_string
+        },
     ));
+    let idf_path_string = idf_path.to_str().unwrap().to_string();
     env_vars.push((
         "IDF_PATH".to_string(),
-        idf_path.to_str().unwrap().to_string(),
+        if idf_path_string.contains(" ") {
+            format!("\"{}\"", idf_path_string)
+        } else {
+            idf_path_string
+        },
     ));
 
-    let python_env_path = tool_install_directory.join("python");
-    // env::set_var("IDF_PYTHON_ENV_PATH", &python_env_path);
+    let python_env_path_string = tool_install_directory
+        .join("python")
+        .to_str()
+        .unwrap()
+        .to_string();
     env_vars.push((
         "IDF_PYTHON_ENV_PATH".to_string(),
-        python_env_path.to_str().unwrap().to_string(),
+        if python_env_path_string.contains(" ") {
+            format!("\"{}\"", python_env_path_string)
+        } else {
+            python_env_path_string
+        },
     ));
 
     Ok(env_vars)
@@ -695,7 +712,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             println!("{}:", t!("wizard.posix.finish_steps.line_4"));
             for idf_version in config.idf_versions.clone().unwrap() {
                 println!(
-                    "       {} {}/{}",
+                    "       {} \"{}/{}\"",
                     t!("wizard.posix.finish_steps.line_5"),
                     config.path.clone().unwrap().to_str().unwrap(),
                     format!("activate_idf_{}.sh", idf_version),
