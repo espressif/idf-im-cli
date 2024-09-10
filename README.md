@@ -1,15 +1,17 @@
-# ESP-IDF Installation Manager - CLI
+# ESP-IDF Installation Manager(EIM) - CLI
 
-idf-im-cli for the CLI tool.
+EIM is a cross-platform CLI application that simplifies the setup process for ESP-IDF (Espressif IoT Development Framework). Whether you’re working on macOS, Linux, or Windows, EIM offers a consistent and user-friendly experience for installing prerequisites, ESP-IDF itself, and essential development tools.
 
-## configuration
+Please check the complete documentation [here](https://preview-docs.espressif.com/projects/idf-im-cli/en/latest/index.html).
 
-there are several ways how to configure the installer, you can supply a config file, specify cli arguments, set environmental variables or go through a wizard on the command line.
+## Configuration
+
+There are several ways how to configure the installer, you can supply a config file, specify cli arguments, set environmental variables or go through a wizard on the command line.
 
 The precedence is that the config file is overwritten by env variables which can be overridden by cli arguments.
 If you go through the wizard, your choices will have the higher precedence.
 
-### file
+### File
 
 the installer takes the config toml file. it searches for it in the default location ./config/default.toml but you can specify the path to the config with `--config` cli argument
 
