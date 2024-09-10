@@ -2,6 +2,8 @@
 
 idf-im-cli for the CLI tool.
 
+[![Documentation](https://img.shields.io/badge/documentation-white?style=for-the-badge&logo=readthedocs&logoColor=red)](https://preview-docs.espressif.com/projects/idf-im-cli/en/latest/index.html)
+
 ## configuration
 
 there are several ways how to configure the installer, you can supply a config file, specify cli arguments, set environmental variables or go through a wizard on the command line.
