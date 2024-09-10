@@ -6,7 +6,7 @@ on:
     - master
     - release/*
     paths:
-    - 'docs_espressif/**'
+    - 'docs/**'
     - '.github/workflows/docs_production.yml'
  
 jobs:
@@ -23,7 +23,7 @@ jobs:
         submodules: true
     - uses: actions/setup-python@v5
       with:
-        cache-dependency-path: docs_espressif/requirements.txt
+        cache-dependency-path: docs/requirements.txt
         cache: 'pip'
         python-version: '3.10'
     - name: Deploy Documentation to Production Server
