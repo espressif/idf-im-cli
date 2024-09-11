@@ -320,7 +320,7 @@ pub fn download_idf(config: DownloadConfig) -> Result<(), DownloadError> {
         tx,
         config.idf_mirror.as_deref(),
         group_name,
-        config.recurse_submodules.unwrap_or(false),
+        config.recurse_submodules.unwrap_or(true),
     ) {
         Ok(_) => {
             debug!("{}", t!("wizard.idf.success"));
