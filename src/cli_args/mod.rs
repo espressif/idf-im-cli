@@ -121,7 +121,7 @@ pub struct Cli {
     #[arg(
         short,
         long,
-        help = "Should the installer recurse into submodules of the ESP-IDF repository?"
+        help = "Should the installer recurse into submodules of the ESP-IDF repository (derfault true) "
     )]
     recurse_submodules: Option<bool>,
 }
