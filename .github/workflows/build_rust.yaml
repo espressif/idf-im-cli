@@ -159,7 +159,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: release/${{ matrix.os }}/eim.zip
-          asset_name: eim-${{ github.ref_name }}-${{ matrix.os }}
+          asset_name: eim-${{ github.ref_name }}-${{ matrix.os }}.zip
           asset_content_type: application/zip
       
       - name: Create aarch64-linux build
@@ -196,5 +196,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: release/aarch64-unknown-linux-gnu/eim.zip
-          asset_name: eim-${{ github.ref_name }}-linux-arm64
+          asset_name: eim-${{ github.ref_name }}-linux-arm64.zip
           asset_content_type: application/zip

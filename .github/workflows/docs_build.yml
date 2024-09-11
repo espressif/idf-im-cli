@@ -1,6 +1,9 @@
 name: Documentation Build and Deploy CI
 
 on:
+  release:
+    types: 
+      - created
   push:
     branches:
     - master
@@ -8,9 +11,6 @@ on:
     paths:
     - 'docs/**'
     - '.github/workflows/docs_build.yml'
-  release:
-    types: 
-      - created
   pull_request:
     paths:
     - 'docs/**'
