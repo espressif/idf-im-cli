@@ -2,7 +2,7 @@
 
 EIM is a cross-platform CLI application that simplifies the setup process for ESP-IDF (Espressif IoT Development Framework). Whether you’re working on macOS, Linux, or Windows, EIM offers a consistent and user-friendly experience for installing prerequisites, ESP-IDF itself, and essential development tools.
 
-Please check the complete documentation [here](https://preview-docs.espressif.com/projects/idf-im-cli/en/latest/index.html).
+[![Documentation](https://img.shields.io/badge/documentation-white?style=for-the-badge&logo=readthedocs&logoColor=red)](https://preview-docs.espressif.com/projects/idf-im-cli/en/latest/index.html)
 
 ## Configuration
 
