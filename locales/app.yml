@@ -62,6 +62,9 @@ wizard.idf.sucess:
 wizard.idf.failure:
  en: Download esp-idf failed
  cn: 下载 esp-idf 失败
+wizard.idf.user_cancelled:
+ en: Canceling the instalation
+ cn: 取消安装 ESP-IDF
 wizard.tools.donwload.prompt:
  en: Choose the folder where the tools will be downloaded
  cn: 请选择要下载的工具所在目录
