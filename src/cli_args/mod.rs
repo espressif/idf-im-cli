@@ -1,12 +1,13 @@
 use clap::builder::styling::{AnsiColor, Color, Style, Styles};
 use clap::{arg, command, ColorChoice, Parser};
-use config::{Config, ConfigError, File};
+use config::{Config, ConfigError, File, ValueKind};
 use idf_im_lib::get_log_directory;
 use log::{debug, info, LevelFilter};
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
+use toml::value::Array;
 
 use log4rs::{
     append::{console::ConsoleAppender, file::FileAppender},
@@ -70,10 +71,18 @@ pub struct Cli {
     #[arg(short, long, value_name = "FILE")]
     config: Option<PathBuf>,
 
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        help = "You can provide multiple targets separated by comma"
+    )]
     target: Option<String>,
 
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        help = "you can provide multiple versions of ESP-IDF separated by comma"
+    )]
     idf_versions: Option<String>,
 
     #[arg(long)]
@@ -159,7 +168,6 @@ impl Settings {
             }
         }
         let cfg = builder.build()?;
-
         cfg.try_deserialize()
     }
 
@@ -266,7 +274,7 @@ impl IntoIterator for Cli {
                     .map(|s| s.split(',').collect::<Vec<&str>>().into()),
             ),
             (
-                "idf_version".to_string(),
+                "idf_versions".to_string(),
                 self.idf_versions
                     .map(|s| s.split(',').collect::<Vec<&str>>().into()),
             ),
