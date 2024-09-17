@@ -61,6 +61,12 @@ fn custom_styles() -> Styles {
     styles = custom_styles()
 )]
 pub struct Cli {
+    #[arg(
+        short,
+        long,
+        help = "Base Path to which all the files and folder will be installed"
+    )]
+    path: Option<String>,
     #[arg(short, long, value_name = "FILE")]
     config: Option<PathBuf>,
 
@@ -144,16 +150,15 @@ impl Settings {
 
         builder = builder.add_source(config::Environment::with_prefix("ESP").separator("_"));
 
-        let mut cfg = builder.build()?;
-
         for (key, value) in cli.into_iter() {
             if let Some(v) = value {
                 if key != "config" {
                     debug!("Setting {} to {:?}", key, v);
-                    cfg.set(&key, v)?;
+                    builder = builder.set_override(key, v)?;
                 }
             }
         }
+        let cfg = builder.build()?;
 
         cfg.try_deserialize()
     }
@@ -246,6 +251,7 @@ impl IntoIterator for Cli {
 
     fn into_iter(self) -> Self::IntoIter {
         vec![
+            ("path".to_string(), self.path.map(Into::into)),
             (
                 "config".to_string(),
                 self.config.map(|p| p.to_str().unwrap().into()),
