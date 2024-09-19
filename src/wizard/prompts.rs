@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use crate::cli_args::Settings;
 pub use crate::wizard::helpers;
 use helpers::{
     first_defaulted_multiselect, generic_confirm, generic_input, generic_select, run_with_spinner,
 };
+use idf_im_lib::settings::Settings;
 use idf_im_lib::system_dependencies;
 use log::{debug, info};
 use rust_i18n::t;
