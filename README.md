@@ -16,6 +16,7 @@ If you go through the wizard, your choices will have the higher precedence.
 the installer takes the config toml file. it searches for it in the default location ./config/default.toml but you can specify the path to the config with `--config` cli argument
 
 example config:
+
 ```toml
 path = "/tmp/esp-new/"
 idf_path = "/tmp/esp-new/v5.3/esp-idf"
@@ -42,7 +43,7 @@ please refer to the --help for information about cli usage
 
 Download the executable for the suitable architecture.
 
-it is recommended first to run the `--help` command 
+it is recommended first to run the `--help` command
 
 Run it and proceed according to instructions in the terminal and you will have IDF installed.
 

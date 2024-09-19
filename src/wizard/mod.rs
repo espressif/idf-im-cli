@@ -1,6 +1,6 @@
-use crate::cli_args::Settings;
 use dialoguer::FolderSelect;
 use idf_im_lib::idf_tools::ToolsFile;
+use idf_im_lib::settings::Settings;
 use idf_im_lib::ProgressMessage;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use log::{debug, error, info, trace, warn};
