@@ -288,7 +288,6 @@ pub fn download_idf(config: DownloadConfig) -> Result<(), DownloadError> {
                     update_progress_bar_number(&progress_bar, value);
                 }
                 Err(_) => {
-                    println!("Channel closed, exiting.");
                     break;
                 }
             }
@@ -429,37 +428,16 @@ fn setup_environment_variables(
 
     // env::set_var("IDF_TOOLS_PATH", tool_install_directory);
     let instal_dir_string = tool_install_directory.to_str().unwrap().to_string();
-    env_vars.push((
-        "IDF_TOOLS_PATH".to_string(),
-        if instal_dir_string.contains(" ") {
-            format!("\"{}\"", instal_dir_string)
-        } else {
-            instal_dir_string
-        },
-    ));
+    env_vars.push(("IDF_TOOLS_PATH".to_string(), instal_dir_string));
     let idf_path_string = idf_path.to_str().unwrap().to_string();
-    env_vars.push((
-        "IDF_PATH".to_string(),
-        if idf_path_string.contains(" ") {
-            format!("\"{}\"", idf_path_string)
-        } else {
-            idf_path_string
-        },
-    ));
+    env_vars.push(("IDF_PATH".to_string(), idf_path_string));
 
     let python_env_path_string = tool_install_directory
         .join("python")
         .to_str()
         .unwrap()
         .to_string();
-    env_vars.push((
-        "IDF_PYTHON_ENV_PATH".to_string(),
-        if python_env_path_string.contains(" ") {
-            format!("\"{}\"", python_env_path_string)
-        } else {
-            python_env_path_string
-        },
-    ));
+    env_vars.push(("IDF_PYTHON_ENV_PATH".to_string(), python_env_path_string));
 
     Ok(env_vars)
 }
@@ -510,8 +488,13 @@ fn run_idf_tools_py(
     idf_tools_path: &str,
     environment_variables: &Vec<(String, String)>,
 ) -> Result<String, String> {
-    run_install_script(idf_tools_path, environment_variables)?;
-    run_install_python_env_script(idf_tools_path, environment_variables)
+    let escaped_path = if std::env::consts::OS == "windows" {
+        idf_im_lib::replace_unescaped_spaces_win(&idf_tools_path)
+    } else {
+        idf_im_lib::replace_unescaped_spaces_posix(&idf_tools_path)
+    };
+    run_install_script(&escaped_path, environment_variables)?;
+    run_install_python_env_script(&escaped_path, environment_variables)
 }
 
 fn run_install_script(
@@ -611,6 +594,22 @@ fn single_version_post_install(
     }
 }
 
+fn expand_tilde(path: &Path) -> PathBuf {
+    if path.starts_with("~") {
+        if let Some(home_dir) = dirs::home_dir() {
+            if path.to_str().unwrap() == "~" {
+                home_dir
+            } else {
+                home_dir.join(path.strip_prefix("~").unwrap())
+            }
+        } else {
+            path.to_path_buf()
+        }
+    } else {
+        path.to_path_buf()
+    }
+}
+
 pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     debug!("Config entering wizard: {:?}", config);
 
@@ -639,6 +638,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
 
     for idf_version in config.idf_versions.clone().unwrap() {
         let mut version_instalation_path = config.path.clone().unwrap();
+        version_instalation_path = expand_tilde(version_instalation_path.as_path());
         version_instalation_path.push(&idf_version);
         let mut idf_path = version_instalation_path.clone();
         idf_path.push("esp-idf");
@@ -719,7 +719,18 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             tools,
             config.target.clone().unwrap().clone(),
             tool_install_directory.join("tools").to_str().unwrap(),
-        );
+        )
+        .into_iter()
+        .map(|p| {
+            if std::env::consts::OS == "windows" {
+                idf_im_lib::replace_unescaped_spaces_win(&p)
+            } else {
+                p
+            }
+        })
+        .collect();
+
+        println!("### {}", idf_path.to_str().unwrap());
 
         single_version_post_install(
             &version_instalation_path.to_str().unwrap(),
