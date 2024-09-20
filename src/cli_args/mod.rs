@@ -1,6 +1,7 @@
 use clap::builder::styling::{AnsiColor, Color, Style, Styles};
 use clap::{arg, command, ColorChoice, Parser};
 use std::path::PathBuf;
+use toml::value::Array;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
