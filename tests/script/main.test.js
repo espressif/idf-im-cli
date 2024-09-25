@@ -1,20 +1,21 @@
 import { describe, it, before, after } from "mocha";
 import { runLineArgumentsTests } from "./commandLineArguments.test.js";
+import { runPrerequisitesCheckTests } from "./prerequisites.test.js";
 import { runInstallWizzardTests } from "./installWizard.test.js";
-import logger from "./logger.class.js";
 
 describe("Installation Manager Tests", function () {
-    this.timeout(2400000);
+  this.timeout(10000);
 
-    before(function () {
-        // Any setup code that needs to run before all tests
-    });
+  before(function () {
+    // Any setup code that needs to run before all tests
+  });
 
-    after(function () {
-        // Any cleanup code that needs to run after all tests
-    });
+  after(function () {
+    // Any cleanup code that needs to run after all tests
+  });
 
-    // Run all test suites
-    runLineArgumentsTests();
-    runInstallWizzardTests();
+  // Run all test suites
+  runLineArgumentsTests();
+  runPrerequisitesCheckTests();
+  runInstallWizzardTests();
 });

@@ -5,7 +5,7 @@ export EIM_FILE_PATH="$1"
 export EIM_VERSION="$2"
 
 #Enter test folder
-cd tests/script
+cd script
 
 # install node modules
 npm ci
