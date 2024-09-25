@@ -1,7 +1,7 @@
 import { describe, it, before, after } from "mocha";
-import { runLineArgumentsTests } from "./commandLineArgumentsTest.js";
-import { runPrerequisitesCheckTests } from "./prerequisitesTest.js"
-import { runInstallWizzardTests } from "./installWizardTest.js";
+import { runLineArgumentsTests } from "./commandLineArguments.test.js";
+import { runPrerequisitesCheckTests } from "./prerequisites.test.js";
+import { runInstallWizzardTests } from "./installWizard.test.js";
 
 describe("Installation Manager Tests", function () {
   this.timeout(10000);

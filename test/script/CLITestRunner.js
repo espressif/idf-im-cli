@@ -1,10 +1,9 @@
 import pty from "node-pty";
 import os from "os";
-import path from "path";
 
 export class InteractiveCLITestRunner {
   constructor(exePath) {
-    this.exePath = path.join(os.homedir(), exePath);
+    this.exePath = exePath;
     this.process = null;
     this.output = "";
     this.exited = false;

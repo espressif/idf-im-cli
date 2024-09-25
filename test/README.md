@@ -16,30 +16,42 @@ All tests are developed in Node.js using Chain and Mocha as test libraries in co
 
 On the test machine, the first step is to copy the testing artifacts. The location of the artifacts can be set using environment variable, or the test will look for the `eim` file in the default location:
 
-Windows: C:\espressif\
+Windows: $USERPROFILE\espressif\
 Linux/MacOS: ~/espressif
 
 Make sure Node version 14 or higher and Git are installed.
 
 ### Windows
 
+Install chocolatey package manager:
+https://docs.chocolatey.org/en-us/choco/setup/
+
+Run this command with administrator priviledges.
+`Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))`
+
+
 Install Node.js:
 https://nodejs.org/en/download/prebuilt-installer/current
+`choco install nodejs --version="20.17.0" -y`
 
-Using fnm package manager:
-`winget install Schniz.fnm`
-`fnm env --use-on-cd | Out-String | Invoke-Expression`
-`fnm use --install-if-missing 22`
+Python and VSCode build tools required to build node-pty module
+`choco install python -y`
 
+Install git:
+https://git-scm.com/download/win
 
-VSCode build tools required to build node-pty module
+`choco install git.install -y`
 
+Clone the test trunk from the public repository:
+
+`git clone -b autotest https://github.com/espressif/idf-im-cli.git TestSetup`
 
 ### Linux:
 
-Install Git and curl and python 2.7
-`sudo apt install -y git curl python2.7`
+Install Git and curl and build-essential packages
+`sudo apt install -y git curl build-essential`
 `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash`
+
 Start a new terminal (to load nvm)
 `nvm install 20`
 
@@ -56,35 +68,37 @@ Clone the test trunk from the public repository:
 ## Commands summary
 
 Navigate to the TestSetup folder, where the repository was cloned.
+Navigate to the test folder inside the repository and execute the commands below to run the automated tests. 
+The scripts should be executed passing as arguments the path to the `eim` application and the version of the file being tested.
 
 #### Windows
 
+Open Powershell, and enable script execution:
+`Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
+
 To execute tests on windows, use the script
-`.\run_test.bat`
+`.\run_test.ps1 "<PATH TO EIM.EXE>" "<Version being tested>"`
+
+Default arguments are:
+`.\run_test.ps1 "$USERPROFILE\espressif\eim.exe" "idf-im-cli 0.1.0"`
 
 #### Linux
-To execute tests on linux, use the script:
 
-(if needed) give execution permission
+(if needed) Give execution permission to the test script
 `chmod +x run_test.sh`
 
-`./run_test.sh`
+To execute tests on linux, use the script:
+`. ./run_test.sh "<PATH TO EIM>" "<Version being tested>"`
 
->       cd TestSetup
-        npm ci
-        npm test
+Default arguments are:
+`. ./run_test.sh "$HOME/espressif/eim" "idf-im-cli 0.1.0"`
 
 
 #### MacOS
 
 To executing testins in MacOS, use the script:
 
-
-
-
-
-
-
+<TODO>
 
 
 
@@ -169,7 +183,7 @@ idf_mirror = "https://github.com"
 
 #### Linux & MacOS
 
-`./eim -p ~/.espressif -t all -i v5.3.1 --tool-download-folder-name dist --tool-install-folder-name tools --idf-tools-path ./tools/idf_tools.py --tools-json-file tools/tools.json -m https://github.com --idf-mirror https://github.com`
+`./eim -p ~/.espressif -t all -i v5.3.1 --tool-download-folder-name dist --tool-install-folder-name tools --idf-tools-path ./tools/idf_tools.py --tools-json-file tools/tools.json -m https://github.com --idf-mirror https://github.com -r true`
 
 `./eim -c config.toml`
 
@@ -180,19 +194,14 @@ idf_mirror = "https://github.com"
 
 Packages required by EIM:
 
-Windows: eim shoudl be able to perform all requirements installation
+Windows: eim should be able to perform all requirements installation
 
-Linux:
-
-sudo apt install git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-dev python3 python3-venv python3-pip
+Linux: sudo apt install git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-dev python3 python3-venv python3-pip
 
 MacOS:
-
 Install homebrew and load the application to the terminal profile
 
 `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 
-Then run:
-
-brew install dfu-util cmake ninja python3
+Then run: brew install dfu-util cmake ninja python3
 
