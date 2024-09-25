@@ -1,8 +1,4 @@
-# EMI-Test
-
-This repository contains the test structure for the ESP Installation Manager.  
-It is intended ofr temporary use only to develop a proff of concept, once functional this data will be transferred to the project repository.
-
+# Espressif Installation Manager automated tests
 
 ## Concepts
 
@@ -17,15 +13,12 @@ All tests are developed in Node.js using Chain and Mocha as test libraries in co
 On the test machine, the first step is to copy the testing artifacts. The location of the artifacts can be set using environment variable, or the test will look for the `eim` file in the default location:
 
 Windows: $USERPROFILE\espressif\
-Linux/MacOS: ~/espressif
-
-Make sure Node version 14 or higher and Git are installed.
+Linux/MacOS: $HOME/espressif
 
 ### Windows
 
 Install chocolatey package manager:
 https://docs.chocolatey.org/en-us/choco/setup/
-
 Run this command with administrator priviledges.
 `Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))`
 
@@ -34,17 +27,14 @@ Install Node.js:
 https://nodejs.org/en/download/prebuilt-installer/current
 `choco install nodejs --version="20.17.0" -y`
 
-Python and VSCode build tools required to build node-pty module
-`choco install python -y`
 
 Install git:
 https://git-scm.com/download/win
-
 `choco install git.install -y`
 
 Clone the test trunk from the public repository:
 
-`git clone -b autotest https://github.com/espressif/idf-im-cli.git TestSetup`
+`git clone -b autotest https://github.com/espressif/idf-im-cli.git`
 
 ### Linux:
 
@@ -56,8 +46,7 @@ Start a new terminal (to load nvm)
 `nvm install 20`
 
 Clone the test trunk from the public repository:
-
-`git clone -b autotest https://github.com/espressif/idf-im-cli.git TestSetup`
+`git clone -b autotest https://github.com/espressif/idf-im-cli.git`
 
 
 ### MacOS
@@ -67,7 +56,7 @@ Clone the test trunk from the public repository:
 
 ## Commands summary
 
-Navigate to the TestSetup folder, where the repository was cloned.
+Navigate to the idf-im-cli folder, where the repository was cloned.
 Navigate to the test folder inside the repository and execute the commands below to run the automated tests. 
 The scripts should be executed passing as arguments the path to the `eim` application and the version of the file being tested.
 
