@@ -1,8 +1,16 @@
 import { expect } from "chai";
 import { describe, it, before, after, beforeEach, afterEach } from "mocha";
 import { InteractiveCLITestRunner } from "./CLITestRunner.js"
+import os from "os";
+import path from "path";
 
-const pathToEim = process.env.EIM_FILE_PATH
+let pathToEim;
+
+if (process.env.EIM_FILE_PATH) {
+  pathToEim = process.env.EIM_FILE_PATH;
+} else {
+  pathToEim = path.join(os.homedir(), "espressif/eim");
+}
 
 export function runInstallWizzardTests(){
     describe("Check if Install Wizzard steps", function () {

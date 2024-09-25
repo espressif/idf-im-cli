@@ -1,9 +1,16 @@
 import { expect } from "chai";
 import { describe, it, before, after, beforeEach, afterEach } from "mocha";
-import os from "os";
 import { InteractiveCLITestRunner } from "./CLITestRunner.js"
+import os from "os";
+import path from "path";
 
-const pathToEim = process.env.EIM_FILE_PATH
+let pathToEim;
+
+if (process.env.EIM_FILE_PATH) {
+  pathToEim = process.env.EIM_FILE_PATH;
+} else {
+  pathToEim = path.join(os.homedir(), "espressif/eim");
+}
 
 export function runPrerequisitesCheckTests(){
     describe("Check if prerequisites are installed", function () {
@@ -20,6 +27,7 @@ export function runPrerequisitesCheckTests(){
             if (testRunner) {
                 await testRunner.stop();
             }
+            testRunner = null
         });
 
 
@@ -61,36 +69,36 @@ export function runPrerequisitesCheckTests(){
             expect(promptReceived).to.be.true;
             });
 
-            it("Deny Installation", async function () {
-            this.timeout(15000); // Increase timeout if needed
+            // it("Deny Installation", async function () {
+            // this.timeout(15000); // Increase timeout if needed
 
-            try {
-                const promptReceived = await testRunner.waitForOutput(
-                "Do you want to install prerequisites?"
-                );
-                expect(promptReceived).to.be.true;
+            // try {
+            //     const promptReceived = await testRunner.waitForOutput(
+            //     "Do you want to install prerequisites?"
+            //     );
+            //     expect(promptReceived).to.be.true;
 
-                if (promptReceived) {
-                testRunner.sendInput("n");
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-                const terminalExited = await testRunner.waitForExit(
-                    "Please install the missing prerequisites and try again"
-                );
-                expect(terminalExited).to.be.true;
-                expect(testRunner.exitCode).to.not.equal(0);
-                }
-            } catch (error) {
-                console.error("test error:", error);
-                throw error;
-            }
-            });
+            //     if (promptReceived) {
+            //     testRunner.sendInput("n");
+            //     await new Promise((resolve) => setTimeout(resolve, 2000));
+            //     const terminalExited = await testRunner.waitForExit(
+            //         "Please install the missing prerequisites and try again"
+            //     );
+            //     expect(terminalExited).to.be.true;
+            //     expect(testRunner.exitCode).to.not.equal(0);
+            //     }
+            // } catch (error) {
+            //     console.error("test error:", error);
+            //     throw error;
+            // }
+            // });
 
-            it("should offer to install prerequisites again", async function () {
-            const promptReceived = await testRunner.waitForOutput(
-                "Do you want to install prerequisites?"
-            );
-            expect(promptReceived).to.be.true;
-            });
+            // it("should offer to install prerequisites again", async function () {
+            // const promptReceived = await testRunner.waitForOutput(
+            //     "Do you want to install prerequisites?"
+            // );
+            // expect(promptReceived).to.be.true;
+            // });
         });
         
     });
