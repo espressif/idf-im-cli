@@ -142,11 +142,7 @@ pub fn select_mirrors(mut config: Settings) -> Result<Settings, String> {
         Some(mirror) => Some(mirror),
         None => Some(generic_select(
             "wizard.idf.mirror",
-            &[
-                "https://github.com",
-                "https://jihulab.com/esp-mirror",
-                "https://gitee.com/",
-            ],
+            idf_im_lib::get_idf_mirrors_list(),
         )?),
     };
 
@@ -154,11 +150,7 @@ pub fn select_mirrors(mut config: Settings) -> Result<Settings, String> {
         Some(mirror) => Some(mirror),
         None => Some(generic_select(
             "wizard.tools.mirror",
-            &[
-                "https://github.com",
-                "https://dl.espressif.com/github_assets",
-                "https://dl.espressif.cn/github_assets",
-            ],
+            idf_im_lib::get_idf_tools_mirrors_list(),
         )?),
     };
 
