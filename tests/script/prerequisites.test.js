@@ -43,18 +43,19 @@ export function runPrerequisitesCheckTests() {
          *
          */
 
-        (os.platform() !== "win32" ? describe : describe.skip)(
-            "Linux/MAC specific tests",
-            function () {
-                it("Should detect missing requirements", async function () {
-                    const missingRequisites = await testRunner.waitForExit(
-                        "Please install the missing prerequisites and try again"
-                    );
-                    expect(missingRequisites).to.be.true;
-                    expect(testRunner.exitCode).to.not.equal(0);
-                });
-            }
-        );
+        // // The following test can only be executed if the prerequisites have not been installed in the OS.
+        // (os.platform() !== "win32" ? describe : describe.skip)(
+        //     "Linux/MAC specific tests",
+        //     function () {
+        // it("Should detect missing requirements", async function () {
+        //     const missingRequisites = await testRunner.waitForExit(
+        //         "Please install the missing prerequisites and try again"
+        //     );
+        //     expect(missingRequisites).to.be.true;
+        //     expect(testRunner.exitCode).to.not.equal(0);
+        // });
+        //     }
+        // );
 
         /** Windows Specific Tests
          *

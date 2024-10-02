@@ -46,7 +46,7 @@ export class InteractiveCLITestRunner {
             this.process.onData((data) => {
                 try {
                     this.output += data;
-                    // console.log("received data:>>>>>>", data, "<<<<<<<<<<<<<");
+                    // console.log(data);
                 } catch (error) {
                     console.error("Error in onData:", error);
                     this.error = error;
@@ -87,7 +87,7 @@ export class InteractiveCLITestRunner {
     sendInput(input) {
         if (this.process && !this.exited) {
             try {
-                this.process.write(input + "\r");
+                this.process.write(input);
             } catch (error) {
                 console.error("Error sending input:>>>>", error, "<<<<<<<<<<<");
                 this.error = error;
