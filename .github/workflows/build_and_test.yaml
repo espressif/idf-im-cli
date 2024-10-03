@@ -13,7 +13,7 @@ jobs:
         strategy:
             matrix:
                 # os: [ubuntu-latest, windows-latest, macos-latest, macos-12]
-                os: [ubuntu-latest]
+                os: [ubuntu-latest, windows-latest]
 
         steps:
             - name: Checkout repository
@@ -198,8 +198,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [ubuntu-latest]
-                # os: [ubuntu-latest, windows-latest]
+                os: [ubuntu-latest, windows-latest]
 
         steps:
             - name: Checkout repository
