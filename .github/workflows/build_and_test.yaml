@@ -1,6 +1,9 @@
 name: Autotest
 
 on:
+    pull_request:
+        branches:
+            - autotest
     workflow_dispatch:
 
 jobs:
