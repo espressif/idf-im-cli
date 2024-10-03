@@ -7,7 +7,6 @@ the tests will be executed manually and using an structure that will allow evolu
 
 All tests are developed in Node.js using Chain and Mocha as test libraries in combination with Node-PTY for teminal emulation. It is required to install node on the test runner machine.
 
-
 ## Environment Setup
 
 On the test machine, the first step is to copy the testing artifacts. The location of the artifacts can be set using environment variable, or the test will look for the `eim` file in the default location:
@@ -22,11 +21,9 @@ https://docs.chocolatey.org/en-us/choco/setup/
 Run this command with administrator priviledges.
 `Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))`
 
-
 Install Node.js:
 https://nodejs.org/en/download/prebuilt-installer/current
 `choco install nodejs --version="20.17.0" -y`
-
 
 Install git:
 https://git-scm.com/download/win
@@ -48,16 +45,17 @@ Start a new terminal (to load nvm)
 Clone the test trunk from the public repository:
 `git clone -b autotest https://github.com/espressif/idf-im-cli.git`
 
+At his point test for prerequisits can be run, the remaining tests requires the pre-requisits to be installed.
+The pre-requisites tests have been commented out of the test scripts.
+
+`sudo apt install git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-dev python3 python3-venv python3-pip`
 
 ### MacOS
-
-
-
 
 ## Commands summary
 
 Navigate to the idf-im-cli folder, where the repository was cloned.
-Navigate to the test folder inside the repository and execute the commands below to run the automated tests. 
+Navigate to the test folder inside the repository and execute the commands below to run the automated tests.
 The scripts should be executed passing as arguments the path to the `eim` application and the version of the file being tested.
 
 #### Windows
@@ -69,7 +67,7 @@ To execute tests on windows, use the script
 `.\run_test.ps1 "<PATH TO EIM.EXE>" "<Version being tested>"`
 
 Default arguments are:
-`.\run_test.ps1 "$USERPROFILE\espressif\eim.exe" "idf-im-cli 0.1.0"`
+`.\run_test.ps1 "$env:USERPROFILE\espressif\eim.exe" "idf-im-cli 0.1.0"`
 
 #### Linux
 
@@ -82,18 +80,16 @@ To execute tests on linux, use the script:
 Default arguments are:
 `. ./run_test.sh "$HOME/espressif/eim" "idf-im-cli 0.1.0"`
 
-
 #### MacOS
 
 To executing testins in MacOS, use the script:
 
 <TODO>
 
-
-
 # Installation Manager Usage
 
 ##Application arguments
+
 ```
 Options:
   -p, --path <PATH>
@@ -122,7 +118,7 @@ Options:
       --log-file <LOG_FILE>
           file in which logs will be stored (default: eim.log)
   -r, --recurse-submodules <RECURSE_SUBMODULES>
-          Should the installer recurse into submodules of the ESP-IDF repository (derfault true) 
+          Should the installer recurse into submodules of the ESP-IDF repository (derfault true)
           [possible values: true, false]
   -h, --help
           Print help (see a summary with '-h')
@@ -133,6 +129,7 @@ Options:
 ## Example config file:
 
 file config.toml (Linux)
+
 ```
 path = "/home/virtual/.esp"
 idf_path = "/home/virtual/.esp/v5.3.1/esp-idf"
@@ -147,6 +144,7 @@ idf_mirror = "https://github.com"
 ```
 
 file config.toml (Windows)
+
 ```
 path = 'C:\esp\'
 idf_path = 'C:\esp\v5.3.1\esp-idf'
@@ -163,12 +161,12 @@ idf_mirror = "https://github.com"
 ## Full arguments
 
 #### Windows:
+
 `.\eim.exe -p c:\espressif -t all -i v5.3.1 --tool-download-folder-name dist --tool-install-folder-name tools --idf-tools-path ./tools/idf_tools.py --tools-json-file tools/tools.json -m https://github.com --idf-mirror https://github.com -r true`
 
 `.\eim.exe -c config.toml`
 
 `.\eim.exe --log-file InstManager.log`
-
 
 #### Linux & MacOS
 
@@ -177,7 +175,6 @@ idf_mirror = "https://github.com"
 `./eim -c config.toml`
 
 `./eim --log-file InstManager.log`
-
 
 ## References
 
@@ -193,4 +190,3 @@ Install homebrew and load the application to the terminal profile
 `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 
 Then run: brew install dfu-util cmake ninja python3
-
