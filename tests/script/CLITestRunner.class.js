@@ -55,7 +55,7 @@ export class InteractiveCLITestRunner {
                 }
                 // console.log("received data:>>>>>>", data, "<<<<<<<<<<<<<");
             });
-            this.process.onExit((exitCode) => {
+            this.process.onExit(({ exitCode }) => {
                 // console.log(
                 //     "Exiting with code:>>>>>>>",
                 //     exitCode,
