@@ -1,4 +1,4 @@
-name: Rust
+name: Autotest
 
 on:
     workflow_dispatch:
