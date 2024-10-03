@@ -1,9 +1,6 @@
-name: Autotest
+name: Rust
 
 on:
-    pull_request:
-        branches:
-            - autotest
     workflow_dispatch:
 
 jobs:
@@ -12,8 +9,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                # os: [ubuntu-latest, windows-latest, macos-latest, macos-12]
-                os: [ubuntu-latest, windows-latest]
+                os: [ubuntu-latest, windows-latest, macos-latest, macos-12]
 
         steps:
             - name: Checkout repository
@@ -193,17 +189,22 @@ jobs:
                   asset_content_type: application/zip
 
     test:
-        name: Automated test scripts
+        name: Run shell script tests
         needs: build
         runs-on: ${{ matrix.os }}
         strategy:
-            fail-fast: false
             matrix:
                 os: [ubuntu-latest, windows-latest]
 
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
+
+            - name: Install dependencies (Ubuntu)
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
 
             - name: Set up Node.js
               uses: actions/setup-node@v4
@@ -215,116 +216,40 @@ jobs:
               with:
                   path: ./artifacts
 
-            - name: Extract artifact (non-Windows)
-              if: runner.os != 'Windows'
+            - name: Extract artifact
               run: |
                   mkdir -p test-bin
-                  unzip ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -d test-bin
-                  # unzip ./test-bin/eim.zip -d test-bin
+                  if [ "${{ runner.os }}" == "Windows" ]; then
+                    7z x ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -otest-bin
+                  else
+                    unzip ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -d test-bin
+                  fi
 
             - name: Set executable permissions (non-Windows)
               if: runner.os != 'Windows'
               run: |
                   chmod +x ./test-bin/eim
+                  chmod +x ./tests/run_tests.sh
 
-            - name: Run prerequisites test script (non-Windows)
-              if: runner.os != 'Windows'
-              run: |
-                  export EIM_FILE_PATH="../../test-bin/eim"
-                  export EIM_VERSION="idf-im-cli 0.1.0"
-                  export LOG_TO_FILE="true"
-                  cd tests/script
-                  npm ci
-                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results-pre-test.xml prerequisites.test.js
-
-            - name: Install dependencies (Ubuntu)
-              if: runner.os == 'Linux'
-              run: |
-                  sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
-
-            - name: Run IDF installation and post install test script (non-Windows)
-              if: runner.os != 'Windows'
-              run: |
-                  export EIM_FILE_PATH="../../test-bin/eim"
-                  export EIM_VERSION="idf-im-cli 0.1.0"
-                  export LOG_TO_FILE="true"                  
-                  cd tests/script
-                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js
-                  export IDF_SCRIPT=$HOME/.espressif/activate_idf_v5.3.1.sh
-                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml postInstall.test.js
-
-            - name: Extract artifact (Windows)
+            - name: Set executable permissions (Windows)
               if: runner.os == 'Windows'
               run: |
-                  mkdir -p test-bin
-                  7z x ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -otest-bin
-                  # 7z x ./test-bin/eim.zip -otest-bin
+                  icacls .\tests\run_test.ps1 /grant:r Everyone:F
+                  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
-            # - name: downgrade powershell version (Windows)
-            #   if: runner.os == 'Windows'
-            #   run: |
-            #       $extractPath = "C:\Program Files\PowerShell\7"
-            #       Invoke-WebRequest -Uri "https://github.com/PowerShell/PowerShell/releases/download/v7.2.17/PowerShell-7.2.17-win-x64.zip" -OutFile "pwsh.zip"
-            #       Remove-Item -Path $extractPath -Recurse -Force -ErrorAction SilentlyContinue
-            #       Expand-Archive -Path "pwsh.zip" -DestinationPath $extractPath -Force
-            #       pwsh --version
-
-            - name: Print powershell and windows version (Windows)
-              if: runner.os == 'Windows'
+            - name: Run test script (non-Windows)
+              if: runner.os != 'Windows'
               run: |
-                  $PSVersionTable
-                  [System.Environment]::OSVersion.Version
+                  . ./tests/run_tests.sh "../../test-bin/eim" "idf-im-cli 0.1.0"
 
             - name: Run test script (Windows)
               if: runner.os == 'Windows'
               run: |
-                  $env:EIM_FILE_PATH="..\..\test-bin\eim.exe"
-                  $env:EIM_VERSION="idf-im-cli 0.1.0"
-                  $env:LOG_TO_FILE="true"
-                  7z x ./tests/script/node_modules.zip -otests/script/node_modules
-                  Set-Location -Path "./tests/script"
-                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results-pre-test.xml prerequisites.test.js
-
-            - name: Install dependencies (Windows)
-              if: runner.os == 'windows'
-              run: |
-                  choco install ninja -y
-
-            - name: Run test script (Windows)
-              if: runner.os == 'Windows'
-              run: |
-                  $env:EIM_FILE_PATH = "..\..\test-bin\eim.exe"
-                  $env:EIM_VERSION = "idf-im-cli 0.1.0"
-                  $env:LOG_TO_FILE="true"
-                  Set-Location -Path "./tests/script"
-                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js
-                  $env:IDF_SCRIPT="C:\esp\v5.3.1\Microsoft.PowerShell_profile.ps1"
-                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml postInstall.test.js
+                  .\tests\run_test.ps1 "..\..\test-bin\eim.exe" "idf-im-cli 0.1.0"
 
             - name: Upload test results
               uses: actions/upload-artifact@v4
               if: always()
               with:
-                  name: test-results-${{ matrix.os }}.zip
-                  path: |
-                      ./tests/results.xml
-                      ./tests/results-pre-test.xml
-                      ./tests/test.log
-
-    publish-test-results:
-        name: Automated Test Results
-        needs: test
-        runs-on: ubuntu-latest
-        if: always()
-
-        steps:
-            - name: Download Artifacts
-              uses: actions/download-artifact@v4
-              with:
-                  path: ./artifacts
-
-            - name: Publish Test Results
-              uses: EnricoMi/publish-unit-test-result-action@v2
-              with:
-                  action_fail: true
-                  files: "./artifacts/**/*.xml"
+                  name: test-results-${{ matrix.os }}
+                  path: ./results.xml
