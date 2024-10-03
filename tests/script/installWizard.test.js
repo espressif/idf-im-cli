@@ -97,6 +97,9 @@ export function runInstallWizzardTests() {
                             "Do you want to save the installer configuration",
                             1200000
                         );
+                    if (!installationCompleted) {
+                        console.log(testRunner.output);
+                    }
                     expect(installationCompleted).to.be.true;
                     expect(testRunner.output).to.not.include("error");
                     expect(testRunner.output).to.include(
@@ -110,6 +113,9 @@ export function runInstallWizzardTests() {
                     const installationSuccessful = await testRunner.waitForExit(
                         "Successfully installed IDF"
                     );
+                    if (!installationSuccessful) {
+                        console.log(testRunner.output);
+                    }
                     expect(installationSuccessful).to.be.true;
                     expect(testRunner.exitCode).to.equal(0);
                     expect(testRunner.output).to.include(
@@ -206,6 +212,9 @@ export function runInstallWizzardTests() {
                             "Do you want to save the installer configuration",
                             1200000
                         );
+                    if (!installationCompleted) {
+                        console.log(testRunner.output);
+                    }
                     expect(installationCompleted).to.be.true;
                     expect(testRunner.output).to.not.include("error");
                     expect(testRunner.output).to.include(
@@ -222,6 +231,9 @@ export function runInstallWizzardTests() {
                     const installationSuccessful = await testRunner.waitForExit(
                         "Successfully installed IDF"
                     );
+                    if (!installationSuccessful) {
+                        console.log(testRunner.output);
+                    }
                     expect(installationSuccessful).to.be.true;
                     expect(testRunner.exitCode).to.equal(0);
                     expect(testRunner.output).to.include(
