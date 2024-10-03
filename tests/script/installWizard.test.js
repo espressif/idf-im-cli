@@ -46,52 +46,72 @@ export function runInstallWizzardTests() {
         (os.platform() !== "win32" ? describe : describe.skip)(
             "Linux/MAC wizzard workflow",
             function () {
-                it("Should launch the installation manager and request target platforms", async function () {
+                it("Should install IDF using wizzard and default values", async function () {
                     const selectTargetQuestion = await testRunner.waitForOutput(
                         "Please select all of the target platforms"
                     );
+                    if (!selectTargetQuestion) {
+                        console.log(testRunner.output);
+                    }
                     expect(selectTargetQuestion).to.be.true;
                     expect(testRunner.output).to.include("all");
-                });
 
-                it("Should request ESP-IDF version", async function () {
+                    console.log("Select Target Passed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
-                    const selectTargetQuestion = await testRunner.waitForOutput(
+
+                    const selectIDFVersion = await testRunner.waitForOutput(
                         "Please select the desired ESP-IDF version"
                     );
-                    expect(selectTargetQuestion).to.be.true;
+                    if (!selectIDFVersion) {
+                        console.log(testRunner.output);
+                    }
+                    expect(selectIDFVersion).to.be.true;
                     expect(testRunner.output).to.include("v5.3.1");
-                });
 
-                it("Should request the mirror to download ESP-IDF", async function () {
+                    console.log("Select IDF Version passed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
+
                     const selectIDFMirror = await testRunner.waitForOutput(
                         "Select the source from which to download esp-idf"
                     );
+                    if (!selectIDFMirror) {
+                        console.log(testRunner.output);
+                    }
                     expect(selectIDFMirror).to.be.true;
                     expect(testRunner.output).to.include("https://github.com");
-                });
 
-                it("Should request the mirror to download Tools", async function () {
+                    console.log("Select IDF mirror passed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
+
                     const selectToolsMirror = await testRunner.waitForOutput(
                         "Select a source from which to download tools"
                     );
+                    if (!selectToolsMirror) {
+                        console.log(testRunner.output);
+                    }
                     expect(selectToolsMirror).to.be.true;
                     expect(testRunner.output).to.include("https://github.com");
-                });
 
-                it("Should request installation path", async function () {
+                    console.log("Select tools mirror passed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
+
                     const selectInstallPath = await testRunner.waitForOutput(
                         "Please select the ESP-IDF installation location"
                     );
+                    if (!selectInstallPath) {
+                        console.log(testRunner.output);
+                    }
                     expect(selectInstallPath).to.be.true;
                     expect(testRunner.output).to.include("/.espressif)");
-                });
 
-                it("Should complete installation", async function () {
+                    console.log("Select install path passed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
+
                     const installationCompleted =
                         await testRunner.waitForOutput(
                             "Do you want to save the installer configuration",
@@ -106,10 +126,11 @@ export function runInstallWizzardTests() {
                         "Finished fetching submodules"
                     );
                     expect(testRunner.output).to.include("Downloading tools");
-                });
 
-                it("Should exit with concluded installation", async function () {
+                    console.log("Installation completed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
+
                     const installationSuccessful = await testRunner.waitForExit(
                         "Successfully installed IDF"
                     );
@@ -136,77 +157,104 @@ export function runInstallWizzardTests() {
         (os.platform() === "win32" ? describe : describe.skip)(
             "Windows wizzard workflow",
             function () {
-                it("should offer to install prerequisites", async function () {
-                    this.timeout(10000);
-                    const promptReceived = await testRunner.waitForOutput(
+                it("Should install IDF using wizzard and default values", async function () {
+                    const promptRequisites = await testRunner.waitForOutput(
                         "Do you want to install prerequisites"
                     );
-                    expect(promptReceived).to.be.true;
-                });
+                    if (!promptRequisites) {
+                        console.log(testRunner.output);
+                    }
+                    expect(promptRequisites).to.be.true;
 
-                it("should offer to install python", async function () {
+                    console.log("Question to install prerequisites passed");
+                    testRunner.output = "";
                     testRunner.sendInput("y");
-                    const selectTargetQuestion = await testRunner.waitForOutput(
+
+                    const promptPython = await testRunner.waitForOutput(
                         "Do you want to install Python",
                         240000
                     );
-                    expect(selectTargetQuestion).to.be.true;
+                    if (!promptPython) {
+                        console.log(testRunner.output);
+                    }
+                    expect(promptPython).to.be.true;
                     expect(testRunner.output).to.include(
                         "All prerequisites are satisfied"
                     );
-                });
 
-                it("Should request target platforms", async function () {
+                    console.log("Question to install python passed");
+                    testRunner.output = "";
                     testRunner.sendInput("y");
+
                     const selectTargetQuestion = await testRunner.waitForOutput(
                         "Please select all of the target platforms",
                         240000
                     );
+                    if (!selectTargetQuestion) {
+                        console.log(testRunner.output);
+                    }
                     expect(selectTargetQuestion).to.be.true;
                     expect(testRunner.output).to.include("all");
                     expect(testRunner.output).to.include(
                         "Python installed successfully"
                     );
-                });
 
-                it("Should request ESP-IDF version", async function () {
+                    console.log("Select Target Passed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
-                    const selectTargetQuestion = await testRunner.waitForOutput(
+
+                    const selectIDFVersion = await testRunner.waitForOutput(
                         "Please select the desired ESP-IDF version"
                     );
-                    expect(selectTargetQuestion).to.be.true;
+                    if (!selectIDFVersion) {
+                        console.log(testRunner.output);
+                    }
+                    expect(selectIDFVersion).to.be.true;
                     expect(testRunner.output).to.include("v5.3.1");
-                });
 
-                it("Should request the mirror to download ESP-IDF", async function () {
+                    console.log("Select IDF Version passed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
+
                     const selectIDFMirror = await testRunner.waitForOutput(
                         "Select the source from which to download esp-idf"
                     );
+                    if (!selectIDFMirror) {
+                        console.log(testRunner.output);
+                    }
                     expect(selectIDFMirror).to.be.true;
                     expect(testRunner.output).to.include("https://github.com");
-                });
 
-                it("Should request the mirror to download Tools", async function () {
+                    console.log("Select IDF mirror passed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
+
                     const selectToolsMirror = await testRunner.waitForOutput(
                         "Select a source from which to download tools"
                     );
+                    if (!selectToolsMirror) {
+                        console.log(testRunner.output);
+                    }
                     expect(selectToolsMirror).to.be.true;
                     expect(testRunner.output).to.include("https://github.com");
-                });
 
-                it("Should request installation path", async function () {
+                    console.log("Select tools mirror passed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
+
                     const selectInstallPath = await testRunner.waitForOutput(
                         "Please select the ESP-IDF installation location"
                     );
+                    if (!selectInstallPath) {
+                        console.log(testRunner.output);
+                    }
                     expect(selectInstallPath).to.be.true;
                     expect(testRunner.output).to.include("esp");
-                });
 
-                it("Should complete installation", async function () {
+                    console.log("Select install path passed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
+
                     const installationCompleted =
                         await testRunner.waitForOutput(
                             "Do you want to save the installer configuration",
@@ -224,10 +272,11 @@ export function runInstallWizzardTests() {
                     expect(testRunner.output).to.include(
                         "Desktop shortcut created"
                     );
-                });
 
-                it("Should exit with concluded installation", async function () {
+                    console.log("Installation completed");
+                    testRunner.output = "";
                     testRunner.sendInput("\r");
+
                     const installationSuccessful = await testRunner.waitForExit(
                         "Successfully installed IDF"
                     );
