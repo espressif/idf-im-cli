@@ -13,7 +13,7 @@ $env:EIM_FILE_PATH = $Path_to_eim
 $env:EIM_VERSION = $Version
 
 # Navigate to the AutoTest directory
-Set-Location -Path "./script"
+Set-Location -Path "./tests/script"
 
 #Expand Node modules folder
 Expand-Archive node_modules.zip
