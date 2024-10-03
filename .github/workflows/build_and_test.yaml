@@ -224,7 +224,8 @@ jobs:
               run: |
                   mkdir -p test-bin
                   # unzip ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -d test-bin
-                  unzip ./artifacts/eim-11164628901-${{ matrix.os }}/eim.zip -d test-bin
+                  unzip ./artifacts/eim-11164628901-${{ matrix.os }} -d test-bin
+                  unzip ./test-bin/eim.zip -d test-bin
 
             - name: Extract artifact (Windows)
               if: runner.os == 'Windows'
