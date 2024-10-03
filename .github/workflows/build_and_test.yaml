@@ -219,20 +219,23 @@ jobs:
               with:
                   path: ./artifacts
 
-            - name: Extract artifact
+            - name: Extract artifact (non-Windows)
+              if: runner.os != 'Windows'
               run: |
                   mkdir -p test-bin
-                  if [ "${{ runner.os }}" == "Windows" ]; then
-                    7z x ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -otest-bin
-                  else
-                    unzip ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -d test-bin
-                  fi
+                  unzip ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -d test-bin
+
+            - name: Extract artifact (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  mkdir -p test-bin
+                  7z x ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -otest-bin
 
             - name: Set executable permissions (non-Windows)
               if: runner.os != 'Windows'
               run: |
                   chmod +x ./test-bin/eim
-                  chmod +x ./tests/run_tests.sh
+                  chmod +x ./tests/run_test.sh
 
             - name: Set executable permissions (Windows)
               if: runner.os == 'Windows'
@@ -243,7 +246,7 @@ jobs:
             - name: Run test script (non-Windows)
               if: runner.os != 'Windows'
               run: |
-                  . ./tests/run_tests.sh "../../test-bin/eim" "idf-im-cli 0.1.0"
+                  . ./tests/run_test.sh "../../test-bin/eim" "idf-im-cli 0.1.0"
 
             - name: Run test script (Windows)
               if: runner.os == 'Windows'
