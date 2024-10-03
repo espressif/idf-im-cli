@@ -111,7 +111,7 @@ export function runInstallWizzardTests() {
                         "Successfully installed IDF"
                     );
                     expect(installationSuccessful).to.be.true;
-                    expect(testRunner.exitCode).to.not.equal(0);
+                    expect(testRunner.exitCode).to.equal(0);
                     expect(testRunner.output).to.include(
                         "to activate the environment, run the following command in your terminal:"
                     );
@@ -133,7 +133,7 @@ export function runInstallWizzardTests() {
                 it("should offer to install prerequisites", async function () {
                     this.timeout(10000);
                     const promptReceived = await testRunner.waitForOutput(
-                        "Do you want to install prerequisites?"
+                        "Do you want to install prerequisites"
                     );
                     expect(promptReceived).to.be.true;
                 });
@@ -141,12 +141,12 @@ export function runInstallWizzardTests() {
                 it("should offer to install python", async function () {
                     testRunner.sendInput("y");
                     const selectTargetQuestion = await testRunner.waitForOutput(
-                        "Do you want to install Python?",
+                        "Do you want to install Python",
                         240000
                     );
                     expect(selectTargetQuestion).to.be.true;
                     expect(testRunner.output).to.include(
-                        "All prerequisites are satisfied!"
+                        "All prerequisites are satisfied"
                     );
                 });
 
@@ -203,7 +203,7 @@ export function runInstallWizzardTests() {
                     testRunner.sendInput("\r");
                     const installationCompleted =
                         await testRunner.waitForOutput(
-                            "Do you want to save the installer configuration ?",
+                            "Do you want to save the installer configuration",
                             1200000
                         );
                     expect(installationCompleted).to.be.true;
@@ -213,7 +213,7 @@ export function runInstallWizzardTests() {
                     );
                     expect(testRunner.output).to.include("Downloading tools");
                     expect(testRunner.output).to.include(
-                        "Desktop shortcut created successfully"
+                        "Desktop shortcut created"
                     );
                 });
 
@@ -223,9 +223,9 @@ export function runInstallWizzardTests() {
                         "Successfully installed IDF"
                     );
                     expect(installationSuccessful).to.be.true;
-                    expect(testRunner.exitCode).to.not.equal(0);
+                    expect(testRunner.exitCode).to.equal(0);
                     expect(testRunner.output).to.include(
-                        "PowerShell terminal with activated ESP-IDF environment to your desktop"
+                        "placed shortcuts for PowerShell terminal with activated ESP-IDF"
                     );
                 });
             }
