@@ -192,7 +192,7 @@ jobs:
                   asset_content_type: application/zip
 
     test:
-        name: Run shell script tests
+        name: Automated test scripts
         needs: build
         runs-on: ${{ matrix.os }}
         strategy:
@@ -258,4 +258,4 @@ jobs:
               if: always()
               with:
                   name: test-results-${{ matrix.os }}
-                  path: ./results.xml
+                  path: ./tests/results.xml
