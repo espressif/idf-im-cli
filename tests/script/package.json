@@ -8,6 +8,6 @@
         "node-pty": "^1.0.0"
     },
     "scripts": {
-        "test": "mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js"
+        "test": "mocha --exit main.test.js"
     }
 }
