@@ -253,12 +253,11 @@ jobs:
             - name: Run test script (non-Windows)
               if: runner.os != 'Windows'
               run: |
-                  export EIM_FILE_PATH = "..\..\test-bin\eim.exe"
-                  export EIM_VERSION = "idf-im-cli 0.1.0"
+                  export EIM_FILE_PATH="..\..\test-bin\eim.exe"
+                  export EIM_VERSION="idf-im-cli 0.1.0"
                   cd tests/script
                   npm ci
-                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml,append=true prerequisites.test.js
-                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml,append=true commandLineArguments.test.js
+                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js
 
             - name: Run test script (Windows)
               if: runner.os == 'Windows'
@@ -267,8 +266,7 @@ jobs:
                   $env:EIM_VERSION = "idf-im-cli 0.1.0"
                   7z x ./tests/script/node_modules.zip -otests/script/node_modules
                   Set-Location -Path "./tests/script"
-                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml,append=true prerequisites.test.js
-                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml,append=true commandLineArguments.test.js
+                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js
                   $env:Path
 
             - name: Upload test results
