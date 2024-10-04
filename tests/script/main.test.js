@@ -17,5 +17,5 @@ describe("Installation Manager Tests", function () {
     // Run all test suites
     runLineArgumentsTests();
     runPrerequisitesCheckTests();
-    //runInstallWizzardTests();
+    runInstallWizzardTests();
 });
