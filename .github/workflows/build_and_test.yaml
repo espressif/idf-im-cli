@@ -210,7 +210,7 @@ jobs:
               run: |
                   sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
 
-            - name: Install dependencies (Ubuntu)
+            - name: Install dependencies (Windows)
               if: runner.os == 'windows'
               run: |
                   choco install ninja -y
@@ -229,15 +229,15 @@ jobs:
               if: runner.os != 'Windows'
               run: |
                   mkdir -p test-bin
-                  unzip ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }} -d test-bin
-                  unzip ./test-bin/eim.zip -d test-bin
+                  unzip ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -d test-bin
+                  # unzip ./test-bin/eim.zip -d test-bin
 
             - name: Extract artifact (Windows)
               if: runner.os == 'Windows'
               run: |
                   mkdir -p test-bin
-                  7z x ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }} -otest-bin
-                  7z x ./test-bin/eim.zip -otest-bin
+                  7z x ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -otest-bin
+                  # 7z x ./test-bin/eim.zip -otest-bin
 
             - name: Set executable permissions (non-Windows)
               if: runner.os != 'Windows'
