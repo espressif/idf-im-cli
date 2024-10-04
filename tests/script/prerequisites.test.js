@@ -16,7 +16,7 @@ export function runPrerequisitesCheckTests() {
     describe("Check if prerequisites are installed", function () {
         let testRunner;
 
-        beforeEach(async function () {
+        before(async function () {
             this.timeout(5000); // Increase timeout for setup
             testRunner = new InteractiveCLITestRunner(pathToEim);
             try {
@@ -27,7 +27,7 @@ export function runPrerequisitesCheckTests() {
             }
         });
 
-        afterEach(async function () {
+        after(async function () {
             this.timeout(10000);
             if (testRunner) {
                 await testRunner.stop();

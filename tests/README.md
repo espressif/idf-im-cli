@@ -55,7 +55,6 @@ The pre-requisites tests have been commented out of the test scripts.
 ## Commands summary
 
 Navigate to the idf-im-cli folder, where the repository was cloned.
-Navigate to the test folder inside the repository and execute the commands below to run the automated tests.
 The scripts should be executed passing as arguments the path to the `eim` application and the version of the file being tested.
 
 #### Windows
@@ -64,21 +63,21 @@ Open Powershell, and enable script execution:
 `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
 
 To execute tests on windows, use the script
-`.\run_test.ps1 "<PATH TO EIM.EXE>" "<Version being tested>"`
+`.\tests\run_test.ps1 "<PATH TO EIM.EXE>" "<Version being tested>"`
 
 Default arguments are:
-`.\run_test.ps1 "$env:USERPROFILE\espressif\eim.exe" "idf-im-cli 0.1.0"`
+`.\tests\run_test.ps1 "$env:USERPROFILE\espressif\eim.exe" "idf-im-cli 0.1.0"`
 
 #### Linux
 
 (if needed) Give execution permission to the test script
-`chmod +x run_test.sh`
+`chmod +x ./tests/run_test.sh`
 
 To execute tests on linux, use the script:
-`. ./run_test.sh "<PATH TO EIM>" "<Version being tested>"`
+`. ./tests/run_test.sh "<PATH TO EIM>" "<Version being tested>"`
 
 Default arguments are:
-`. ./run_test.sh "$HOME/espressif/eim" "idf-im-cli 0.1.0"`
+`. ./tests/run_test.sh "$HOME/espressif/eim" "idf-im-cli 0.1.0"`
 
 #### MacOS
 

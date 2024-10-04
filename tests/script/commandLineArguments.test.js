@@ -18,8 +18,9 @@ if (process.env.EIM_VERSION) {
 } else {
     eimVersion = "idf-im-cli 0.1.0";
 }
+
 export function runLineArgumentsTests() {
-    describe("CLI Line Arguments Tests", function () {
+    describe("CLI Arguments Tests", function () {
         let testRunner;
 
         before(function () {
