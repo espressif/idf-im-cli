@@ -20,7 +20,7 @@ export function runInstallWizzardTests() {
             this.timeout(5000); // Increase timeout for setup
             testRunner = new InteractiveCLITestRunner(pathToEim);
             try {
-                await testRunner.start();
+                await testRunner.start(["-v"]);
             } catch (error) {
                 console.error("Error starting process:", error);
                 throw error;
