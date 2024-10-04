@@ -46,7 +46,7 @@ export class InteractiveCLITestRunner {
             this.process.onData((data) => {
                 try {
                     this.output += data;
-                    console.log(data);
+                    // console.log(data);
                 } catch (error) {
                     console.error("Error in onData:", error);
                     this.error = error;
