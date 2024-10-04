@@ -197,8 +197,9 @@ jobs:
         # needs: build
         runs-on: ${{ matrix.os }}
         strategy:
+            fail-fast: false
             matrix:
-                os: [ubuntu-latest]
+                os: [ubuntu-latest, windows-latest]
 
         steps:
             - name: Checkout repository
@@ -246,6 +247,8 @@ jobs:
               run: |
                   icacls .\tests\run_test.ps1 /grant:r Everyone:F
                   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+                  $PSVersionTable
+                  [System.Environment]::OSVersion.Version
 
             - name: Run test script (non-Windows)
               if: runner.os != 'Windows'
