@@ -253,12 +253,23 @@ jobs:
             - name: Run test script (non-Windows)
               if: runner.os != 'Windows'
               run: |
-                  . ./tests/run_test.sh "../../test-bin/eim" "idf-im-cli 0.1.0"
+                  export EIM_FILE_PATH = "..\..\test-bin\eim.exe"
+                  export EIM_VERSION = "idf-im-cli 0.1.0"
+                  cd tests/script
+                  npm ci
+                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml,append=true prerequisites.test.js
+                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml,append=true commandLineArguments.test.js
 
             - name: Run test script (Windows)
               if: runner.os == 'Windows'
               run: |
-                  .\tests\run_test.ps1 "..\..\test-bin\eim.exe" "idf-im-cli 0.1.0"
+                  $env:EIM_FILE_PATH = "..\..\test-bin\eim.exe"
+                  $env:EIM_VERSION = "idf-im-cli 0.1.0"
+                  7z x ./tests/script/node_modules.zip -otests/script/node_modules
+                  Set-Location -Path "./tests/script"
+                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml,append=true prerequisites.test.js
+                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml,append=true commandLineArguments.test.js
+                  $env:Path
 
             - name: Upload test results
               uses: actions/upload-artifact@v4
