@@ -253,7 +253,7 @@ jobs:
             - name: Run test script (non-Windows)
               if: runner.os != 'Windows'
               run: |
-                  export EIM_FILE_PATH="..\..\test-bin\eim.exe"
+                  export EIM_FILE_PATH="../../test-bin/eim"
                   export EIM_VERSION="idf-im-cli 0.1.0"
                   cd tests/script
                   npm ci
