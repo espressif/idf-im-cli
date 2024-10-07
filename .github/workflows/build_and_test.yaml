@@ -205,16 +205,6 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
 
-            - name: Install dependencies (Ubuntu)
-              if: runner.os == 'Linux'
-              run: |
-                  sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
-
-            - name: Install dependencies (Windows)
-              if: runner.os == 'windows'
-              run: |
-                  choco install ninja -y
-
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
@@ -232,26 +222,10 @@ jobs:
                   unzip ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -d test-bin
                   # unzip ./test-bin/eim.zip -d test-bin
 
-            - name: Extract artifact (Windows)
-              if: runner.os == 'Windows'
-              run: |
-                  mkdir -p test-bin
-                  7z x ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -otest-bin
-                  # 7z x ./test-bin/eim.zip -otest-bin
-
             - name: Set executable permissions (non-Windows)
               if: runner.os != 'Windows'
               run: |
                   chmod +x ./test-bin/eim
-                  chmod +x ./tests/run_test.sh
-
-            - name: Set executable permissions (Windows)
-              if: runner.os == 'Windows'
-              run: |
-                  icacls .\tests\run_test.ps1 /grant:r Everyone:F
-                  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-                  $PSVersionTable
-                  [System.Environment]::OSVersion.Version
 
             - name: Run test script (non-Windows)
               if: runner.os != 'Windows'
@@ -260,7 +234,33 @@ jobs:
                   export EIM_VERSION="idf-im-cli 0.1.0"
                   cd tests/script
                   npm ci
+                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results-pre-test.xml prerequisites.test.js
+
+            - name: Install dependencies (Ubuntu)
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
+
+            - name: Run test script (non-Windows)
+              if: runner.os != 'Windows'
+              run: |
+                  export EIM_FILE_PATH="../../test-bin/eim"
+                  export EIM_VERSION="idf-im-cli 0.1.0"
+                  cd tests/script
                   npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js
+
+            - name: Extract artifact (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  mkdir -p test-bin
+                  7z x ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -otest-bin
+                  # 7z x ./test-bin/eim.zip -otest-bin
+
+            - name: Set executable permissions (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  $PSVersionTable
+                  [System.Environment]::OSVersion.Version
 
             - name: Run test script (Windows)
               if: runner.os == 'Windows'
@@ -269,6 +269,19 @@ jobs:
                   $env:EIM_VERSION = "idf-im-cli 0.1.0"
                   7z x ./tests/script/node_modules.zip -otests/script/node_modules
                   Set-Location -Path "./tests/script"
+                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results-pre-test.xml prerequisites.test.js
+
+            - name: Install dependencies (Windows)
+              if: runner.os == 'windows'
+              run: |
+                  choco install ninja -y
+
+            - name: Run test script (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  $env:EIM_FILE_PATH = "..\..\test-bin\eim.exe"
+                  $env:EIM_VERSION = "idf-im-cli 0.1.0"
+                  Set-Location -Path "./tests/script"
                   npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js
 
             - name: Upload test results
@@ -276,7 +289,9 @@ jobs:
               if: always()
               with:
                   name: test-results-${{ matrix.os }}.zip
-                  path: ./tests/results.xml
+                  path: |
+                      ./tests/results.xml
+                      ./tests/results-pre-test.xml
 
     publish-test-results:
         name: Automated Test Results

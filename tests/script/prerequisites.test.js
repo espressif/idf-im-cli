@@ -12,79 +12,167 @@ if (process.env.EIM_FILE_PATH) {
     pathToEim = path.join(os.homedir(), "espressif/eim");
 }
 
-export function runPrerequisitesCheckTests() {
-    describe("Check if prerequisites are installed", function () {
-        let testRunner;
+describe("Check if prerequisites are installed", function () {
+    this.timeout(600000);
+    let testRunner;
 
-        before(async function () {
-            this.timeout(5000); // Increase timeout for setup
-            testRunner = new InteractiveCLITestRunner(pathToEim);
-            try {
-                await testRunner.start();
-            } catch (error) {
-                console.error("Error starting process:", error);
-                throw error;
-            }
-        });
-
-        after(async function () {
-            this.timeout(10000);
-            if (testRunner) {
-                await testRunner.stop();
-            }
-            testRunner = null;
-        });
-
-        /** Linux/MAC Specific Tests
-         *
-         *
-         * Tests below will only be executed on Unix Based systems
-         *
-         *
-         */
-
-        // // The following test can only be executed if the prerequisites have not been installed in the OS.
-        // (os.platform() !== "win32" ? describe : describe.skip)(
-        //     "Linux/MAC specific tests",
-        //     function () {
-        // it("Should detect missing requirements", async function () {
-        //     const missingRequisites = await testRunner.waitForExit(
-        //         "Please install the missing prerequisites and try again"
-        //     );
-        //     expect(missingRequisites).to.be.true;
-        //     expect(testRunner.exitCode).to.not.equal(0);
-        // });
-        //     }
-        // );
-
-        /** Windows Specific Tests
-         *
-         *
-         * Tests below will only be executed on win32 platform
-         *
-         *
-         */
-
-        (os.platform() === "win32" ? describe : describe.skip)(
-            "Windows-specific tests",
-            function () {
-                it("should offer to install prerequisites and exit upon negative answer", async function () {
-                    this.timeout(10000);
-                    const promptReceived = await testRunner.waitForOutput(
-                        "Do you want to install prerequisites?"
-                    );
-                    expect(promptReceived).to.be.true;
-
-                    testRunner.sendInput("n");
-                    // await new Promise((resolve) =>
-                    //     setTimeout(resolve, 2000)
-                    // );
-                    const terminalExited = await testRunner.waitForExit(
-                        "Please install the missing prerequisites and try again"
-                    );
-                    expect(terminalExited).to.be.true;
-                });
-            }
-        );
+    beforeEach(async function () {
+        this.timeout(5000); // Increase timeout for setup
+        testRunner = new InteractiveCLITestRunner(pathToEim);
+        try {
+            await testRunner.start();
+        } catch (error) {
+            console.error("Error starting process:", error);
+            throw error;
+        }
     });
-}
+
+    afterEach(async function () {
+        this.timeout(10000);
+        if (testRunner) {
+            await testRunner.stop();
+        }
+        testRunner = null;
+    });
+
+    /** Linux/MAC Specific Tests
+     *
+     *
+     * Tests below will only be executed on Unix Based systems
+     *
+     *
+     */
+
+    // The following test can only be executed if the prerequisites have not been installed in the OS.
+    (os.platform() !== "win32" ? describe : describe.skip)(
+        "Linux/MAC specific tests",
+        function () {
+            it("Should detect missing requirements", async function () {
+                this.timeout(20000);
+                const missingRequisites = await testRunner.waitForExit(
+                    "Error: Please install the missing prerequisites",
+                    20000
+                );
+                if (!missingRequisites) {
+                    console.log(testRunner.output);
+                }
+                expect(missingRequisites).to.be.true;
+                expect(testRunner.exitCode).to.equal(0);
+            });
+        }
+    );
+
+    /** Windows Specific Tests
+     *
+     *
+     * Tests below will only be executed on win32 platform
+     *
+     *
+     */
+
+    (os.platform() === "win32" ? describe : describe.skip)(
+        "Windows-specific tests",
+        function () {
+            it("should offer to install prerequisites and exit upon negative answer", async function () {
+                this.timeout(20000);
+                const promptRequisites = await testRunner.waitForOutput(
+                    "Do you want to install prerequisites?"
+                );
+                if (!promptRequisites) {
+                    console.log(testRunner.output);
+                }
+                expect(promptRequisites).to.be.true;
+
+                testRunner.sendInput("n");
+
+                const terminalExited = await testRunner.waitForExit(
+                    "Please install the missing prerequisites and try again"
+                );
+                if (!terminalExited) {
+                    console.log(testRunner.output);
+                }
+                expect(terminalExited).to.be.true;
+                expect(testRunner.exitCode).to.equal(0);
+            });
+
+            it("should install prerequisites and offer to install python and exit upon negative answer", async function () {
+                this.timeout(240000);
+                const promptRequisites = await testRunner.waitForOutput(
+                    "Do you want to install prerequisites"
+                );
+                if (!promptRequisites) {
+                    console.log(testRunner.output);
+                }
+                expect(promptRequisites).to.be.true;
+
+                console.log("Question to install prerequisites passed");
+                testRunner.output = "";
+                testRunner.sendInput("y");
+
+                const promptPython = await testRunner.waitForOutput(
+                    "Do you want to install Python",
+                    240000
+                );
+                if (!promptPython) {
+                    console.log(testRunner.output);
+                }
+                expect(promptPython).to.be.true;
+                expect(testRunner.output).to.include(
+                    "All prerequisites are satisfied"
+                );
+
+                testRunner.sendInput("n");
+
+                const terminalExited = await testRunner.waitForExit(
+                    "Please install python3 with pip and SSL support and try again"
+                );
+                if (!terminalExited) {
+                    console.log(testRunner.output);
+                }
+                expect(terminalExited).to.be.true;
+                expect(testRunner.exitCode).to.equal(0);
+            });
+
+            it("should install python and proceed with installation", async function () {
+                this.timeout(240000);
+                const promptRequisites = await testRunner.waitForOutput(
+                    "Do you want to install prerequisites"
+                );
+                if (!promptRequisites) {
+                    console.log(testRunner.output);
+                }
+                expect(promptRequisites).to.be.true;
+
+                console.log("Question to install prerequisites passed");
+                testRunner.output = "";
+                testRunner.sendInput("y");
+
+                const promptPython = await testRunner.waitForOutput(
+                    "Do you want to install Python",
+                    240000
+                );
+                if (!promptPython) {
+                    console.log(testRunner.output);
+                }
+                expect(promptPython).to.be.true;
+                expect(testRunner.output).to.include(
+                    "All prerequisites are satisfied"
+                );
+
+                console.log("Question to install python passed");
+                testRunner.output = "";
+                testRunner.sendInput("y");
+
+                const selectTargetQuestion = await testRunner.waitForOutput(
+                    "Please select all of the target platforms",
+                    240000
+                );
+                if (!selectTargetQuestion) {
+                    console.log(testRunner.output);
+                }
+                expect(selectTargetQuestion).to.be.true;
+                expect(testRunner.exitCode).to.not.equal(0);
+            });
+        }
+    );
+});
