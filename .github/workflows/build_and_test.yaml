@@ -232,6 +232,7 @@ jobs:
               run: |
                   export EIM_FILE_PATH="../../test-bin/eim"
                   export EIM_VERSION="idf-im-cli 0.1.0"
+                  export LOG_TO_FILE="true"
                   cd tests/script
                   npm ci
                   npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results-pre-test.xml prerequisites.test.js
@@ -246,6 +247,7 @@ jobs:
               run: |
                   export EIM_FILE_PATH="../../test-bin/eim"
                   export EIM_VERSION="idf-im-cli 0.1.0"
+                  export LOG_TO_FILE="true"                  
                   cd tests/script
                   npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js
 
@@ -265,8 +267,9 @@ jobs:
             - name: Run test script (Windows)
               if: runner.os == 'Windows'
               run: |
-                  $env:EIM_FILE_PATH = "..\..\test-bin\eim.exe"
-                  $env:EIM_VERSION = "idf-im-cli 0.1.0"
+                  $env:EIM_FILE_PATH="..\..\test-bin\eim.exe"
+                  $env:EIM_VERSION="idf-im-cli 0.1.0"
+                  $env:LOG_TO_FILE="true"
                   7z x ./tests/script/node_modules.zip -otests/script/node_modules
                   Set-Location -Path "./tests/script"
                   npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results-pre-test.xml prerequisites.test.js
@@ -281,6 +284,7 @@ jobs:
               run: |
                   $env:EIM_FILE_PATH = "..\..\test-bin\eim.exe"
                   $env:EIM_VERSION = "idf-im-cli 0.1.0"
+                  $env:LOG_TO_FILE="true"
                   Set-Location -Path "./tests/script"
                   npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js
 
@@ -292,6 +296,7 @@ jobs:
                   path: |
                       ./tests/results.xml
                       ./tests/results-pre-test.xml
+                      ./tests/test.log
 
     publish-test-results:
         name: Automated Test Results
