@@ -1,5 +1,6 @@
 import pty from "node-pty";
 import os from "os";
+import logger from "./logger.class.js";
 
 export class InteractiveCLITestRunner {
     constructor(exePath) {
@@ -29,7 +30,7 @@ export class InteractiveCLITestRunner {
 
     start(args = []) {
         return new Promise((resolve, reject) => {
-            // console.log("Starting process...");
+            logger.debug("Starting process...");
             const { command, args: fullArgs } = this.getPlatformSpecificCommand(
                 this.exePath,
                 args
@@ -46,21 +47,16 @@ export class InteractiveCLITestRunner {
             this.process.onData((data) => {
                 try {
                     this.output += data;
-                    // console.log(data);
+                    logger.debug(data);
                 } catch (error) {
-                    console.error("Error in onData:", error);
+                    log.error("Error in onData:", error);
                     this.error = error;
                     this.exited = true;
                     reject(error);
                 }
-                // console.log("received data:>>>>>>", data, "<<<<<<<<<<<<<");
             });
             this.process.onExit(({ exitCode }) => {
-                // console.log(
-                //     "Exiting with code:>>>>>>>",
-                //     exitCode,
-                //     "<<<<<<<<<<<<"
-                // );
+                logger.debug("Exiting with code:>>>", exitCode, "<<<");
                 this.exited = true;
                 this.exitCode = exitCode;
                 if (!this.error) {
@@ -69,7 +65,7 @@ export class InteractiveCLITestRunner {
             });
 
             this.process.on("error", (error) => {
-                // console.error("Process error:>>>>", error, "<<<<<<");
+                logger.error("Process error:>>>>", error, "<<<<<<");
                 this.error = error;
                 this.exited = true;
                 reject(error);
@@ -89,12 +85,12 @@ export class InteractiveCLITestRunner {
             try {
                 this.process.write(input);
             } catch (error) {
-                console.error("Error sending input:>>>>", error, "<<<<<<<<<<<");
+                logger.error("Error sending input:>>>>", error, "<<<<<<<<<<<");
                 this.error = error;
                 this.exited = true;
             }
         } else {
-            console.warn("Attempted to send input, but process is not running");
+            logger.debug("Attempted to send input, but process is not running");
         }
     }
 
@@ -117,11 +113,6 @@ export class InteractiveCLITestRunner {
         while (Date.now() - startTime < timeout) {
             if (this.exited) {
                 await new Promise((resolve) => setTimeout(resolve, 1000));
-                // console.log(
-                //     "Output on exit>>>>>",
-                //     this.output,
-                //     "<<<<<<<<<<<<<<<<"
-                // );
                 return this.output.includes(expectedLastOutput);
             }
             await new Promise((resolve) => setTimeout(resolve, 200));
@@ -137,7 +128,7 @@ export class InteractiveCLITestRunner {
 
                 // Set up a timeout
                 const timer = setTimeout(() => {
-                    console.warn(
+                    logger.debug(
                         "Process didn't exit gracefully, forcing termination"
                     );
                     this.process.kill();

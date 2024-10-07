@@ -1,6 +1,5 @@
 import { describe, it, before, after } from "mocha";
 import { runLineArgumentsTests } from "./commandLineArguments.test.js";
-import { runPrerequisitesCheckTests } from "./prerequisites.test.js";
 import { runInstallWizzardTests } from "./installWizard.test.js";
 
 describe("Installation Manager Tests", function () {
@@ -16,6 +15,5 @@ describe("Installation Manager Tests", function () {
 
     // Run all test suites
     runLineArgumentsTests();
-    // runPrerequisitesCheckTests();
     runInstallWizzardTests();
 });

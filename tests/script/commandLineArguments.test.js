@@ -28,8 +28,7 @@ export function runLineArgumentsTests() {
         });
 
         after(async function () {
-            //Need to check if this is necessary
-            if (testRunner) {
+            if (!testRunner.exited) {
                 await testRunner.stop();
             }
         });
