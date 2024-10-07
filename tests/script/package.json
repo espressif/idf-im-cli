@@ -8,6 +8,7 @@
         "node-pty": "^1.0.0"
     },
     "scripts": {
-        "test": "mocha --exit main.test.js"
+        "test": "mocha --exit main.test.js",
+        "pre-test": "mocha --exit prerequisites.test.js"
     }
 }
