@@ -49,7 +49,7 @@ export class InteractiveCLITestRunner {
                     this.output += data;
                     logger.debug(data);
                 } catch (error) {
-                    log.error("Error in onData:", error);
+                    logger.debug("Error in onData:", error);
                     this.error = error;
                     this.exited = true;
                     reject(error);
@@ -65,7 +65,7 @@ export class InteractiveCLITestRunner {
             });
 
             this.process.on("error", (error) => {
-                logger.error("Process error:>>>>", error, "<<<<<<");
+                logger.debug("Process error:>>>>", error, "<<<<<<");
                 this.error = error;
                 this.exited = true;
                 reject(error);
@@ -85,7 +85,7 @@ export class InteractiveCLITestRunner {
             try {
                 this.process.write(input);
             } catch (error) {
-                logger.error("Error sending input:>>>>", error, "<<<<<<<<<<<");
+                logger.debug("Error sending input:>>>>", error, "<<<<<<<<<<<");
                 this.error = error;
                 this.exited = true;
             }
