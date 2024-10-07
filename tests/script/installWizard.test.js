@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { describe, it, before, after, beforeEach, afterEach } from "mocha";
 import { InteractiveCLITestRunner } from "./CLITestRunner.class.js";
+import logger from "./logger.class.js";
 import os from "os";
 import path from "path";
 
@@ -22,7 +23,7 @@ export function runInstallWizzardTests() {
             try {
                 await testRunner.start();
             } catch (error) {
-                log.error("Error starting process:", error);
+                logger.debug("Error starting process:", error);
                 throw error;
             }
         });
