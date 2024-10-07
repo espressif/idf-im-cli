@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { describe, it, before, after, beforeEach, afterEach } from "mocha";
 import { InteractiveCLITestRunner } from "./CLITestRunner.class.js";
+import logger from "./logger.class.js";
 import os from "os";
 import path from "path";
 
@@ -22,7 +23,7 @@ export function runInstallWizzardTests() {
             try {
                 await testRunner.start();
             } catch (error) {
-                console.error("Error starting process:", error);
+                logger.debug("Error starting process:", error);
                 throw error;
             }
         });
@@ -47,12 +48,12 @@ export function runInstallWizzardTests() {
                 "Please select all of the target platforms"
             );
             if (!selectTargetQuestion) {
-                console.log(testRunner.output);
+                logger.info(testRunner.output);
             }
             expect(selectTargetQuestion).to.be.true;
             expect(testRunner.output).to.include("all");
 
-            console.log("Select Target Passed");
+            logger.info("Select Target Passed");
             testRunner.output = "";
             testRunner.sendInput("\r");
 
@@ -60,12 +61,12 @@ export function runInstallWizzardTests() {
                 "Please select the desired ESP-IDF version"
             );
             if (!selectIDFVersion) {
-                console.log(testRunner.output);
+                logger.info(testRunner.output);
             }
             expect(selectIDFVersion).to.be.true;
             expect(testRunner.output).to.include("v5.3.1");
 
-            console.log("Select IDF Version passed");
+            logger.info("Select IDF Version passed");
             testRunner.output = "";
             testRunner.sendInput("\r");
 
@@ -73,12 +74,12 @@ export function runInstallWizzardTests() {
                 "Select the source from which to download esp-idf"
             );
             if (!selectIDFMirror) {
-                console.log(testRunner.output);
+                logger.info(testRunner.output);
             }
             expect(selectIDFMirror).to.be.true;
             expect(testRunner.output).to.include("https://github.com");
 
-            console.log("Select IDF mirror passed");
+            logger.info("Select IDF mirror passed");
             testRunner.output = "";
             testRunner.sendInput("\r");
 
@@ -86,12 +87,12 @@ export function runInstallWizzardTests() {
                 "Select a source from which to download tools"
             );
             if (!selectToolsMirror) {
-                console.log(testRunner.output);
+                logger.info(testRunner.output);
             }
             expect(selectToolsMirror).to.be.true;
             expect(testRunner.output).to.include("https://github.com");
 
-            console.log("Select tools mirror passed");
+            logger.info("Select tools mirror passed");
             testRunner.output = "";
             testRunner.sendInput("\r");
 
@@ -99,12 +100,12 @@ export function runInstallWizzardTests() {
                 "Please select the ESP-IDF installation location"
             );
             if (!selectInstallPath) {
-                console.log(testRunner.output);
+                logger.info(testRunner.output);
             }
             expect(selectInstallPath).to.be.true;
             expect(testRunner.output).to.include("esp");
 
-            console.log("Select install path passed");
+            logger.info("Select install path passed");
             testRunner.output = "";
             testRunner.sendInput("\r");
 
@@ -113,7 +114,7 @@ export function runInstallWizzardTests() {
                 1200000
             );
             if (!installationCompleted) {
-                console.log(testRunner.output);
+                logger.info(testRunner.output);
             }
             expect(installationCompleted).to.be.true;
             expect(testRunner.output).to.not.include("error");
@@ -122,7 +123,7 @@ export function runInstallWizzardTests() {
             );
             expect(testRunner.output).to.include("Downloading tools");
 
-            console.log("Installation completed");
+            logger.info("Installation completed");
             testRunner.output = "";
             testRunner.sendInput("\r");
 
@@ -130,7 +131,7 @@ export function runInstallWizzardTests() {
                 "Successfully installed IDF"
             );
             if (!installationSuccessful) {
-                console.log(testRunner.output);
+                logger.info(testRunner.output);
             }
             expect(installationSuccessful).to.be.true;
             expect(testRunner.exitCode).to.equal(0);
