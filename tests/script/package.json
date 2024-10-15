@@ -10,6 +10,7 @@
     },
     "scripts": {
         "test": "mocha --exit main.test.js",
-        "pre-test": "mocha --exit prerequisites.test.js"
+        "pre-test": "mocha --exit prerequisites.test.js",
+        "post-test": "mocha --exit postInstall.test.js"
     }
 }
