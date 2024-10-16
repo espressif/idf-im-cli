@@ -106,7 +106,7 @@ pub fn check_and_install_python() -> Result<(), String> {
         if std::env::consts::OS == "windows" {
             info!("{}", t!("python.sanitycheck.fail"));
             if generic_confirm("pythhon.install.prompt").map_err(|e| e.to_string())? {
-                system_dependencies::install_prerequisites(vec!["python".to_string()])
+                system_dependencies::install_prerequisites(vec!["python@3.11.5".to_string()])
                     .map_err(|e| e.to_string())?;
                 let scp = system_dependencies::get_scoop_path();
                 let usable_python = match scp {
