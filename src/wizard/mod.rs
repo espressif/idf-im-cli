@@ -642,7 +642,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         version_instalation_path.push(&idf_version);
         let mut idf_path = version_instalation_path.clone();
         idf_path.push("esp-idf");
-        config.idf_path = Some(idf_path.clone());
+        config.idf_path = Some(idf_path.clone()); // todo: list all of the paths
         idf_im_lib::add_path_to_path(idf_path.to_str().unwrap());
 
         // download idf
