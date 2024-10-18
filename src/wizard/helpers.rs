@@ -3,8 +3,6 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect, Select};
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use log::debug;
 use rust_i18n::t;
-use std::sync::mpsc;
-use std::thread;
 use std::{
     fmt::Write,
     time::{Duration, Instant},
