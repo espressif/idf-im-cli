@@ -227,7 +227,7 @@ jobs:
               run: |
                   chmod +x ./test-bin/eim
 
-            - name: Run test script (non-Windows)
+            - name: Run prerequisites test script (non-Windows)
               if: runner.os != 'Windows'
               run: |
                   export EIM_FILE_PATH="../../test-bin/eim"
@@ -242,7 +242,7 @@ jobs:
               run: |
                   sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
 
-            - name: Run test script (non-Windows)
+            - name: Run IDF installation and post install test script (non-Windows)
               if: runner.os != 'Windows'
               run: |
                   export EIM_FILE_PATH="../../test-bin/eim"
@@ -250,6 +250,8 @@ jobs:
                   export LOG_TO_FILE="true"                  
                   cd tests/script
                   npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js
+                  export IDF_SCRIPT=$HOME/.espressif/activate_idf_v5.3.1.sh
+                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml postInstall.test.js
 
             - name: Extract artifact (Windows)
               if: runner.os == 'Windows'
@@ -287,6 +289,8 @@ jobs:
                   $env:LOG_TO_FILE="true"
                   Set-Location -Path "./tests/script"
                   npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml main.test.js
+                  $env:IDF_SCRIPT="C:\esp\v5.3.1\Microsoft.PowerShell_profile.ps1"
+                  npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=../results.xml postInstall.test.js
 
             - name: Upload test results
               uses: actions/upload-artifact@v4
