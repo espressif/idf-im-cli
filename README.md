@@ -2,7 +2,7 @@
 
 EIM is a cross-platform CLI application that simplifies the setup process for ESP-IDF (Espressif IoT Development Framework). Whether you’re working on macOS, Linux, or Windows, EIM offers a consistent and user-friendly experience for installing prerequisites, ESP-IDF itself, and essential development tools.
 
-Please check the complete documentation [here](https://preview-docs.espressif.com/projects/idf-im-cli/en/latest/index.html).
+[![Documentation](https://img.shields.io/badge/documentation-white?style=for-the-badge&logo=readthedocs&logoColor=red)](https://preview-docs.espressif.com/projects/idf-im-cli/en/latest/index.html)
 
 ## Configuration
 
@@ -16,6 +16,7 @@ If you go through the wizard, your choices will have the higher precedence.
 the installer takes the config toml file. it searches for it in the default location ./config/default.toml but you can specify the path to the config with `--config` cli argument
 
 example config:
+
 ```toml
 path = "/tmp/esp-new/"
 idf_path = "/tmp/esp-new/v5.3/esp-idf"
@@ -42,7 +43,7 @@ please refer to the --help for information about cli usage
 
 Download the executable for the suitable architecture.
 
-it is recommended first to run the `--help` command 
+it is recommended first to run the `--help` command
 
 Run it and proceed according to instructions in the terminal and you will have IDF installed.
 

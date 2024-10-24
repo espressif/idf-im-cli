@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use crate::cli_args::Settings;
 pub use crate::wizard::helpers;
 use helpers::{
     first_defaulted_multiselect, generic_confirm, generic_input, generic_select, run_with_spinner,
 };
+use idf_im_lib::settings::Settings;
 use idf_im_lib::system_dependencies;
 use log::{debug, info};
 use rust_i18n::t;
@@ -106,7 +106,7 @@ pub fn check_and_install_python() -> Result<(), String> {
         if std::env::consts::OS == "windows" {
             info!("{}", t!("python.sanitycheck.fail"));
             if generic_confirm("pythhon.install.prompt").map_err(|e| e.to_string())? {
-                system_dependencies::install_prerequisites(vec!["python".to_string()])
+                system_dependencies::install_prerequisites(vec!["python@3.11.5".to_string()])
                     .map_err(|e| e.to_string())?;
                 let scp = system_dependencies::get_scoop_path();
                 let usable_python = match scp {
@@ -142,11 +142,7 @@ pub fn select_mirrors(mut config: Settings) -> Result<Settings, String> {
         Some(mirror) => Some(mirror),
         None => Some(generic_select(
             "wizard.idf.mirror",
-            &[
-                "https://github.com",
-                "https://jihulab.com/esp-mirror",
-                "https://gitee.com/",
-            ],
+            idf_im_lib::get_idf_mirrors_list(),
         )?),
     };
 
@@ -154,11 +150,7 @@ pub fn select_mirrors(mut config: Settings) -> Result<Settings, String> {
         Some(mirror) => Some(mirror),
         None => Some(generic_select(
             "wizard.tools.mirror",
-            &[
-                "https://github.com",
-                "https://dl.espressif.com/github_assets",
-                "https://dl.espressif.cn/github_assets",
-            ],
+            idf_im_lib::get_idf_tools_mirrors_list(),
         )?),
     };
 
