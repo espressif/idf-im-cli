@@ -15,7 +15,7 @@ if (process.env.IDF_SCRIPT) {
             ? path.join(os.homedir(), ".espressif/activate_idf_v5.3.1.sh")
             : "C:\\esp\\v5.3.1\\Microsoft.PowerShell_profile.ps1";
 }
-logger.debug(`Path to script = ${pathToIDFScript}`)
+logger.debug(`Path to script = ${pathToIDFScript}`);
 
 // export function runPostInstallTests() {
 describe("Check if IDF installation is functional", function () {
@@ -30,7 +30,7 @@ describe("Check if IDF installation is functional", function () {
             logger.debug("Error starting process:", error);
             throw error;
         }
-        logger.debug(`Terminal started for IDF PATH ${process.env.IDF_PATH}`)
+        logger.debug(`Terminal started for IDF PATH ${process.env.IDF_PATH}`);
     });
 
     after(async function () {
@@ -51,9 +51,9 @@ describe("Check if IDF installation is functional", function () {
         testRunner.sendInput(`cd ${os.homedir()}/esp\r`);
 
         testRunner.sendInput(
-                os.platform() !== "win32"
-                    ? `cp -r ${process.env.IDF_PATH}/examples/get-started/hello_world .\r`
-                    : `xcopy /e /i $env:IDF_PATH\\examples\\get-started\\hello_world hello_world\r`
+            os.platform() !== "win32"
+                ? `cp -r $IDF_PATH/examples/get-started/hello_world .\r`
+                : `xcopy /e /i $env:IDF_PATH\\examples\\get-started\\hello_world hello_world\r`
         );
         testRunner.sendInput("cd hello_world\r");
         testRunner.sendInput("ls\r");
@@ -74,10 +74,11 @@ describe("Check if IDF installation is functional", function () {
          * This test attempts to set a target MCU for the project created in the previous test.
          */
         this.timeout(18000);
-        testRunner.sendInput("idf.py set-target esp32\r")
+        testRunner.sendInput("idf.py set-target esp32\r");
 
         const targetSet = await testRunner.waitForOutput(
-            "Build files have been written to", 15000
+            "Build files have been written to",
+            15000
         );
         if (!targetSet) {
             logger.info(testRunner.output);
@@ -94,18 +95,20 @@ describe("Check if IDF installation is functional", function () {
          * The test is successfull if the succss message is printed in the terminal.
          */
         this.timeout(43000);
-        testRunner.sendInput("idf.py build\r")
+        testRunner.sendInput("idf.py build\r");
 
         const buildComplete = await testRunner.waitForOutput(
-            "Project build complete", 40000
+            "Project build complete",
+            40000
         );
         if (!buildComplete) {
             logger.info(testRunner.output);
         }
         expect(buildComplete).to.be.true;
-        expect(testRunner.output).to.include("Successfully created esp32 image");
+        expect(testRunner.output).to.include(
+            "Successfully created esp32 image"
+        );
         expect(testRunner.exited).to.not.be.true;
     });
-
 });
 // }
