@@ -52,7 +52,7 @@ describe("Check if IDF installation is functional", function () {
 
         testRunner.sendInput(
             os.platform() !== "win32"
-                ? `cp -r ${process.env.IDF_PATH}/examples/get-started/hello_world .\r`
+                ? `cp -r $IDF_PATH/examples/get-started/hello_world .\r`
                 : `xcopy /e /i $env:IDF_PATH\\examples\\get-started\\hello_world hello_world\r`
         );
         testRunner.sendInput("cd hello_world\r");
