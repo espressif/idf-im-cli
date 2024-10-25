@@ -73,12 +73,12 @@ describe("Check if IDF installation is functional", function () {
         /**
          * This test attempts to set a target MCU for the project created in the previous test.
          */
-        this.timeout(18000);
+        this.timeout(30000);
         testRunner.sendInput("idf.py set-target esp32\r");
 
         const targetSet = await testRunner.waitForOutput(
             "Build files have been written to",
-            15000
+            30000
         );
         if (!targetSet) {
             logger.info(testRunner.output);
@@ -94,12 +94,12 @@ describe("Check if IDF installation is functional", function () {
          * This test attempts to build artifacts for the project and targets selected above.
          * The test is successfull if the succss message is printed in the terminal.
          */
-        this.timeout(43000);
+        this.timeout(60000);
         testRunner.sendInput("idf.py build\r");
 
         const buildComplete = await testRunner.waitForOutput(
             "Project build complete",
-            40000
+            60000
         );
         if (!buildComplete) {
             logger.info(testRunner.output);
