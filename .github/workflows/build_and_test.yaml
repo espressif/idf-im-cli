@@ -260,7 +260,16 @@ jobs:
                   7z x ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -otest-bin
                   # 7z x ./test-bin/eim.zip -otest-bin
 
-            - name: Set executable permissions (Windows)
+            - name: downgrade powershell version (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  set "extractPath=C:\Program Files\PowerShell\7"
+                  curl -sLO https://github.com/PowerShell/PowerShell/releases/download/v7.2.17/PowerShell-7.2.17-win-x64.zip
+                  RMDIR "%extractPath%" /S /Q
+                  7z x PowerShell-7.2.17-win-x64.zip -o"%extractPath%"
+                  pwsh --version
+
+            - name: Print powershell and windows version (Windows)
               if: runner.os == 'Windows'
               run: |
                   $PSVersionTable
