@@ -260,14 +260,14 @@ jobs:
                   7z x ./artifacts/eim-${{ github.run_id }}-${{ matrix.os }}/eim.zip -otest-bin
                   # 7z x ./test-bin/eim.zip -otest-bin
 
-            - name: downgrade powershell version (Windows)
-              if: runner.os == 'Windows'
-              run: |
-                  $extractPath = "C:\Program Files\PowerShell\7"
-                  Invoke-WebRequest -Uri "https://github.com/PowerShell/PowerShell/releases/download/v7.2.17/PowerShell-7.2.17-win-x64.zip" -OutFile "pwsh.zip"
-                  Remove-Item -Path $extractPath -Recurse -Force -ErrorAction SilentlyContinue
-                  Expand-Archive -Path "pwsh.zip" -DestinationPath $extractPath -Force
-                  pwsh --version
+            # - name: downgrade powershell version (Windows)
+            #   if: runner.os == 'Windows'
+            #   run: |
+            #       $extractPath = "C:\Program Files\PowerShell\7"
+            #       Invoke-WebRequest -Uri "https://github.com/PowerShell/PowerShell/releases/download/v7.2.17/PowerShell-7.2.17-win-x64.zip" -OutFile "pwsh.zip"
+            #       Remove-Item -Path $extractPath -Recurse -Force -ErrorAction SilentlyContinue
+            #       Expand-Archive -Path "pwsh.zip" -DestinationPath $extractPath -Force
+            #       pwsh --version
 
             - name: Print powershell and windows version (Windows)
               if: runner.os == 'Windows'
