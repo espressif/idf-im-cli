@@ -5,6 +5,8 @@ on:
         workflows: ["Rust"]
         types:
             - completed
+        branches:
+            - master
 
 jobs:
     test:
