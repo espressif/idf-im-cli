@@ -1,7 +1,7 @@
 use dialoguer::FolderSelect;
 use idf_im_lib::idf_tools::ToolsFile;
 use idf_im_lib::settings::Settings;
-use idf_im_lib::ProgressMessage;
+use idf_im_lib::{DownloadProgress, ProgressMessage};
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use log::{debug, error, info, trace, warn};
 use rust_i18n::t;
@@ -30,6 +30,7 @@ mod prompts;
 use prompts::*;
 
 fn get_tools_export_paths(
+    // todo: library
     // TODO: move to library
     tools_file: ToolsFile,
     selected_chip: Vec<String>,
@@ -65,6 +66,7 @@ fn get_tools_export_paths(
 }
 
 fn find_bin_directories(path: &Path) -> Vec<PathBuf> {
+    // todo: library
     let mut result = Vec::new();
 
     if let Ok(entries) = fs::read_dir(path) {
@@ -132,10 +134,15 @@ async fn download_tools(
         idf_im_lib::idf_tools::get_download_link_by_platform(list, &platform),
         // Some("https://dl.espressif.com/github_assets"), // this switches mirror, should be parametrized
         mirror,
-    );
+    )
+    .into_iter()
+    .collect::<Vec<_>>();
     let mut downloaded_tools: Vec<String> = vec![];
     for (tool_name, download_link) in download_links.iter() {
         info!("{}: {}", t!("wizard.tool_download.progress"), tool_name);
+
+        let (progress_tx, progress_rx) = mpsc::channel();
+
         let progress_bar = ProgressBar::new(download_link.size);
         progress_bar.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})").unwrap()
         .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
@@ -144,6 +151,7 @@ async fn download_tools(
         let update_progress = |amount_downloaded: u64, _total_size: u64| {
             progress_bar.set_position(amount_downloaded);
         };
+
         debug!("Download link: {}", download_link.url);
         debug!("destination: {}", destination_path);
 
@@ -165,10 +173,30 @@ async fn download_tools(
                 debug!("{}", t!("wizard.tool_file.missing"));
             }
         }
+        let tn = tool_name.clone();
+        let pb = progress_bar.clone();
+        let progress_handle = {
+            thread::spawn(move || {
+                while let Ok(progress_msg) = progress_rx.recv() {
+                    match progress_msg {
+                        DownloadProgress::Progress(current, total) => {
+                            let percentage = (current * 100 / total) as u64;
+                            pb.set_position(percentage);
+                        }
+                        DownloadProgress::Complete => {
+                            pb.finish();
+                            break;
+                        }
+                        DownloadProgress::Error(err) => {
+                            log::error!("Error downloading {}: {}", tn, err);
+                            break;
+                        }
+                    }
+                }
+            })
+        };
 
-        match idf_im_lib::download_file(&download_link.url, destination_path, &update_progress)
-            .await
-        {
+        match idf_im_lib::download_file(&download_link.url, destination_path, progress_tx).await {
             Ok(_) => {
                 downloaded_tools.push(filename.to_string());
                 progress_bar.finish();
@@ -180,6 +208,7 @@ async fn download_tools(
                 panic!();
             }
         }
+        progress_handle.join().unwrap();
     }
     downloaded_tools
 }
@@ -420,6 +449,7 @@ async fn download_and_extract_tools(
     Ok(())
 }
 
+// todo: use library version
 fn setup_environment_variables(
     tool_install_directory: &PathBuf,
     idf_path: &PathBuf,
@@ -460,7 +490,7 @@ fn get_and_validate_idf_tools_path(
         idf_tools_path.push(&name);
         config.idf_tools_path = Some(name);
     } else {
-        idf_tools_path.push(DEFAULT_IDF_TOOLS_PY_LOCATION);
+        idf_tools_path.push(DEFAULT_IDF_TOOLS_PY_LOCATION); // TODO: defaults are in lib now
         config.idf_tools_path = Some(DEFAULT_IDF_TOOLS_PY_LOCATION.to_string());
     }
 
@@ -485,6 +515,7 @@ fn get_and_validate_idf_tools_path(
 }
 
 fn run_idf_tools_py(
+    // todo: use from library
     idf_tools_path: &str,
     environment_variables: &Vec<(String, String)>,
 ) -> Result<String, String> {
@@ -498,6 +529,7 @@ fn run_idf_tools_py(
 }
 
 fn run_install_script(
+    //TODO: use from library
     idf_tools_path: &str,
     environment_variables: &Vec<(String, String)>,
 ) -> Result<String, String> {
@@ -514,6 +546,7 @@ fn run_install_script(
 }
 
 fn run_install_python_env_script(
+    //TODO: use from library
     idf_tools_path: &str,
     environment_variables: &Vec<(String, String)>,
 ) -> Result<String, String> {
@@ -530,6 +563,7 @@ fn run_install_python_env_script(
 }
 
 fn single_version_post_install(
+    // todo: use from library
     version_instalation_path: &str,
     idf_path: &str,
     idf_version: &str,
@@ -539,7 +573,7 @@ fn single_version_post_install(
 ) {
     match std::env::consts::OS {
         "windows" => {
-            println!("{}", t!("wizard.windows.succes_message"));
+            info!("{}", t!("wizard.windows.succes_message"));
             // Creating desktop shortcut
             if let Err(err) = idf_im_lib::create_desktop_shortcut(
                 version_instalation_path,
@@ -729,8 +763,6 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             }
         })
         .collect();
-
-        println!("### {}", idf_path.to_str().unwrap());
 
         single_version_post_install(
             &version_instalation_path.to_str().unwrap(),
