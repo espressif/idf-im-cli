@@ -9,7 +9,9 @@
         "winston": "^3.15.0"
     },
     "scripts": {
-        "test": "mocha --exit main.test.js",
-        "pre-test": "mocha --exit prerequisites.test.js"
+        "test": "mocha --exit script/main.test.js",
+        "pre-test": "mocha --exit script/prerequisites.test.js",
+        "post-test": "mocha --exit script/postInstall.test.js",
+        "variation-test": "mocha --exit script/variation.test.js"
     }
 }

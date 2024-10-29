@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { describe, it, before, after, beforeEach, afterEach } from "mocha";
-import { InteractiveCLITestRunner } from "./CLITestRunner.class.js";
-import logger from "./logger.class.js";
+import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
+import logger from "../classes/logger.class.js";
 import os from "os";
 import path from "path";
 

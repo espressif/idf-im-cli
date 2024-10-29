@@ -1,7 +1,7 @@
 import { describe, it, before, after } from "mocha";
 import { runLineArgumentsTests } from "./commandLineArguments.test.js";
 import { runInstallWizzardTests } from "./installWizard.test.js";
-import logger from "./logger.class.js";
+import logger from "../classes/logger.class.js";
 
 describe("Installation Manager Tests", function () {
     this.timeout(2400000);

@@ -12,31 +12,18 @@ export class IDFTestRunner {
         this.error = null;
     }
 
-    getPlatformSpecificTerminal() {
-        if (os.platform() === "win32") {
-            // Windows
-            return {
-                //Not working yet
-                command: "powershell.exe -ExecutionPolicy Bypass -NoProfile",
-                args: [], // [" -Command", `"& {. '${this.LoadScriptPath}'}"`],
-            };
-        } else {
-            // Linux, macOS, and other Unix-like systems
-            return {
-                command: "bash",
-                args: [],
-            };
-        }
-    }
-
     startTerminal() {
         return new Promise((resolve, reject) => {
             logger.debug("Starting terminal...");
             const command =
                 os.platform() !== "win32"
                     ? "bash"
-                    : "powershell.exe -ExecutionPolicy Bypass -NoProfile";
-            const args = [];
+                    : "powershell.exe";
+            const args = 
+                os.platform() !== "win32"
+                    ? []
+                    : ["-ExecutionPolicy","Bypass","-NoProfile"];
+            logger.debug(`Sending command>>${command}<< with args >>${args}<<`)
             this.process = pty.spawn(command, args, {
                 name: "eim-terminal",
                 cols: 80,
@@ -48,6 +35,7 @@ export class IDFTestRunner {
                 os.platform() !== "win32"
                     ? `source ${this.LoadScriptPath}`
                     : `. "${this.LoadScriptPath}"`;
+            logger.debug(`Script load command sent to terminal ${loadCommand}`);
             this.sendInput(`${loadCommand}\r`);
             this.exited = false;
 
