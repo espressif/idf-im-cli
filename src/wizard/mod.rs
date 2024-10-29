@@ -3,7 +3,7 @@ use idf_im_lib::idf_tools::ToolsFile;
 use idf_im_lib::settings::Settings;
 use idf_im_lib::{DownloadProgress, ProgressMessage};
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, info, warn};
 use rust_i18n::t;
 use std::sync::mpsc;
 use std::thread;
@@ -22,68 +22,11 @@ const DEFAULT_IDF_TOOLS_PY_LOCATION: &str = "./tools/idf_tools.py";
 
 pub mod helpers;
 use helpers::{
-    create_progress_bar, create_theme, generic_confirm, generic_input, update_progress_bar,
-    update_progress_bar_number,
+    create_progress_bar, create_theme, generic_confirm, generic_input, update_progress_bar_number,
 };
 
 mod prompts;
 use prompts::*;
-
-fn get_tools_export_paths(
-    // todo: library
-    // TODO: move to library
-    tools_file: ToolsFile,
-    selected_chip: Vec<String>,
-    tools_install_path: &str,
-) -> Vec<String> {
-    let bin_dirs = find_bin_directories(Path::new(tools_install_path));
-    debug!("Bin directories: {:?}", bin_dirs);
-
-    let list = idf_im_lib::idf_tools::filter_tools_by_target(tools_file.tools, &selected_chip);
-    // debug!("Creating export paths for: {:?}", list);
-    let mut paths = vec![];
-    for tool in &list {
-        tool.export_paths.iter().for_each(|path| {
-            let mut p = PathBuf::new();
-            p.push(tools_install_path);
-            for level in path {
-                p.push(level);
-            }
-            paths.push(p.to_str().unwrap().to_string());
-        });
-    }
-    for bin_dir in bin_dirs {
-        let str_p = bin_dir.to_str().unwrap().to_string();
-        if paths.contains(&str_p) {
-            trace!("Skipping duplicate export path: {}", str_p);
-        } else {
-            trace!("Adding export path: {}", str_p);
-            paths.push(str_p);
-        }
-    }
-    debug!("Export paths: {:?}", paths);
-    paths
-}
-
-fn find_bin_directories(path: &Path) -> Vec<PathBuf> {
-    // todo: library
-    let mut result = Vec::new();
-
-    if let Ok(entries) = fs::read_dir(path) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_dir() {
-                if path.file_name().and_then(|n| n.to_str()) == Some("bin") {
-                    result.push(path.clone());
-                } else {
-                    result.extend(find_bin_directories(&path));
-                }
-            }
-        }
-    }
-
-    result
-}
 
 async fn download_tools(
     tools_file: ToolsFile,
@@ -147,10 +90,6 @@ async fn download_tools(
         progress_bar.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})").unwrap()
         .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
         .progress_chars("#>-"));
-
-        let update_progress = |amount_downloaded: u64, _total_size: u64| {
-            progress_bar.set_position(amount_downloaded);
-        };
 
         debug!("Download link: {}", download_link.url);
         debug!("destination: {}", destination_path);
@@ -449,29 +388,6 @@ async fn download_and_extract_tools(
     Ok(())
 }
 
-// todo: use library version
-fn setup_environment_variables(
-    tool_install_directory: &PathBuf,
-    idf_path: &PathBuf,
-) -> Result<Vec<(String, String)>, String> {
-    let mut env_vars = vec![];
-
-    // env::set_var("IDF_TOOLS_PATH", tool_install_directory);
-    let instal_dir_string = tool_install_directory.to_str().unwrap().to_string();
-    env_vars.push(("IDF_TOOLS_PATH".to_string(), instal_dir_string));
-    let idf_path_string = idf_path.to_str().unwrap().to_string();
-    env_vars.push(("IDF_PATH".to_string(), idf_path_string));
-
-    let python_env_path_string = tool_install_directory
-        .join("python")
-        .to_str()
-        .unwrap()
-        .to_string();
-    env_vars.push(("IDF_PYTHON_ENV_PATH".to_string(), python_env_path_string));
-
-    Ok(env_vars)
-}
-
 fn get_and_validate_idf_tools_path(
     config: &mut Settings,
     idf_path: &PathBuf,
@@ -514,136 +430,6 @@ fn get_and_validate_idf_tools_path(
     Ok(idf_tools_path)
 }
 
-fn run_idf_tools_py(
-    // todo: use from library
-    idf_tools_path: &str,
-    environment_variables: &Vec<(String, String)>,
-) -> Result<String, String> {
-    let escaped_path = if std::env::consts::OS == "windows" {
-        idf_im_lib::replace_unescaped_spaces_win(&idf_tools_path)
-    } else {
-        idf_im_lib::replace_unescaped_spaces_posix(&idf_tools_path)
-    };
-    run_install_script(&escaped_path, environment_variables)?;
-    run_install_python_env_script(&escaped_path, environment_variables)
-}
-
-fn run_install_script(
-    //TODO: use from library
-    idf_tools_path: &str,
-    environment_variables: &Vec<(String, String)>,
-) -> Result<String, String> {
-    let output = idf_im_lib::python_utils::run_python_script_from_file(
-        idf_tools_path,
-        Some("install"),
-        None,
-        Some(environment_variables),
-    );
-
-    trace!("idf_tools.py install output:\n{:?}", output);
-
-    output
-}
-
-fn run_install_python_env_script(
-    //TODO: use from library
-    idf_tools_path: &str,
-    environment_variables: &Vec<(String, String)>,
-) -> Result<String, String> {
-    let output = idf_im_lib::python_utils::run_python_script_from_file(
-        idf_tools_path,
-        Some("install-python-env"),
-        None,
-        Some(environment_variables),
-    );
-
-    trace!("idf_tools.py install-python-env output:\n{:?}", output);
-
-    output
-}
-
-fn single_version_post_install(
-    // todo: use from library
-    version_instalation_path: &str,
-    idf_path: &str,
-    idf_version: &str,
-    tool_install_directory: &str,
-    export_paths: Vec<String>,
-    env_vars: Vec<(String, String)>, //probably dupliocate of idf_path and IDF_python_env_path
-) {
-    match std::env::consts::OS {
-        "windows" => {
-            info!("{}", t!("wizard.windows.succes_message"));
-            // Creating desktop shortcut
-            if let Err(err) = idf_im_lib::create_desktop_shortcut(
-                version_instalation_path,
-                idf_path,
-                &idf_version,
-                tool_install_directory,
-                export_paths,
-            ) {
-                error!(
-                    "{} {:?}",
-                    t!("wizard.after_install.desktop_shortcut.failed"),
-                    err.to_string()
-                )
-            } else {
-                info!("{}", t!("wizard.after_install.desktop_shortcut.created"))
-            }
-        }
-        _ => {
-            let install_folder = PathBuf::from(version_instalation_path);
-            let install_path = install_folder.parent().unwrap().to_str().unwrap();
-            let _ = idf_im_lib::create_activation_shell_script(
-                // todo: handle error
-                install_path,
-                idf_path,
-                tool_install_directory,
-                &idf_version,
-                export_paths,
-            );
-
-            // let exports = env_vars
-            //     .into_iter()
-            //     .map(|(k, v)| format!("export {}=\"{}\"; ", k, v))
-            //     .collect::<Vec<String>>();
-            // let exp_strig = format!(
-            //     "{}export PATH=\"$PATH:{:?}\"; ",
-            //     exports.join(""),
-            //     export_paths.join(":")
-            // );
-            // match generic_confirm("wizard.after_install.add_to_path.prompt") {
-            //     Ok(true) => match add_to_shell_rc(&exp_strig) {
-            //         Ok(_) => println!("{}", t!("wizard.posix.succes_message")),
-            //         Err(err) => panic!("{:?}", err.to_string()),
-            //     },
-            //     Ok(false) => println!(
-            //         "{}:\r\n\r\n{}\r\n\r\n",
-            //         t!("wizard.posix.succes_message"),
-            //         exp_strig
-            //     ),
-            //     Err(err) => panic!("{:?}", err.to_string()),
-            // }
-        }
-    }
-}
-
-fn expand_tilde(path: &Path) -> PathBuf {
-    if path.starts_with("~") {
-        if let Some(home_dir) = dirs::home_dir() {
-            if path.to_str().unwrap() == "~" {
-                home_dir
-            } else {
-                home_dir.join(path.strip_prefix("~").unwrap())
-            }
-        } else {
-            path.to_path_buf()
-        }
-    } else {
-        path.to_path_buf()
-    }
-}
-
 pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     debug!("Config entering wizard: {:?}", config);
 
@@ -672,7 +458,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
 
     for idf_version in config.idf_versions.clone().unwrap() {
         let mut version_instalation_path = config.path.clone().unwrap();
-        version_instalation_path = expand_tilde(version_instalation_path.as_path());
+        version_instalation_path = idf_im_lib::expand_tilde(version_instalation_path.as_path());
         version_instalation_path.push(&idf_version);
         let mut idf_path = version_instalation_path.clone();
         idf_path.push("esp-idf");
@@ -743,13 +529,13 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         )
         .await?;
 
-        let env_vars = setup_environment_variables(&tool_install_directory, &idf_path)?;
+        let env_vars = idf_im_lib::setup_environment_variables(&tool_install_directory, &idf_path)?;
 
         let idf_tools_path = get_and_validate_idf_tools_path(&mut config, &idf_path)?;
 
-        run_idf_tools_py(idf_tools_path.to_str().unwrap(), &env_vars)?;
+        idf_im_lib::python_utils::run_idf_tools_py(idf_tools_path.to_str().unwrap(), &env_vars)?;
 
-        let export_paths = get_tools_export_paths(
+        let export_paths = idf_im_lib::idf_tools::get_tools_export_paths(
             tools,
             config.target.clone().unwrap().clone(),
             tool_install_directory.join("tools").to_str().unwrap(),
@@ -764,13 +550,12 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         })
         .collect();
 
-        single_version_post_install(
+        idf_im_lib::single_version_post_install(
             &version_instalation_path.to_str().unwrap(),
             &idf_path.to_str().unwrap(),
             &idf_version,
             &tool_install_directory.to_str().unwrap(),
             export_paths,
-            env_vars,
         )
     }
     save_config_if_desired(&config)?;
