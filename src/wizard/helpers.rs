@@ -103,12 +103,6 @@ pub fn create_progress_bar() -> ProgressBar {
     pb
 }
 
-pub fn update_progress_bar(pb: &ProgressBar, stats: &git2::Progress) {
-    let current_progress =
-        ((stats.received_objects() as f64) / (stats.total_objects() as f64) * 100.0) as u64;
-    pb.set_position(current_progress);
-}
-
 pub fn update_progress_bar_number(pb: &ProgressBar, value: u64) {
     pb.set_position(value);
 }
