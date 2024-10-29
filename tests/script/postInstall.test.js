@@ -1,11 +1,12 @@
 import { expect } from "chai";
 import { describe, it, before, after, beforeEach, afterEach } from "mocha";
-import { IDFTestRunner } from "../classes/IDFTestRunner.class.js";
+import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
 import logger from "../classes/logger.class.js";
 import os from "os";
 import path from "path";
 
 let pathToIDFScript;
+let pathToProjectFolder;
 
 if (process.env.IDF_SCRIPT) {
     pathToIDFScript = process.env.IDF_SCRIPT;
@@ -17,15 +18,21 @@ if (process.env.IDF_SCRIPT) {
 }
 logger.debug(`Path to script = ${pathToIDFScript}`);
 
-// export function runPostInstallTests() {
+if (process.env.PROJECT_FOLDER) {
+    pathToProjectFolder = process.env.PROJECT_FOLDER;
+} else {
+    pathToProjectFolder = os.homedir();
+}
+logger.debug(`PSample project folder path ${pathToProjectFolder}/esp`);
+
 describe("Check if IDF installation is functional", function () {
     let testRunner;
 
     before(async function () {
         this.timeout(5000);
-        testRunner = new IDFTestRunner(pathToIDFScript);
+        testRunner = new InteractiveCLITestRunner();
         try {
-            await testRunner.startTerminal();
+            await testRunner.runTerminal(pathToIDFScript);
         } catch (error) {
             logger.debug("Error starting process:", error);
             throw error;
@@ -47,8 +54,8 @@ describe("Check if IDF installation is functional", function () {
          * The commads might differ for each operating system.
          * The assert is based on the existance of the project files in the expected folder.
          */
-        testRunner.sendInput(`mkdir ${os.homedir()}/esp\r`);
-        testRunner.sendInput(`cd ${os.homedir()}/esp\r`);
+        testRunner.sendInput(`mkdir ${pathToProjectFolder}/esp\r`);
+        testRunner.sendInput(`cd ${pathToProjectFolder}/esp\r`);
 
         testRunner.sendInput(
             os.platform() !== "win32"
@@ -111,4 +118,3 @@ describe("Check if IDF installation is functional", function () {
         expect(testRunner.exited).to.not.be.true;
     });
 });
-// }

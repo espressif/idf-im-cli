@@ -19,9 +19,9 @@ describe("Check if prerequisites are installed", function () {
 
     beforeEach(async function () {
         this.timeout(5000); // Increase timeout for setup
-        testRunner = new InteractiveCLITestRunner(pathToEim);
+        testRunner = new InteractiveCLITestRunner();
         try {
-            await testRunner.start();
+            await testRunner.runApp(pathToEim);
         } catch (error) {
             logger.debug("Error starting process:", error);
             throw error;

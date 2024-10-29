@@ -15,7 +15,7 @@ const transports = [
 if (logToFile) {
     transports.push(
         new winston.transports.File({
-            filename: "../test.log",
+            filename: "./test.log",
             format: winston.format.combine(
                 winston.format.timestamp(),
                 winston.format.json()
@@ -27,9 +27,8 @@ if (logToFile) {
 const logger = winston.createLogger({
     level: logLevel,
     format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.printf(({ timestamp, level, message }) => {
-            return `${timestamp} [${level}]: ${message}`;
+        winston.format.printf(({ level, message }) => {
+            return `[${level}]: ${message}`;
         })
     ),
     transports: transports,

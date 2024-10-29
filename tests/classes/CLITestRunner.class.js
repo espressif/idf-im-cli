@@ -3,8 +3,7 @@ import os from "os";
 import logger from "./logger.class.js";
 
 export class InteractiveCLITestRunner {
-    constructor(exePath) {
-        this.exePath = exePath;
+    constructor() {
         this.process = null;
         this.output = "";
         this.exited = false;
@@ -12,29 +11,40 @@ export class InteractiveCLITestRunner {
         this.error = null;
     }
 
-    getPlatformSpecificCommand(command, args) {
+    runApp(app, args = []) {
+        let command = app;
+        let fullArgs = args;
         if (os.platform() === "win32") {
-            // Windows
-            return {
-                command: "powershell.exe",
-                args: ["-Command", `& '${command}' ${args.join(" ")}`],
-            };
-        } else {
-            // Linux, macOS, and other Unix-like systems
-            return {
-                command: command,
-                args: args,
-            };
+            // If running on Windows
+            command = "powershell.exe";
+            fullArgs = ["-Command", `& '${app}' ${args.join(" ")}`];
         }
+        logger.debug(
+            `Starting application with command ${command} and args ${fullArgs}`
+        );
+        this.start(command, fullArgs);
     }
 
-    start(args = []) {
+    runTerminal(loadScript) {
+        const command = os.platform() !== "win32" ? "bash" : "powershell.exe";
+        const args =
+            os.platform() !== "win32"
+                ? []
+                : ["-ExecutionPolicy", "Bypass", "-NoProfile"];
+
+        logger.debug(`Starting terminal ${command} with args ${args}`);
+        this.start(command, args);
+        const loadCommand =
+            os.platform() !== "win32"
+                ? `source ${loadScript}`
+                : `. "${loadScript}"`;
+        logger.debug(`Script load command sent to terminal ${loadCommand}`);
+        this.sendInput(`${loadCommand}\r`);
+    }
+
+    start(command, fullArgs = []) {
         return new Promise((resolve, reject) => {
             logger.debug("Starting process...");
-            const { command, args: fullArgs } = this.getPlatformSpecificCommand(
-                this.exePath,
-                args
-            );
             this.process = pty.spawn(command, fullArgs, {
                 name: "eim-terminal",
                 cols: 80,
@@ -145,33 +155,5 @@ export class InteractiveCLITestRunner {
                 });
             });
         }
-    }
-
-    async runWithArgs(args) {
-        const { command, args: fullArgs } = this.getPlatformSpecificCommand(
-            this.exePath,
-            args
-        );
-        return new Promise((resolve) => {
-            const proc = pty.spawn(command, fullArgs, {
-                name: "eim-terminal",
-                cols: 80,
-                rows: 30,
-                cwd: process.cwd(),
-                env: process.env,
-            });
-
-            let output = "";
-            proc.onData((data) => {
-                output += data;
-            });
-
-            proc.onExit(({ exitCode }) => {
-                resolve({
-                    output: output,
-                    code: exitCode,
-                });
-            });
-        });
     }
 }

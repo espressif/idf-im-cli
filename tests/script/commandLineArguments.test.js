@@ -25,35 +25,39 @@ export function runLineArgumentsTests() {
         let testRunner;
 
         before(function () {
-            testRunner = new InteractiveCLITestRunner(pathToEim);
+            testRunner = new InteractiveCLITestRunner();
         });
 
         after(async function () {
             if (!testRunner.exited) {
                 await testRunner.stop();
             }
+            testRunner = null;
         });
 
         describe("Command-line Arguments", function () {
-            it("should handle valid arguments", async function () {
-                const { output, code } = await testRunner.runWithArgs(["-V"]);
-                expect(code).to.equal(0);
-                expect(output).to.include(eimVersion);
+            it("should show correct version number", async function () {
+                testRunner.runApp(pathToEim, ["-V"]);
+                const meetVersion = await testRunner.waitForExit(eimVersion);
+                expect(meetVersion).to.be.true;
+                expect(testRunner.exitCode).to.equal(0);
             });
 
             it("should show help with --help argument", async function () {
-                const { output, code } = await testRunner.runWithArgs([
-                    "--help",
-                ]);
-                expect(code).to.equal(0);
-                expect(output).to.include("Usage:");
-                expect(output).to.include("Options:");
+                testRunner.runApp(pathToEim, ["--help"]);
+                const meetVersion = await testRunner.waitForExit("Options:");
+                expect(meetVersion).to.be.true;
+                expect(testRunner.output).to.include("Usage:");
+                expect(testRunner.exitCode).to.equal(0);
             });
 
             it("should handle invalid arguments", async function () {
-                const { output, code } = await testRunner.runWithArgs(["-KK"]);
-                expect(code).to.not.equal(0);
-                expect(output).to.include("unexpected argument");
+                testRunner.runApp(pathToEim, ["-KK"]);
+                const meetVersion = await testRunner.waitForExit(
+                    "unexpected argument"
+                );
+                expect(meetVersion).to.be.true;
+                expect(testRunner.exitCode).to.not.equal(0);
             });
         });
     });
