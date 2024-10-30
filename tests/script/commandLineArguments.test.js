@@ -17,7 +17,7 @@ if (process.env.EIM_FILE_PATH) {
 if (process.env.EIM_VERSION) {
     eimVersion = process.env.EIM_VERSION;
 } else {
-    eimVersion = "idf-im-cli 0.1.0";
+    eimVersion = "idf-im-cli 0.1.3";
 }
 
 export function runLineArgumentsTests() {

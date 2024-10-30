@@ -5,8 +5,6 @@ on:
         workflows: ["Rust"]
         types:
             - completed
-        branches:
-            - master
 
 jobs:
     test:
@@ -47,7 +45,7 @@ jobs:
               if: runner.os != 'Windows'
               run: |
                   export EIM_FILE_PATH="../test-bin/eim"
-                  export EIM_VERSION="idf-im-cli 0.1.0"
+                  export EIM_VERSION="idf-im-cli 0.1.3"
                   export LOG_TO_FILE="true"
                   cd tests
                   npm ci
@@ -62,7 +60,7 @@ jobs:
               if: runner.os != 'Windows'
               run: |
                   export EIM_FILE_PATH="../test-bin/eim"
-                  export EIM_VERSION="idf-im-cli 0.1.0"
+                  export EIM_VERSION="idf-im-cli 0.1.3"
                   export LOG_TO_FILE="true"                  
                   cd tests
                   npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=./results.xml script/main.test.js
@@ -86,7 +84,7 @@ jobs:
               if: runner.os == 'Windows'
               run: |
                   $env:EIM_FILE_PATH="..\test-bin\eim.exe"
-                  $env:EIM_VERSION="idf-im-cli 0.1.0"
+                  $env:EIM_VERSION="idf-im-cli 0.1.3"
                   $env:LOG_TO_FILE="true"
                   7z x ./tests/node_modules.zip -otests/node_modules
                   Set-Location -Path "./tests"
@@ -101,7 +99,7 @@ jobs:
               if: runner.os == 'Windows'
               run: |
                   $env:EIM_FILE_PATH = "..\test-bin\eim.exe"
-                  $env:EIM_VERSION = "idf-im-cli 0.1.0"
+                  $env:EIM_VERSION = "idf-im-cli 0.1.3"
                   $env:LOG_TO_FILE="true"
                   Set-Location -Path "./tests"
                   npx mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=./results.xml script/main.test.js

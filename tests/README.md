@@ -66,7 +66,7 @@ To execute tests on windows, use the script
 `.\tests\run_test.ps1 "<PATH TO EIM.EXE>" "<Version being tested>"`
 
 Default arguments are:
-`.\tests\run_test.ps1 "$env:USERPROFILE\espressif\eim.exe" "idf-im-cli 0.1.0"`
+`.\tests\run_test.ps1 "$env:USERPROFILE\espressif\eim.exe" "idf-im-cli 0.1.3"`
 
 #### Linux
 
@@ -77,7 +77,7 @@ To execute tests on linux, use the script:
 `. ./tests/run_test.sh "<PATH TO EIM>" "<Version being tested>"`
 
 Default arguments are:
-`. ./tests/run_test.sh "$HOME/espressif/eim" "idf-im-cli 0.1.0"`
+`. ./tests/run_test.sh "$HOME/espressif/eim" "idf-im-cli 0.1.3"`
 
 #### MacOS
 
