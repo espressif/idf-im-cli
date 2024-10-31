@@ -4,11 +4,11 @@ import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
 import logger from "../classes/logger.class.js";
 
 export function runInstallWizardTests(pathToEim) {
-        describe("Check if Install Wizard steps", function () {
-        let testRunner;
+    describe("Check IDF Install Wizard steps", function () {
+        let testRunner = null;
 
         before(async function () {
-            logger.debug(`Starting installation wizard with default options`)
+            logger.debug(`Starting installation wizard with default options`);
             this.timeout(5000); // Increase timeout for setup
             testRunner = new InteractiveCLITestRunner();
             try {

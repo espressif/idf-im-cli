@@ -38,7 +38,10 @@ const pathToIDFScript =
         ? path.join(os.homedir(), ".espressif/activate_idf_v5.3.1.sh")
         : "C:\\esp\\v5.3.1\\Microsoft.PowerShell_profile.ps1";
 
-const pathToProjectFolder = ".espressif/project";
+const pathToProjectFolder =
+    os.platform() !== "win32"
+        ? path.join(os.homedir(), ".espressif/project")
+        : "C:\\esp\\project";
 
 describe("Installation Manager Tests - Installation using default settings", function () {
     this.timeout(2400000);

@@ -17,7 +17,10 @@ export function runPostInstallTest(
 
         before(async function () {
             logger.debug(
-                `Starting IDF post install test for idf script ${pathToIDFScript}, sample project copied at ${path.join(os.homedir(), pathToProjectFolder)}`
+                `Starting IDF post install test for idf script ${pathToIDFScript}, sample project copied at ${path.join(
+                    os.homedir(),
+                    pathToProjectFolder
+                )}`
             );
 
             this.timeout(5000);
@@ -44,12 +47,8 @@ export function runPostInstallTest(
              * The commands might differ for each operating system.
              * The assert is based on the existence of the project files in the expected folder.
              */
-            testRunner.sendInput(
-                `mkdir ${path.join(os.homedir(), pathToProjectFolder)}\r`
-            );
-            testRunner.sendInput(
-                `cd ${path.join(os.homedir(), pathToProjectFolder)}\r`
-            );
+            testRunner.sendInput(`mkdir ${pathToProjectFolder}\r`);
+            testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
 
             testRunner.sendInput(
                 os.platform() !== "win32"

@@ -30,14 +30,15 @@ const installPath = path.join(os.homedir(), ".espressif2");
 const targetList = ["esp32s2"];
 const idfVersionList = ["v5.2.3"];
 const recursiveSubmodules = false;
-const pathToProjectFolder = ".espressif2/project";
+const pathToProjectFolder = path.join(os.homedir(), ".espressif2/project");
 
 const pathToIDFScript =
     os.platform() !== "win32"
         ? path.join(installPath, `activate_idf_${idfVersionList[0]}.sh`)
         : path.join(
               installPath,
-              `${idfVersionList}\\Microsoft.PowerShell_profile.ps1`
+              idfVersionList[0],
+              `Microsoft.PowerShell_profile.ps1`
           );
 
 describe("Installation Manager Tests - Installation using custom settings", function () {

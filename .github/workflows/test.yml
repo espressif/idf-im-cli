@@ -109,7 +109,6 @@ jobs:
               if: runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
-                  Set-Location -Path "./tests"
                   .\tests\run_test.ps1 "..\test-bin\eim.exe" "idf-im-cli 0.1.3"
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
