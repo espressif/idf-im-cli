@@ -3,7 +3,7 @@ name: Rust
 on:
     push:
         tags:
-      - 'v*'
+            - "v*"
         branches:
             - master
     pull_request:
