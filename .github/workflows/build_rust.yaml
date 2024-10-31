@@ -207,8 +207,9 @@ jobs:
                   asset_name: eim-${{ github.ref_name }}-linux-arm64.zip
                   asset_content_type: application/zip
 
-            - name: Call deploy workflow
-              uses: ./.github/workflows/test
-              with:
-                  run_id: ${{ github.run_id }}
-                  ref: ${{ github.event.pull_request.head.ref }}
+    call-test-workflow:
+        needs: build
+        uses: ./.github/workflows/test.yml
+        with:
+            run_id: ${{ github.run_id }}
+            ref: ${{ github.event.pull_request.head.ref }}
