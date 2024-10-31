@@ -11,21 +11,7 @@ export class InteractiveCLITestRunner {
         this.error = null;
     }
 
-    runApp(app, args = []) {
-        let command = app;
-        let fullArgs = args;
-        if (os.platform() === "win32") {
-            // If running on Windows
-            command = "powershell.exe";
-            fullArgs = ["-Command", `& '${app}' ${args.join(" ")}`];
-        }
-        logger.debug(
-            `Starting application with command ${command} and args ${fullArgs}`
-        );
-        this.start(command, fullArgs);
-    }
-
-    runTerminal(loadScript) {
+    runTerminal() {
         const command = os.platform() !== "win32" ? "bash" : "powershell.exe";
         const args =
             os.platform() !== "win32"
@@ -34,6 +20,10 @@ export class InteractiveCLITestRunner {
 
         logger.debug(`Starting terminal ${command} with args ${args}`);
         this.start(command, args);
+    }
+
+    runIDFTerminal(loadScript) {
+        this.runTerminal();
         const loadCommand =
             os.platform() !== "win32"
                 ? `source ${loadScript}`

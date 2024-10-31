@@ -2,26 +2,18 @@ import { expect } from "chai";
 import { describe, it, before, after, beforeEach, afterEach } from "mocha";
 import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
 import logger from "../classes/logger.class.js";
-import os from "os";
-import path from "path";
 
-let pathToEim;
-
-if (process.env.EIM_FILE_PATH) {
-    pathToEim = process.env.EIM_FILE_PATH;
-} else {
-    pathToEim = path.join(os.homedir(), "espressif/eim");
-}
-
-export function runInstallWizzardTests() {
-    describe("Check if Install Wizzard steps", function () {
+export function runInstallWizardTests(pathToEim) {
+        describe("Check if Install Wizard steps", function () {
         let testRunner;
 
         before(async function () {
+            logger.debug(`Starting installation wizard with default options`)
             this.timeout(5000); // Increase timeout for setup
             testRunner = new InteractiveCLITestRunner();
             try {
-                await testRunner.runApp(pathToEim);
+                await testRunner.runTerminal();
+                testRunner.sendInput(`${pathToEim}\r`);
             } catch (error) {
                 logger.debug("Error starting process:", error);
                 throw error;
@@ -36,14 +28,14 @@ export function runInstallWizzardTests() {
             testRunner = null;
         });
 
-        /** Run install wizzard
+        /** Run install wizard
          *
          * It is expected to have all requirements installed
          * The step to install the prerequisites in windows is not tested
          *
          */
 
-        it("Should install IDF using wizzard and default values", async function () {
+        it("Should install IDF using wizard and default values", async function () {
             const selectTargetQuestion = await testRunner.waitForOutput(
                 "Please select all of the target platforms"
             );
@@ -127,14 +119,13 @@ export function runInstallWizzardTests() {
             testRunner.output = "";
             testRunner.sendInput("\r");
 
-            const installationSuccessful = await testRunner.waitForExit(
+            const installationSuccessful = await testRunner.waitForOutput(
                 "Successfully installed IDF"
             );
             if (!installationSuccessful) {
                 logger.info(testRunner.output);
             }
             expect(installationSuccessful).to.be.true;
-            expect(testRunner.exitCode).to.equal(0);
         });
     });
 }

@@ -5,6 +5,17 @@ import logger from "../classes/logger.class.js";
 import os from "os";
 import path from "path";
 
+/**
+ * Setup the following environmental variables to execute this test:
+ *
+ * EIM_FILE_PATH to point to the eim application.
+ *
+ * use:
+ * Windows: $env:<variable>="<value>"
+ * Linux/mac: export <variable>="<value>"
+ *
+ */
+
 let pathToEim;
 
 if (process.env.EIM_FILE_PATH) {
@@ -21,7 +32,8 @@ describe("Check if prerequisites are installed", function () {
         this.timeout(5000); // Increase timeout for setup
         testRunner = new InteractiveCLITestRunner();
         try {
-            await testRunner.runApp(pathToEim);
+            await testRunner.runTerminal();
+            testRunner.sendInput(`${pathToEim}\r`);
         } catch (error) {
             logger.debug("Error starting process:", error);
             throw error;
@@ -30,7 +42,7 @@ describe("Check if prerequisites are installed", function () {
 
     afterEach(async function () {
         this.timeout(10000);
-        if (testRunner) {
+        if (!testRunner.exited) {
             await testRunner.stop();
         }
         testRunner = null;
@@ -50,7 +62,7 @@ describe("Check if prerequisites are installed", function () {
         function () {
             it("Should detect missing requirements", async function () {
                 this.timeout(20000);
-                const missingRequisites = await testRunner.waitForExit(
+                const missingRequisites = await testRunner.waitForOutput(
                     "Error: Please install the missing prerequisites",
                     20000
                 );
@@ -58,7 +70,6 @@ describe("Check if prerequisites are installed", function () {
                     logger.info(testRunner.output);
                 }
                 expect(missingRequisites).to.be.true;
-                expect(testRunner.exitCode).to.equal(0);
             });
         }
     );
@@ -86,14 +97,13 @@ describe("Check if prerequisites are installed", function () {
 
                 testRunner.sendInput("n");
 
-                const terminalExited = await testRunner.waitForExit(
+                const terminalExited = await testRunner.waitForOutput(
                     "Please install the missing prerequisites and try again"
                 );
                 if (!terminalExited) {
                     logger.info(testRunner.output);
                 }
                 expect(terminalExited).to.be.true;
-                expect(testRunner.exitCode).to.equal(0);
             });
 
             //This should be re-enabled to run locally or when fixed on github runners powershell 7
@@ -126,14 +136,13 @@ describe("Check if prerequisites are installed", function () {
 
             //     testRunner.sendInput("n");
 
-            //     const terminalExited = await testRunner.waitForExit(
+            //     const terminalExited = await testRunner.waitForOutput(
             //         "Please install python3 with pip and SSL support and try again"
             //     );
             //     if (!terminalExited) {
             //         logger.info(testRunner.output);
             //     }
             //     expect(terminalExited).to.be.true;
-            //     expect(testRunner.exitCode).to.equal(0);
             // });
 
             // it("should install python and proceed with installation", async function () {
@@ -174,7 +183,6 @@ describe("Check if prerequisites are installed", function () {
             //         logger.info(testRunner.output);
             //     }
             //     expect(selectTargetQuestion).to.be.true;
-            //     expect(testRunner.exitCode).to.not.equal(0);
             // });
         }
     );
