@@ -126,6 +126,7 @@ export function runInstallWizardTests(pathToEim) {
                 logger.info(testRunner.output);
             }
             expect(installationSuccessful).to.be.true;
+            logger.info("installation successful");
         });
     });
 }

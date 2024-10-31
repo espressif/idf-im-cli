@@ -81,7 +81,7 @@ export class InteractiveCLITestRunner {
     }
 
     sendInput(input) {
-        logger.debug(`Class - Sending ${input} to terminal`);
+        logger.info(`Sending ${input} to terminal`);
         if (this.process && !this.exited) {
             try {
                 this.process.write(input);

@@ -112,6 +112,7 @@ export function runPostInstallTest(
             expect(testRunner.output).to.include(
                 `Successfully created ${validTarget} image`
             );
+            logger.info("Build Passed");
         });
     });
 }
