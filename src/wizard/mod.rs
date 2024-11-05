@@ -1,7 +1,7 @@
 use dialoguer::FolderSelect;
 use idf_im_lib::idf_tools::ToolsFile;
 use idf_im_lib::settings::Settings;
-use idf_im_lib::{DownloadProgress, ProgressMessage};
+use idf_im_lib::{ensure_path, DownloadProgress, ProgressMessage};
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use log::{debug, error, info, warn};
 use rust_i18n::t;
@@ -559,6 +559,27 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         )
     }
     save_config_if_desired(&config)?;
+    let ide_conf_path_tmp = PathBuf::from(
+        &config.esp_idf_json_path.clone().unwrap_or(
+            dirs::home_dir()
+                .unwrap()
+                .join(".esp_installation_manager")
+                .to_str()
+                .unwrap()
+                .to_string(),
+        ),
+    );
+    match ensure_path(ide_conf_path_tmp.to_str().unwrap()) {
+        Ok(_) => (),
+        Err(err) => {
+            error!("Failed to create IDE configuration directory: {}", err);
+            return Err(err.to_string());
+        }
+    }
+    let ide_conf_path = ide_conf_path_tmp.join("esp_ide.json");
+    println!("^^^^^^^^^ {}", &ide_conf_path.to_str().unwrap());
+    config.save_esp_ide_json(ide_conf_path.to_str().unwrap())?;
+
     match std::env::consts::OS {
         "windows" => {
             println!("{}", t!("wizard.windows.finish_steps.line_1"));

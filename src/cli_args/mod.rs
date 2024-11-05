@@ -37,6 +37,13 @@ pub struct Cli {
         help = "Base Path to which all the files and folder will be installed"
     )]
     path: Option<String>,
+
+    #[arg(
+        long,
+        help = "Absolute path to save esp_idf.json file. Default is $HOME/.esp_installation_manager/esp_idf.json"
+    )]
+    esp_idf_json_path: Option<String>,
+
     #[arg(short, long, value_name = "FILE")]
     pub config: Option<PathBuf>,
 
@@ -117,6 +124,10 @@ impl IntoIterator for Cli {
     fn into_iter(self) -> Self::IntoIter {
         vec![
             ("path".to_string(), self.path.map(Into::into)),
+            (
+                "esp_idf_json_path".to_string(),
+                self.esp_idf_json_path.map(Into::into),
+            ),
             (
                 "config".to_string(),
                 self.config.map(|p| p.to_str().unwrap().into()),
