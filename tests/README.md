@@ -5,7 +5,7 @@
 The EMI application should have a test structure that would allow validation or customer use cases on the final artifacts. At an initial stage
 the tests will be executed manually and using an structure that will allow evolution to be triggered by github actions using local or remote windows and linux runners.
 
-All tests are developed in Node.js using Chain and Mocha as test libraries in combination with Node-PTY for teminal emulation. It is required to install node on the test runner machine.
+All tests are developed in Node.js using Chain and Mocha as test libraries in combination with Node-PTY for terminal emulation. It is required to install node on the test runner machine.
 
 ## Environment Setup
 
@@ -45,8 +45,7 @@ Start a new terminal (to load nvm)
 Clone the test trunk from the public repository:
 `git clone -b autotest https://github.com/espressif/idf-im-cli.git`
 
-At his point test for prerequisits can be run, the remaining tests requires the pre-requisits to be installed.
-The pre-requisites tests have been commented out of the test scripts.
+At his point test for prerequisits can be run, the remaining tests requires the pre-requisites to be installed.
 
 `sudo apt install git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-dev python3 python3-venv python3-pip`
 
