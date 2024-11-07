@@ -1677,7 +1677,7 @@ dependencies = [
 [[package]]
 name = "idf-im-lib"
 version = "0.1.5"
-source = "git+https://github.com/espressif/idf-im-lib.git?branch=windows-profile-fix#695c2f5596ab2b07816ff530a48739c625577327"
+source = "git+https://github.com/espressif/idf-im-lib.git?rev=9401b5fcebda4b7010d514fc010953ce29f9b732#9401b5fcebda4b7010d514fc010953ce29f9b732"
 dependencies = [
  "colored",
  "config",
