@@ -559,16 +559,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         )
     }
     save_config_if_desired(&config)?;
-    let ide_conf_path_tmp = PathBuf::from(
-        &config.esp_idf_json_path.clone().unwrap_or(
-            dirs::home_dir()
-                .unwrap()
-                .join(".esp_installation_manager")
-                .to_str()
-                .unwrap()
-                .to_string(),
-        ),
-    );
+    let ide_conf_path_tmp = PathBuf::from(&config.esp_idf_json_path.clone().unwrap_or_default());
     match ensure_path(ide_conf_path_tmp.to_str().unwrap()) {
         Ok(_) => (),
         Err(err) => {
@@ -577,7 +568,6 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         }
     }
     let ide_conf_path = ide_conf_path_tmp.join("esp_ide.json");
-    println!("^^^^^^^^^ {}", &ide_conf_path.to_str().unwrap());
     config.save_esp_ide_json(ide_conf_path.to_str().unwrap())?;
 
     match std::env::consts::OS {
