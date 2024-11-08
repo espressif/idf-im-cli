@@ -9,8 +9,8 @@
         "winston": "^3.15.0"
     },
     "scripts": {
-        "pre-test": "mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=./results-pre-test.xml script/prerequisites.test.js",
-        "default-test": "mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=./results-default-test.xml runs/defaultInstall.test.js",
-        "variation1-test": "mocha --exit --reporter mocha-junit-reporter --reporter-options mochaFile=./results-variation1-test.xml runs/variation1.test.js"
+        "pre-test": "mocha --exit --bail --reporter mocha-junit-reporter --reporter-options mochaFile=./results-pre-test.xml script/prerequisites.test.js",
+        "default-test": "mocha --exit --bail --reporter mocha-junit-reporter --reporter-options mochaFile=./results-default-test.xml runs/defaultInstall.test.js",
+        "variation1-test": "mocha --exit --bail --reporter mocha-junit-reporter --reporter-options mochaFile=./results-variation1-test.xml runs/variation1.test.js"
     }
 }

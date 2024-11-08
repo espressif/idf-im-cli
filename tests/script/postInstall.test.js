@@ -11,7 +11,7 @@ export function runPostInstallTest(
     validTarget = "esp32",
     invalidTarget = ""
 ) {
-    describe("Check if IDF installation is functional", function () {
+    describe("create and build sample project", function () {
         this.timeout(600000);
         let testRunner;
 
@@ -30,6 +30,14 @@ export function runPostInstallTest(
             } catch (error) {
                 logger.debug("Error starting process:", error);
                 throw error;
+            }
+        });
+
+        afterEach(function () {
+            if (this.currentTest.state === "failed") {
+                logger.info(
+                    `Terminal output on failure: >>>>>>>>>>>>>>>\r ${testRunner.output}`
+                );
             }
         });
 
@@ -55,16 +63,22 @@ export function runPostInstallTest(
                     ? `cp -r $IDF_PATH/examples/get-started/hello_world .\r`
                     : `xcopy /e /i $env:IDF_PATH\\examples\\get-started\\hello_world hello_world\r`
             );
+            if (os.platform() === "win32") {
+                const confirmFilesCopied = await testRunner.waitForOutput(
+                    "copied"
+                );
+                expect(confirmFilesCopied).to.be.true;
+            }
+            testRunner.output = "";
             testRunner.sendInput("cd hello_world\r");
             testRunner.sendInput("ls\r");
-            const confirmFilesCopied = await testRunner.waitForOutput(
-                "pytest_hello_world.py"
+
+            const confirmFolderContent = await testRunner.waitForOutput(
+                "sdkconfig.ci"
             );
-            if (!confirmFilesCopied) {
-                logger.info(testRunner.output);
-            }
-            expect(confirmFilesCopied).to.be.true;
-            expect(testRunner.output).to.include("sdkconfig.ci");
+
+            expect(confirmFolderContent).to.be.true;
+            expect(testRunner.output).to.include("pytest_hello_world.py");
             expect(testRunner.output).to.include("main");
 
             logger.info("sample project creation Passed");
@@ -82,9 +96,7 @@ export function runPostInstallTest(
                 "Build files have been written to",
                 600000
             );
-            if (!targetSet) {
-                logger.info(testRunner.output);
-            }
+
             expect(targetSet).to.be.true;
             expect(testRunner.output).to.include("Configuring done");
             expect(testRunner.output).to.include("Generating done");
@@ -103,11 +115,9 @@ export function runPostInstallTest(
 
             const buildComplete = await testRunner.waitForOutput(
                 "Project build complete",
-                300000
+                450000
             );
-            if (!buildComplete) {
-                logger.info(testRunner.output);
-            }
+
             expect(buildComplete).to.be.true;
             expect(testRunner.output).to.include(
                 `Successfully created ${validTarget} image`

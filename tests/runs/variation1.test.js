@@ -41,10 +41,9 @@ const pathToIDFScript =
               `Microsoft.PowerShell_profile.ps1`
           );
 
-describe("Installation Manager Tests - Installation using custom settings", function () {
+describe("Installation using custom settings", function () {
     this.timeout(2400000);
 
-    // Run all test suites
     runInstallCustom(
         pathToEim,
         installPath,
@@ -52,6 +51,7 @@ describe("Installation Manager Tests - Installation using custom settings", func
         idfVersionList.join(","),
         recursiveSubmodules
     );
+
     runPostInstallTest(
         pathToIDFScript,
         pathToProjectFolder,
@@ -59,3 +59,5 @@ describe("Installation Manager Tests - Installation using custom settings", func
         "esp32c6"
     );
 });
+
+logger.info("Completed Variation 1 Installation test");

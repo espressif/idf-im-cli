@@ -20,7 +20,16 @@ export function runInstallWizardTests(pathToEim) {
             }
         });
 
+        afterEach(function () {
+            if (this.currentTest.state === "failed") {
+                logger.info(
+                    `Terminal output on failure: >>>>>>>>>>>>>>>\r ${testRunner.output}`
+                );
+            }
+        });
+
         after(async function () {
+            logger.info("Installation with install Wizard completed");
             this.timeout(10000);
             if (testRunner) {
                 await testRunner.stop();
@@ -39,9 +48,6 @@ export function runInstallWizardTests(pathToEim) {
             const selectTargetQuestion = await testRunner.waitForOutput(
                 "Please select all of the target platforms"
             );
-            if (!selectTargetQuestion) {
-                logger.info(testRunner.output);
-            }
             expect(selectTargetQuestion).to.be.true;
             expect(testRunner.output).to.include("all");
 
@@ -52,9 +58,6 @@ export function runInstallWizardTests(pathToEim) {
             const selectIDFVersion = await testRunner.waitForOutput(
                 "Please select the desired ESP-IDF version"
             );
-            if (!selectIDFVersion) {
-                logger.info(testRunner.output);
-            }
             expect(selectIDFVersion).to.be.true;
             expect(testRunner.output).to.include("v5.3.1");
 
@@ -65,9 +68,6 @@ export function runInstallWizardTests(pathToEim) {
             const selectIDFMirror = await testRunner.waitForOutput(
                 "Select the source from which to download esp-idf"
             );
-            if (!selectIDFMirror) {
-                logger.info(testRunner.output);
-            }
             expect(selectIDFMirror).to.be.true;
             expect(testRunner.output).to.include("https://github.com");
 
@@ -78,9 +78,6 @@ export function runInstallWizardTests(pathToEim) {
             const selectToolsMirror = await testRunner.waitForOutput(
                 "Select a source from which to download tools"
             );
-            if (!selectToolsMirror) {
-                logger.info(testRunner.output);
-            }
             expect(selectToolsMirror).to.be.true;
             expect(testRunner.output).to.include("https://github.com");
 
@@ -91,9 +88,6 @@ export function runInstallWizardTests(pathToEim) {
             const selectInstallPath = await testRunner.waitForOutput(
                 "Please select the ESP-IDF installation location"
             );
-            if (!selectInstallPath) {
-                logger.info(testRunner.output);
-            }
             expect(selectInstallPath).to.be.true;
             expect(testRunner.output).to.include("esp");
 
@@ -105,9 +99,6 @@ export function runInstallWizardTests(pathToEim) {
                 "Do you want to save the installer configuration",
                 1200000
             );
-            if (!installationCompleted) {
-                logger.info(testRunner.output);
-            }
             expect(installationCompleted).to.be.true;
             expect(testRunner.output).to.not.include("error");
             expect(testRunner.output).to.include(
@@ -122,9 +113,6 @@ export function runInstallWizardTests(pathToEim) {
             const installationSuccessful = await testRunner.waitForOutput(
                 "Successfully installed IDF"
             );
-            if (!installationSuccessful) {
-                logger.info(testRunner.output);
-            }
             expect(installationSuccessful).to.be.true;
             logger.info("installation successful");
         });

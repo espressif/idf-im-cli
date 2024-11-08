@@ -34,7 +34,7 @@ export class InteractiveCLITestRunner {
 
     start(command, fullArgs = []) {
         return new Promise((resolve, reject) => {
-            logger.debug("Starting process...");
+            logger.debug("Starting terminal emulator process...");
             this.process = pty.spawn(command, fullArgs, {
                 name: "eim-terminal",
                 cols: 80,
@@ -81,7 +81,7 @@ export class InteractiveCLITestRunner {
     }
 
     sendInput(input) {
-        logger.info(`Sending ${input} to terminal`);
+        logger.debug(`Sending ${input.replace(/\r$/, "")} to terminal`);
         if (this.process && !this.exited) {
             try {
                 this.process.write(input);
