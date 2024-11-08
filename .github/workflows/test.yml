@@ -22,6 +22,8 @@ jobs:
                       package_name: linux-x64
                     - os: windows-latest
                       package_name: windows-x64
+                    - os: macos-latest
+                      package_name: macos-aarch64
 
         steps:
             - name: Checkout repository
@@ -56,23 +58,26 @@ jobs:
             - name: Run prerequisites test script (non-Windows)
               if: runner.os != 'Windows'
               run: |
-                  export EIM_FILE_PATH="../test-bin/eim"
-                  export EIM_VERSION="idf-im-cli 0.1.4"
                   export LOG_TO_FILE="true"
-                  cd tests
-                  npm ci
-                  npm run pre-test
+                  chmod +x ./tests/run_pre_test.sh
+                  . ./tests/run_pre_test.sh "../test-bin/eim" "idf-im-cli 0.1.4"
 
             - name: Install dependencies (Ubuntu)
               if: runner.os == 'Linux'
               run: |
                   sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
 
+            - name: Install dependencies (MacOS)
+              if: runner.os == 'macOS'
+              run: |
+                  brew install cmake ninja dfu-util
+
             - name: Run IDF installation and post install test script (non-Windows)
               if: runner.os != 'Windows'
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_test.sh
+                  . ./tests/run_test.sh "../test-bin/eim" "idf-im-cli 0.1.4"
                   . ./tests/run_test.sh "../test-bin/eim" "idf-im-cli 0.1.4"
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -93,12 +98,8 @@ jobs:
             - name: Run prerequisites test script (Windows)
               if: runner.os == 'Windows'
               run: |
-                  $env:EIM_FILE_PATH="..\test-bin\eim.exe"
-                  $env:EIM_VERSION="idf-im-cli 0.1.4"
                   $env:LOG_TO_FILE="true"
-                  Set-Location -Path "./tests"
-                  Expand-Archive node_modules.zip
-                  npm run pre-test
+                  .\tests\run_pre_test.ps1 "..\test-bin\eim.exe" "idf-im-cli 0.1.4"
 
             - name: Install dependencies (Windows)
               if: runner.os == 'windows'
@@ -110,6 +111,7 @@ jobs:
               run: |
                   $env:LOG_TO_FILE="true"
                   .\tests\run_test.ps1 "..\test-bin\eim.exe" "idf-im-cli 0.1.4"
+                  .\tests\run_test.ps1 "..\test-bin\eim.exe" "idf-im-cli 0.1.4"
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -117,7 +119,7 @@ jobs:
               uses: actions/upload-artifact@v4
               if: always()
               with:
-                  name: test-results-${{ matrix.os }}.zip
+                  name: test-results-${{ matrix.package_name }}.zip
                   path: |
                       ./tests/results-pre-test.xml
                       ./tests/results-default-test.xml

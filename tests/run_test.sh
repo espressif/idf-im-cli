@@ -7,9 +7,10 @@ export EIM_VERSION="$2"
 cd tests
 
 # install node modules
-# Node is being installed int eh folder by the CI, run this line if running it locally
+# The zip file is currently being expanded in the pre-test, if it was not executed before please run this line locally
 # npm ci
 
 # run tests
+set +e
 npm run default-test
 npm run variation1-test

@@ -24,7 +24,7 @@ let eimVersion;
 if (process.env.EIM_FILE_PATH) {
     pathToEim = process.env.EIM_FILE_PATH;
 } else {
-    pathToEim = path.join(os.homedir(), "espressif/eim");
+    pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
 if (process.env.EIM_VERSION) {

@@ -21,7 +21,7 @@ let pathToEim;
 if (process.env.EIM_FILE_PATH) {
     pathToEim = process.env.EIM_FILE_PATH;
 } else {
-    pathToEim = path.join(os.homedir(), "espressif/eim");
+    pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
 logger.debug(`Starting custom installation using EIM on ${pathToEim}`);
