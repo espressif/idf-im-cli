@@ -560,6 +560,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     }
     save_config_if_desired(&config)?;
     let ide_conf_path_tmp = PathBuf::from(&config.esp_idf_json_path.clone().unwrap_or_default());
+    debug!("IDE configuration path: {}", ide_conf_path_tmp.display());
     match ensure_path(ide_conf_path_tmp.to_str().unwrap()) {
         Ok(_) => (),
         Err(err) => {
