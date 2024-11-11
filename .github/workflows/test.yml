@@ -33,10 +33,17 @@ jobs:
 
             - name: Get CLI application version number
               id: get-latest-tag
-              uses: actions-ecosystem/action-get-latest-tag@v1
+              run: |
+                  git fetch --tags
+                  if [[ "$RUNNER_OS" == "Windows" ]]; then
+                    $LATEST_TAG = git tag --sort=-creatordate | Select-Object -First 1
+                  else
+                    LATEST_TAG=$(git tag --sort=-creatordate | head -n 1)
+                  fi
+                  echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
             - name: Using the tag number
-              run: echo "Latest tag is ${{ steps.get-latest-tag.outputs.tag }}"
+              run: echo "Latest tag is ${{ env.LATEST_TAG }}"
 
     #         - name: Set up Node.js
     #           uses: actions/setup-node@v4
