@@ -194,17 +194,26 @@ fn add_to_shell_rc(content: &str) -> Result<(), String> {
 }
 
 async fn select_targets_and_versions(mut config: Settings) -> Result<Settings, String> {
-    if config.target.is_none() {
+    if (config.wizard_all_questions.unwrap_or_default()
+        || config.target.is_none()
+        || config.is_default("target"))
+        && config.non_interactive == Some(false)
+    {
         config.target = Some(select_target().await?);
     }
-    let target = config.target.clone().unwrap();
+    let target = config.target.clone().unwrap_or_default();
     debug!("Selected target: {:?}", target);
 
-    if config.idf_versions.is_none() {
-        config.idf_versions = Some(select_idf_version(&target[0]).await?);
+    // here the non-interactive flag is passed to the inner function
+    if config.wizard_all_questions.unwrap_or_default()
+        || config.idf_versions.is_none()
+        || config.is_default("idf_versions")
+    {
+        config.idf_versions =
+            Some(select_idf_version(&target[0], config.non_interactive.unwrap_or_default()).await?);
         // TODO: handle multiple targets
     }
-    let idf_versions = config.idf_versions.clone().unwrap();
+    let idf_versions = config.idf_versions.clone().unwrap_or_default();
     debug!("Selected idf version: {:?}", idf_versions);
 
     Ok(config)
@@ -215,6 +224,7 @@ pub struct DownloadConfig {
     pub idf_version: String,
     pub idf_mirror: Option<String>,
     pub recurse_submodules: Option<bool>,
+    pub non_interactive: Option<bool>,
 }
 
 pub enum DownloadError {
@@ -261,8 +271,6 @@ pub fn download_idf(config: DownloadConfig) -> Result<(), DownloadError> {
         }
     });
 
-    // let progress_bar = create_progress_bar();
-
     let tag = if config.idf_version == "master" {
         None
     } else {
@@ -293,7 +301,13 @@ pub fn download_idf(config: DownloadConfig) -> Result<(), DownloadError> {
             handle.join().unwrap();
             Ok(())
         }
-        Err(err) => handle_download_error(err),
+        Err(err) => {
+            if config.non_interactive == Some(true) {
+                Ok(())
+            } else {
+                handle_download_error(err)
+            }
+        }
     }
 }
 
@@ -432,18 +446,11 @@ fn get_and_validate_idf_tools_path(
 pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     debug!("Config entering wizard: {:?}", config);
 
-    if let Some(non_interactive) = config.non_interactive {
-        if non_interactive {
-            panic!("Non interactive instalation not yet supported.");
-            // panic!("Running Wizard in non-interactive mode is not supported.");
-        }
-    }
-
     // Check prerequisites
-    check_and_install_prerequisites()?;
+    check_and_install_prerequisites(config.non_interactive.unwrap_or_default())?;
 
     // Python sanity check
-    check_and_install_python()?;
+    check_and_install_python(config.non_interactive.unwrap_or_default())?;
 
     // select target & idf version
     config = select_targets_and_versions(config).await?;
@@ -470,6 +477,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             idf_version: idf_version.to_string(),
             idf_mirror: config.idf_mirror.clone(),
             recurse_submodules: config.recurse_submodules,
+            non_interactive: config.non_interactive,
         };
 
         match download_idf(download_config) {
@@ -557,7 +565,9 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             export_paths,
         )
     }
-    save_config_if_desired(&config)?;
+    if !config.non_interactive.unwrap_or_default() {
+        save_config_if_desired(&config)?;
+    }
     let ide_conf_path_tmp = PathBuf::from(&config.esp_idf_json_path.clone().unwrap_or_default());
     debug!("IDE configuration path: {}", ide_conf_path_tmp.display());
     match ensure_path(ide_conf_path_tmp.to_str().unwrap()) {
