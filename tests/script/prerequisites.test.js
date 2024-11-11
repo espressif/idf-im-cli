@@ -29,13 +29,13 @@ describe("Check if prerequisites are installed", function () {
     let testRunner;
 
     beforeEach(async function () {
-        this.timeout(5000); // Increase timeout for setup
+        this.timeout(5000);
         testRunner = new InteractiveCLITestRunner();
         try {
             await testRunner.runTerminal();
             testRunner.sendInput(`${pathToEim}\r`);
         } catch (error) {
-            logger.debug("Error starting process:", error);
+            logger.debug(`Error starting process: ${error}`);
             throw error;
         }
     });
@@ -107,73 +107,6 @@ describe("Check if prerequisites are installed", function () {
                 );
                 expect(terminalExited).to.be.true;
             });
-
-            //This should be re-enabled to run locally or when fixed on github runners powershell 7
-
-            // it("should install prerequisites and offer to install python and exit upon negative answer", async function () {
-            //     this.timeout(240000);
-            //     const promptRequisites = await testRunner.waitForOutput(
-            //         "Do you want to install prerequisites"
-            //     );
-
-            //     expect(promptRequisites).to.be.true;
-
-            //     logger.info("Question to install prerequisites passed");
-            //     testRunner.output = "";
-            //     testRunner.sendInput("y");
-
-            //     const promptPython = await testRunner.waitForOutput(
-            //         "Do you want to install Python",
-            //         240000
-            //     );
-
-            //     expect(promptPython).to.be.true;
-            //     expect(testRunner.output).to.include(
-            //         "All prerequisites are satisfied"
-            //     );
-
-            //     testRunner.sendInput("n");
-
-            //     const terminalExited = await testRunner.waitForOutput(
-            //         "Please install python3 with pip and SSL support and try again"
-            //     );
-
-            //     expect(terminalExited).to.be.true;
-            // });
-
-            // it("should install python and proceed with installation", async function () {
-            //     this.timeout(240000);
-            //     const promptRequisites = await testRunner.waitForOutput(
-            //         "Do you want to install prerequisites"
-            //     );
-
-            //     expect(promptRequisites).to.be.true;
-
-            //     logger.info("Question to install prerequisites passed");
-            //     testRunner.output = "";
-            //     testRunner.sendInput("y");
-
-            //     const promptPython = await testRunner.waitForOutput(
-            //         "Do you want to install Python",
-            //         240000
-            //     );
-
-            //     expect(promptPython).to.be.true;
-            //     expect(testRunner.output).to.include(
-            //         "All prerequisites are satisfied"
-            //     );
-
-            //     logger.info("Question to install python passed");
-            //     testRunner.output = "";
-            //     testRunner.sendInput("y");
-
-            //     const selectTargetQuestion = await testRunner.waitForOutput(
-            //         "Please select all of the target platforms",
-            //         240000
-            //     );
-
-            //     expect(selectTargetQuestion).to.be.true;
-            // });
         }
     );
 });

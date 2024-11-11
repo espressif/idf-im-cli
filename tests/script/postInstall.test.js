@@ -28,7 +28,7 @@ export function runPostInstallTest(
             try {
                 await testRunner.runIDFTerminal(pathToIDFScript);
             } catch (error) {
-                logger.debug("Error starting process:", error);
+                logger.debug(`Error starting process: ${error}`);
                 throw error;
             }
         });

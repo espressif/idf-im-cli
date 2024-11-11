@@ -19,7 +19,7 @@ export function runInstallCustom(
             );
             logger.debug(`Installing IDF for targets ${targetList}`);
             logger.debug(`Recurse submodules active? : ${recursiveSubmodules}`);
-            this.timeout(5000); // Increase timeout for setup
+            this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
         });
 

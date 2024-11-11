@@ -9,13 +9,13 @@ export function runInstallWizardTests(pathToEim) {
 
         before(async function () {
             logger.debug(`Starting installation wizard with default options`);
-            this.timeout(5000); // Increase timeout for setup
+            this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
             try {
                 await testRunner.runTerminal();
                 testRunner.sendInput(`${pathToEim}\r`);
             } catch (error) {
-                logger.debug("Error starting process:", error);
+                logger.debug(`Error starting process: ${error}`);
                 throw error;
             }
         });
@@ -102,9 +102,6 @@ export function runInstallWizardTests(pathToEim) {
             );
             expect(installationCompleted).to.be.true;
             expect(testRunner.output).to.not.include("error");
-            // expect(testRunner.output).to.include(
-            //     "Finished fetching submodules"
-            // );
             expect(testRunner.output).to.include("Downloading tools");
 
             logger.info("Installation completed");
