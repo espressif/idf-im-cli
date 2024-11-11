@@ -12,6 +12,11 @@ export function runArgumentsTests(pathToEim, eimVersion) {
         });
 
         afterEach(async function () {
+            if (this.currentTest.state === "failed") {
+                logger.info(
+                    `Terminal output on failure: >>>>>>>>>>>>>>>\r ${testRunner.output}`
+                );
+            }
             logger.debug(
                 `Exited: ${testRunner.exited} with code ${testRunner.exitCode}`
             );
@@ -25,9 +30,6 @@ export function runArgumentsTests(pathToEim, eimVersion) {
             testRunner.runTerminal();
             testRunner.sendInput(`${pathToEim} -V\r`);
             const meetVersion = await testRunner.waitForOutput(eimVersion);
-            if (!meetVersion) {
-                logger.info(testRunner.output);
-            }
             expect(meetVersion).to.be.true;
         });
 
@@ -35,9 +37,6 @@ export function runArgumentsTests(pathToEim, eimVersion) {
             testRunner.runTerminal();
             testRunner.sendInput(`${pathToEim} --help\r`);
             const printHelp = await testRunner.waitForOutput("Options:");
-            if (!printHelp) {
-                logger.info(testRunner.output);
-            }
             expect(printHelp).to.be.true;
             expect(testRunner.output).to.include("Usage:");
         });
@@ -48,9 +47,6 @@ export function runArgumentsTests(pathToEim, eimVersion) {
             const wrongArgument = await testRunner.waitForOutput(
                 "unexpected argument"
             );
-            if (!wrongArgument) {
-                logger.info(testRunner.output);
-            }
             expect(wrongArgument).to.be.true;
         });
     });

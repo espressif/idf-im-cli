@@ -34,7 +34,7 @@ export class InteractiveCLITestRunner {
 
     start(command, fullArgs = []) {
         return new Promise((resolve, reject) => {
-            logger.debug("Starting process...");
+            logger.debug("Starting terminal emulator process...");
             this.process = pty.spawn(command, fullArgs, {
                 name: "eim-terminal",
                 cols: 80,
@@ -49,14 +49,14 @@ export class InteractiveCLITestRunner {
                     this.output += data;
                     logger.debug(data);
                 } catch (error) {
-                    logger.debug("Error in onData:", error);
+                    logger.debug(`Error receiving data: ${error}`);
                     this.error = error;
                     this.exited = true;
                     reject(error);
                 }
             });
             this.process.onExit(({ exitCode }) => {
-                logger.debug("Exiting with code:>>>", exitCode, "<<<");
+                logger.debug(`Exiting with code:>>>${exitCode}<<<`);
                 this.exited = true;
                 this.exitCode = exitCode;
                 if (!this.error) {
@@ -65,7 +65,7 @@ export class InteractiveCLITestRunner {
             });
 
             this.process.on("error", (error) => {
-                logger.debug("Process error:>>>>", error, "<<<<<<");
+                logger.debug(`Process error:>>>>${error}<<<<<<`);
                 this.error = error;
                 this.exited = true;
                 reject(error);
@@ -81,17 +81,17 @@ export class InteractiveCLITestRunner {
     }
 
     sendInput(input) {
-        logger.info(`Sending ${input} to terminal`);
+        logger.debug(`Sending ${input.replace(/\r$/, "")} to terminal`);
         if (this.process && !this.exited) {
             try {
                 this.process.write(input);
             } catch (error) {
-                logger.debug("Error sending input:>>>>", error, "<<<<<<<<<<<");
+                logger.debug(`Error sending input:>>>>${error}<<<<<<<<<<<`);
                 this.error = error;
                 this.exited = true;
             }
         } else {
-            logger.debug("Attempted to send input, but process is not running");
+            logger.info("Attempted to send input, but process is not running");
         }
     }
 
@@ -129,7 +129,7 @@ export class InteractiveCLITestRunner {
 
                 // Set up a timeout
                 const timer = setTimeout(() => {
-                    logger.debug(
+                    logger.info(
                         "Process didn't exit gracefully, forcing termination"
                     );
                     this.process.kill();

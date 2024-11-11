@@ -43,11 +43,12 @@ const pathToProjectFolder =
         ? path.join(os.homedir(), ".espressif/project")
         : "C:\\esp\\project";
 
-describe("Installation Manager Tests - Installation using default settings", function () {
+describe("Installation using default settings", function () {
     this.timeout(2400000);
 
-    // Run all test suites
     runArgumentsTests(pathToEim, eimVersion);
+
     runInstallWizardTests(pathToEim);
+
     runPostInstallTest(pathToIDFScript, pathToProjectFolder);
 });

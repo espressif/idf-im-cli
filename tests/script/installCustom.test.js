@@ -19,11 +19,20 @@ export function runInstallCustom(
             );
             logger.debug(`Installing IDF for targets ${targetList}`);
             logger.debug(`Recurse submodules active? : ${recursiveSubmodules}`);
-            this.timeout(5000); // Increase timeout for setup
+            this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
         });
 
+        afterEach(function () {
+            if (this.currentTest.state === "failed") {
+                logger.info(
+                    `Terminal output on failure: >>>>>>>>>>>>>>>\r ${testRunner.output}`
+                );
+            }
+        });
+
         after(async function () {
+            logger.info("Custom installation routine completed");
             this.timeout(10000);
             if (testRunner) {
                 await testRunner.stop();
@@ -39,6 +48,7 @@ export function runInstallCustom(
 
         it("Should install IDF using specified parameters", async function () {
             testRunner.runTerminal();
+            logger.info("Sent command line for IDF installation");
             testRunner.sendInput(
                 `${pathToEim} -p ${installPath} -t ${targetList} -i ${idfVersionList} --tool-download-folder-name dist --tool-install-folder-name tools --idf-tools-path ./tools/idf_tools.py --tools-json-file tools/tools.json -m https://github.com --idf-mirror https://github.com -r ${recursiveSubmodules}\r`
             );
@@ -46,11 +56,11 @@ export function runInstallCustom(
                 "Do you want to save the installer configuration",
                 1200000
             );
-            if (!installationCompleted) {
-                logger.info(testRunner.output);
-            }
             expect(installationCompleted).to.be.true;
             expect(testRunner.output).to.not.include("error");
+            expect(testRunner.output).to.include(
+                "Finished fetching submodules"
+            );
 
             logger.info("Installation completed");
             testRunner.output = "";
@@ -59,9 +69,7 @@ export function runInstallCustom(
             const installationSuccessful = await testRunner.waitForOutput(
                 "Successfully installed IDF"
             );
-            if (!installationSuccessful) {
-                logger.info(testRunner.output);
-            }
+
             expect(installationSuccessful).to.be.true;
             expect(testRunner.output).to.include(
                 "Now you can start using IDF tools"

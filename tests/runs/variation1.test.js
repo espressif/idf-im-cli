@@ -29,7 +29,7 @@ logger.debug(`Starting custom installation using EIM on ${pathToEim}`);
 const installPath = path.join(os.homedir(), ".espressif2");
 const targetList = ["esp32s2"];
 const idfVersionList = ["v5.2.3"];
-const recursiveSubmodules = false;
+const recursiveSubmodules = true;
 const pathToProjectFolder = path.join(os.homedir(), ".espressif2/project");
 
 const pathToIDFScript =
@@ -41,10 +41,9 @@ const pathToIDFScript =
               `Microsoft.PowerShell_profile.ps1`
           );
 
-describe("Installation Manager Tests - Installation using custom settings", function () {
+describe("Installation using custom settings", function () {
     this.timeout(2400000);
 
-    // Run all test suites
     runInstallCustom(
         pathToEim,
         installPath,
@@ -52,6 +51,7 @@ describe("Installation Manager Tests - Installation using custom settings", func
         idfVersionList.join(","),
         recursiveSubmodules
     );
+
     runPostInstallTest(
         pathToIDFScript,
         pathToProjectFolder,
