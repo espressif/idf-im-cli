@@ -15,15 +15,14 @@ export function runPostInstallTest(
         this.timeout(600000);
         let testRunner;
 
-        before(async function () {
+        beforeEach(async function () {
+            this.timeout(5000);
             logger.debug(
-                `Starting IDF post install test for idf script ${pathToIDFScript}, sample project copied at ${path.join(
+                `Starting IDF terminal using for idf script ${pathToIDFScript}, sample project copied at ${path.join(
                     os.homedir(),
                     pathToProjectFolder
                 )}`
             );
-
-            this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
             try {
                 await testRunner.runIDFTerminal(pathToIDFScript);
@@ -33,16 +32,13 @@ export function runPostInstallTest(
             }
         });
 
-        afterEach(function () {
+        afterEach(async function () {
+            this.timeout(10000);
             if (this.currentTest.state === "failed") {
                 logger.info(
                     `Terminal output on failure: >>>>>>>>>>>>>>>\r ${testRunner.output}`
                 );
             }
-        });
-
-        after(async function () {
-            this.timeout(10000);
             if (testRunner) {
                 await testRunner.stop();
             }
@@ -82,7 +78,6 @@ export function runPostInstallTest(
             expect(testRunner.output).to.include("main");
 
             logger.info("sample project creation Passed");
-            testRunner.output = "";
         });
 
         it("Should set the target", async function () {
@@ -90,6 +85,9 @@ export function runPostInstallTest(
              * This test attempts to set a target MCU for the project created in the previous test.
              */
             this.timeout(600000);
+            testRunner.output = "";
+            testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
+            testRunner.sendInput("cd hello_world\r");
             testRunner.sendInput(`idf.py set-target ${validTarget}\r`);
 
             const targetSet = await testRunner.waitForOutput(
@@ -111,6 +109,9 @@ export function runPostInstallTest(
              * The test is successful if the success message is printed in the terminal.
              */
             this.timeout(300000);
+            testRunner.output = "";
+            testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
+            testRunner.sendInput("cd hello_world\r");
             testRunner.sendInput("idf.py build\r");
 
             const buildComplete = await testRunner.waitForOutput(
