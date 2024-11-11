@@ -21,14 +21,14 @@ jobs:
         strategy:
             matrix:
                 include:
-                    - os: ubuntu-latest
-                      package_name: linux-x64
-                    - os: windows-latest
-                      package_name: windows-x64
+                    # - os: ubuntu-latest
+                    #   package_name: linux-x64
+                    # - os: windows-latest
+                    #   package_name: windows-x64
                     - os: macos-latest
                       package_name: macos-aarch64
-                    - os: macos-12
-                      package_name: macos-x64
+                    # - os: macos-12
+                    #   package_name: macos-x64
 
         steps:
             - name: Checkout repository
