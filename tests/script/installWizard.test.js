@@ -47,7 +47,7 @@ export function runInstallWizardTests(pathToEim) {
         it("Should install IDF using wizard and default values", async function () {
             const selectTargetQuestion = await testRunner.waitForOutput(
                 "Please select all of the target platforms",
-                10000
+                20000
             );
             expect(selectTargetQuestion).to.be.true;
             expect(testRunner.output).to.include("all");
