@@ -57,6 +57,9 @@ export function runInstallCustom(
             );
             expect(installationCompleted).to.be.true;
             expect(testRunner.output).to.not.include("error");
+            expect(testRunner.output).to.include(
+                "Finished fetching submodules"
+            );
 
             logger.info("Installation completed");
             testRunner.output = "";

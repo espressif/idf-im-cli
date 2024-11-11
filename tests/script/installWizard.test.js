@@ -101,9 +101,9 @@ export function runInstallWizardTests(pathToEim) {
             );
             expect(installationCompleted).to.be.true;
             expect(testRunner.output).to.not.include("error");
-            expect(testRunner.output).to.include(
-                "Finished fetching submodules"
-            );
+            // expect(testRunner.output).to.include(
+            //     "Finished fetching submodules"
+            // );
             expect(testRunner.output).to.include("Downloading tools");
 
             logger.info("Installation completed");

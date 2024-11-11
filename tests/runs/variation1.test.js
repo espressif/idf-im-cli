@@ -29,7 +29,7 @@ logger.debug(`Starting custom installation using EIM on ${pathToEim}`);
 const installPath = path.join(os.homedir(), ".espressif2");
 const targetList = ["esp32s2"];
 const idfVersionList = ["v5.2.3"];
-const recursiveSubmodules = false;
+const recursiveSubmodules = true;
 const pathToProjectFolder = path.join(os.homedir(), ".espressif2/project");
 
 const pathToIDFScript =
