@@ -31,19 +31,24 @@ jobs:
               with:
                   ref: ${{ inputs.ref }}
 
-            - name: Get CLI application version number
-              id: get-latest-tag
+            - name: Get CLI application version number (non-Windows)
+              if: runner.os != 'Windows'
               run: |
                   git fetch --tags
-                  if [[ "$RUNNER_OS" == "Windows" ]]; then
-                    $LATEST_TAG = git tag --sort=-creatordate | Select-Object -First 1
-                  else
-                    LATEST_TAG=$(git tag --sort=-creatordate | head -n 1)
-                  fi
-                  echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+                  LATEST_TAG=$(git tag --sort=-creatordate | head -n 1)
+                  STRIPPED_TAG=${LATEST_TAG#v}
+                  echo "CLI_TAG=$STRIPPED_TAG" >> $GITHUB_ENV
+
+            - name: Get CLI application version number (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  git fetch --tags
+                  $LATEST_TAG = (git tag --sort=-creatordate | Select-Object -First 1)
+                  $STRIPPED_TAG = $LATEST_TAG -replace '^v', ''
+                  echo "CLI_TAG=$STRIPPED_TAG" | Out-File -FilePath $env:GITHUB_ENV -Append
 
             - name: Using the tag number
-              run: echo "Latest tag is ${{ env.LATEST_TAG }}"
+              run: echo "Version should be 'idf-im-cli ${{ env.CLI_TAG }}'"
 
     #         - name: Set up Node.js
     #           uses: actions/setup-node@v4
