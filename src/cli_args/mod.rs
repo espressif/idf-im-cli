@@ -115,6 +115,19 @@ pub struct Cli {
         help = "Should the installer recurse into submodules of the ESP-IDF repository (default true) "
     )]
     pub recurse_submodules: Option<bool>,
+
+    #[arg(
+        short = 'a',
+        long,
+        help = "Should the installer attempt to install all missing prerequisites (default false). This flag only affects Windows platforms as we do not offer prerequisites for other platforms. "
+    )]
+    pub install_all_prerequisites: Option<bool>,
+
+    #[arg(
+        long,
+        help = "if set, the installer will as it's very last move save the configuration to the specified file path. This file can than be used to repeat the instalation with the same settings."
+    )]
+    pub config_file_save_path: Option<String>,
 }
 
 impl IntoIterator for Cli {
@@ -167,6 +180,14 @@ impl IntoIterator for Cli {
             (
                 "recurse_submodules".to_string(),
                 self.recurse_submodules.map(Into::into),
+            ),
+            (
+                "install_all_prerequisites".to_string(),
+                self.install_all_prerequisites.map(Into::into),
+            ),
+            (
+                "config_file_save_path".to_string(),
+                self.config_file_save_path.map(Into::into),
             ),
         ]
         .into_iter()

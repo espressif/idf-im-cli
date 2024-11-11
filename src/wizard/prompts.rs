@@ -48,7 +48,10 @@ fn check_prerequisites() -> Result<Vec<String>, String> {
         Err(err) => Err(err),
     }
 }
-pub fn check_and_install_prerequisites(non_interactive: bool) -> Result<(), String> {
+pub fn check_and_install_prerequisites(
+    non_interactive: bool,
+    install_all_prerequisites: bool,
+) -> Result<(), String> {
     let unsatisfied_prerequisites = if non_interactive {
         check_prerequisites()?
     } else {
@@ -62,8 +65,15 @@ pub fn check_and_install_prerequisites(non_interactive: bool) -> Result<(), Stri
                 l = unsatisfied_prerequisites.join(", ")
             )
         );
-        if std::env::consts::OS == "windows" && !non_interactive {
-            if generic_confirm("prerequisites.install.prompt").map_err(|e| e.to_string())? {
+        if std::env::consts::OS == "windows" {
+            let res = if !install_all_prerequisites && !non_interactive {
+                generic_confirm("prerequisites.install.prompt")
+            } else if install_all_prerequisites {
+                Ok(true)
+            } else {
+                Ok(false)
+            };
+            if res.map_err(|e| e.to_string())? {
                 system_dependencies::install_prerequisites(unsatisfied_prerequisites)
                     .map_err(|e| e.to_string())?;
 
@@ -111,7 +121,10 @@ fn python_sanity_check(python: Option<&str>) -> Result<(), String> {
         Err(t!("python.sanitycheck.fail").to_string())
     }
 }
-pub fn check_and_install_python(non_interactive: bool) -> Result<(), String> {
+pub fn check_and_install_python(
+    non_interactive: bool,
+    install_all_prerequisites: bool,
+) -> Result<(), String> {
     info!("{}", t!("python.sanitycheck.info"));
     let check_result = if non_interactive {
         python_sanity_check(None)
@@ -119,9 +132,17 @@ pub fn check_and_install_python(non_interactive: bool) -> Result<(), String> {
         run_with_spinner(|| python_sanity_check(None))
     };
     if let Err(err) = check_result {
-        if std::env::consts::OS == "windows" && !non_interactive {
+        if std::env::consts::OS == "windows" {
             info!("{}", t!("python.sanitycheck.fail"));
-            if generic_confirm("pythhon.install.prompt").map_err(|e| e.to_string())? {
+            let res = if !install_all_prerequisites && !non_interactive {
+                generic_confirm("pythhon.install.prompt")
+            } else if install_all_prerequisites {
+                Ok(true)
+            } else {
+                Ok(false)
+            };
+
+            if res.map_err(|e| e.to_string())? {
                 system_dependencies::install_prerequisites(vec!["python@3.11.5".to_string()])
                     .map_err(|e| e.to_string())?;
                 let scp = system_dependencies::get_scoop_path();
