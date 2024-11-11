@@ -56,7 +56,7 @@ export class InteractiveCLITestRunner {
                 }
             });
             this.process.onExit(({ exitCode }) => {
-                logger.debug("Exiting with code:>>>", exitCode, "<<<");
+                logger.info("Exiting with code:>>>", exitCode, "<<<");
                 this.exited = true;
                 this.exitCode = exitCode;
                 if (!this.error) {
@@ -65,7 +65,7 @@ export class InteractiveCLITestRunner {
             });
 
             this.process.on("error", (error) => {
-                logger.debug("Process error:>>>>", error, "<<<<<<");
+                logger.info("Process error:>>>>", error, "<<<<<<");
                 this.error = error;
                 this.exited = true;
                 reject(error);
@@ -91,7 +91,7 @@ export class InteractiveCLITestRunner {
                 this.exited = true;
             }
         } else {
-            logger.debug("Attempted to send input, but process is not running");
+            logger.info("Attempted to send input, but process is not running");
         }
     }
 
@@ -129,7 +129,7 @@ export class InteractiveCLITestRunner {
 
                 // Set up a timeout
                 const timer = setTimeout(() => {
-                    logger.debug(
+                    logger.info(
                         "Process didn't exit gracefully, forcing termination"
                     );
                     this.process.kill();

@@ -59,5 +59,3 @@ describe("Installation using custom settings", function () {
         "esp32c6"
     );
 });
-
-logger.info("Completed Variation 1 Installation test");

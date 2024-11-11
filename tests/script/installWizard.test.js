@@ -29,7 +29,7 @@ export function runInstallWizardTests(pathToEim) {
         });
 
         after(async function () {
-            logger.info("Installation with install Wizard completed");
+            logger.info("Install Wizard routine completed");
             this.timeout(10000);
             if (testRunner) {
                 await testRunner.stop();

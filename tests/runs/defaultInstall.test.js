@@ -52,5 +52,3 @@ describe("Installation using default settings", function () {
 
     runPostInstallTest(pathToIDFScript, pathToProjectFolder);
 });
-
-logger.info("Completed Default Installation test");

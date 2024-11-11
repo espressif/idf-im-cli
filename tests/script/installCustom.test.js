@@ -32,6 +32,7 @@ export function runInstallCustom(
         });
 
         after(async function () {
+            logger.info("Custom installation routine completed");
             this.timeout(10000);
             if (testRunner) {
                 await testRunner.stop();
