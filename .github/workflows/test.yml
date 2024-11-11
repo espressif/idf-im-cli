@@ -31,6 +31,18 @@ jobs:
               with:
                   ref: ${{ inputs.ref }}
 
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+
+            - name: Download artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: ./artifacts
+
+            # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
             - name: Get CLI application version number (non-Windows)
               if: runner.os != 'Windows'
               run: |
@@ -38,6 +50,44 @@ jobs:
                   LATEST_TAG=$(git tag --sort=-creatordate | head -n 1)
                   STRIPPED_TAG=${LATEST_TAG#v}
                   echo "CLI_TAG=$STRIPPED_TAG" >> $GITHUB_ENV
+
+            - name: Extract artifact (non-Windows)
+              if: runner.os != 'Windows'
+              run: |
+                  mkdir -p test-bin
+                  unzip ./artifacts/eim-${{ inputs.run_id }}-${{ matrix.package_name }}/eim.zip -d test-bin
+                  # unzip ./test-bin/eim.zip -d test-bin
+
+            - name: Set executable permissions (non-Windows)
+              if: runner.os != 'Windows'
+              run: |
+                  chmod +x ./test-bin/eim
+
+            - name: Run prerequisites test script (non-Windows)
+              if: runner.os != 'Windows'
+              run: |
+                  export LOG_TO_FILE="true"
+                  chmod +x ./tests/run_pre_test.sh
+                  . ./tests/run_pre_test.sh "../test-bin/eim" "idf-im-cli ${{ env.CLI_TAG }}"
+
+            - name: Install dependencies (Ubuntu)
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
+
+            - name: Install dependencies (MacOS)
+              if: runner.os == 'macOS'
+              run: |
+                  brew install cmake ninja dfu-util
+
+            - name: Run IDF installation and post install test script (non-Windows)
+              if: runner.os != 'Windows'
+              run: |
+                  export LOG_TO_FILE="true"
+                  chmod +x ./tests/run_test.sh
+                  . ./tests/run_test.sh "../test-bin/eim" "idf-im-cli ${{ env.CLI_TAG }}"
+
+            # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
             - name: Get CLI application version number (Windows)
               if: runner.os == 'Windows'
@@ -47,116 +97,63 @@ jobs:
                   $STRIPPED_TAG = $LATEST_TAG -replace '^v', ''
                   echo "CLI_TAG=$STRIPPED_TAG" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-            - name: Using the tag number
-              run: echo "Version should be 'idf-im-cli ${{ env.CLI_TAG }}'"
+            - name: Extract artifact (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  mkdir -p test-bin
+                  7z x ./artifacts/eim-${{ inputs.run_id }}-${{ matrix.package_name }}/eim.zip -otest-bin
+                  # 7z x ./test-bin/eim.zip -otest-bin
 
-    #         - name: Set up Node.js
-    #           uses: actions/setup-node@v4
-    #           with:
-    #               node-version: "20"
+            - name: Print powershell and windows version (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  $PSVersionTable
+                  [System.Environment]::OSVersion.Version
 
-    #         - name: Download artifacts
-    #           uses: actions/download-artifact@v4
-    #           with:
-    #               path: ./artifacts
+            - name: Run prerequisites test script (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  $env:LOG_TO_FILE="true"
+                  .\tests\run_pre_test.ps1 "..\test-bin\eim.exe" "idf-im-cli ${{ env.CLI_TAG }}"
 
-    #         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            - name: Install dependencies (Windows)
+              if: runner.os == 'windows'
+              run: |
+                  choco install ninja -y
 
-    #         - name: Extract artifact (non-Windows)
-    #           if: runner.os != 'Windows'
-    #           run: |
-    #               mkdir -p test-bin
-    #               unzip ./artifacts/eim-${{ inputs.run_id }}-${{ matrix.package_name }}/eim.zip -d test-bin
-    #               # unzip ./test-bin/eim.zip -d test-bin
+            - name: Run test script (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  $env:LOG_TO_FILE="true"
+                  .\tests\run_test.ps1 "..\test-bin\eim.exe" "idf-im-cli ${{ env.CLI_TAG }}"
 
-    #         - name: Set executable permissions (non-Windows)
-    #           if: runner.os != 'Windows'
-    #           run: |
-    #               chmod +x ./test-bin/eim
+            # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    #         - name: Run prerequisites test script (non-Windows)
-    #           if: runner.os != 'Windows'
-    #           run: |
-    #               export LOG_TO_FILE="true"
-    #               chmod +x ./tests/run_pre_test.sh
-    #               . ./tests/run_pre_test.sh "../test-bin/eim" "idf-im-cli 0.1.4"
+            - name: Upload test results
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: test-results-${{ matrix.package_name }}.zip
+                  path: |
+                      ./tests/results-pre-test.xml
+                      ./tests/results-default-test.xml
+                      ./tests/results-variation1-test.xml
+                      ./tests/test.log
 
-    #         - name: Install dependencies (Ubuntu)
-    #           if: runner.os == 'Linux'
-    #           run: |
-    #               sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
+    publish-test-results:
+        name: Automated Test Results
+        needs: test
+        runs-on: ubuntu-latest
+        if: always()
 
-    #         - name: Install dependencies (MacOS)
-    #           if: runner.os == 'macOS'
-    #           run: |
-    #               brew install cmake ninja dfu-util
+        steps:
+            - name: Download Artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: ./artifacts
 
-    #         - name: Run IDF installation and post install test script (non-Windows)
-    #           if: runner.os != 'Windows'
-    #           run: |
-    #               export LOG_TO_FILE="true"
-    #               chmod +x ./tests/run_test.sh
-    #               . ./tests/run_test.sh "../test-bin/eim" "idf-im-cli 0.1.4"
-
-    #         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    #         - name: Extract artifact (Windows)
-    #           if: runner.os == 'Windows'
-    #           run: |
-    #               mkdir -p test-bin
-    #               7z x ./artifacts/eim-${{ inputs.run_id }}-${{ matrix.package_name }}/eim.zip -otest-bin
-    #               # 7z x ./test-bin/eim.zip -otest-bin
-
-    #         - name: Print powershell and windows version (Windows)
-    #           if: runner.os == 'Windows'
-    #           run: |
-    #               $PSVersionTable
-    #               [System.Environment]::OSVersion.Version
-
-    #         - name: Run prerequisites test script (Windows)
-    #           if: runner.os == 'Windows'
-    #           run: |
-    #               $env:LOG_TO_FILE="true"
-    #               .\tests\run_pre_test.ps1 "..\test-bin\eim.exe" "idf-im-cli 0.1.4"
-
-    #         - name: Install dependencies (Windows)
-    #           if: runner.os == 'windows'
-    #           run: |
-    #               choco install ninja -y
-
-    #         - name: Run test script (Windows)
-    #           if: runner.os == 'Windows'
-    #           run: |
-    #               $env:LOG_TO_FILE="true"
-    #               .\tests\run_test.ps1 "..\test-bin\eim.exe" "idf-im-cli 0.1.4"
-
-    #         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    #         - name: Upload test results
-    #           uses: actions/upload-artifact@v4
-    #           if: always()
-    #           with:
-    #               name: test-results-${{ matrix.package_name }}.zip
-    #               path: |
-    #                   ./tests/results-pre-test.xml
-    #                   ./tests/results-default-test.xml
-    #                   ./tests/results-variation1-test.xml
-    #                   ./tests/test.log
-
-    # publish-test-results:
-    #     name: Automated Test Results
-    #     needs: test
-    #     runs-on: ubuntu-latest
-    #     if: always()
-
-    #     steps:
-    #         - name: Download Artifacts
-    #           uses: actions/download-artifact@v4
-    #           with:
-    #               path: ./artifacts
-
-    #         - name: Publish Test Results
-    #           uses: EnricoMi/publish-unit-test-result-action@v2
-    #           with:
-    #               action_fail: true
-    #               files: "./artifacts/**/*.xml"
+            - name: Publish Test Results
+              uses: EnricoMi/publish-unit-test-result-action@v2
+              with:
+                  action_fail: true
+                  files: "./artifacts/**/*.xml"
