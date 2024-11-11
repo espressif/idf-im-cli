@@ -82,7 +82,6 @@ export function runPostInstallTest(
             expect(testRunner.output).to.include("main");
 
             logger.info("sample project creation Passed");
-            testRunner.output = "";
         });
 
         it("Should set the target", async function () {
@@ -90,6 +89,7 @@ export function runPostInstallTest(
              * This test attempts to set a target MCU for the project created in the previous test.
              */
             this.timeout(600000);
+            testRunner.output = "";
             testRunner.sendInput(`idf.py set-target ${validTarget}\r`);
 
             const targetSet = await testRunner.waitForOutput(
@@ -102,7 +102,6 @@ export function runPostInstallTest(
             expect(testRunner.output).to.include("Generating done");
 
             logger.info("Set Target Passed");
-            testRunner.output = "";
         });
 
         it("Should build project for the selected target", async function () {
@@ -111,6 +110,9 @@ export function runPostInstallTest(
              * The test is successful if the success message is printed in the terminal.
              */
             this.timeout(300000);
+            testRunner.output = "";
+            testRunner.sendInput("ls\r");
+            logger.info("Sending build command");
             testRunner.sendInput("idf.py build\r");
 
             const buildComplete = await testRunner.waitForOutput(
