@@ -118,9 +118,8 @@ async fn download_tools(
             thread::spawn(move || {
                 while let Ok(progress_msg) = progress_rx.recv() {
                     match progress_msg {
-                        DownloadProgress::Progress(current, total) => {
-                            let percentage = (current * 100 / total) as u64;
-                            pb.set_position(percentage);
+                        DownloadProgress::Progress(current, _total) => {
+                            pb.set_position(current);
                         }
                         DownloadProgress::Complete => {
                             pb.finish();
