@@ -100,7 +100,6 @@ export function runPostInstallTest(
             expect(testRunner.output).to.include("Generating done");
 
             logger.info("Set Target Passed");
-            testRunner.output = "";
         });
 
         it("Should build project for the selected target", async function () {
