@@ -224,9 +224,19 @@ pub fn select_installation_path(mut config: Settings) -> Result<Settings, String
 }
 
 pub fn save_config_if_desired(config: &Settings) -> Result<(), String> {
-    if let Ok(true) = generic_confirm("wizard.after_install.save_config.prompt") {
+    let res =
+        if config.non_interactive.unwrap_or_default() && config.config_file_save_path.is_some() {
+            debug!("Saving config in non-interactive mode.");
+            Ok(true)
+        } else if config.non_interactive.unwrap_or_default() {
+            debug!("Skipping config save in non-interactive mode.");
+            Ok(false)
+        } else {
+            generic_confirm("wizard.after_install.save_config.prompt")
+        };
+    if let Ok(true) = res {
         config
-            .save("eim_config.toml")
+            .save()
             .map_err(|e| format!("{} {:?}", t!("wizard.after_install.config.save_failed"), e))?;
         println!("{}", t!("wizard.after_install.config.saved"));
     }
