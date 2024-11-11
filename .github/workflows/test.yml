@@ -26,10 +26,10 @@ jobs:
                       package_name: macos-aarch64
 
         steps:
-            #         - name: Checkout repository
-            #           uses: actions/checkout@v4
-            #           with:
-            #               ref: ${{ inputs.ref }}
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ inputs.ref }}
 
             - name: Get CLI application version number
               id: get-latest-tag
