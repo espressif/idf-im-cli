@@ -86,7 +86,7 @@ export class InteractiveCLITestRunner {
             try {
                 this.process.write(input);
             } catch (error) {
-                logger.debug(`Error sending input:>>>>${error}<<<<<<<<<<<`);
+                logger.info(`Error sending input:>>>>${error}<<<<<<<<<<<`);
                 this.error = error;
                 this.exited = true;
             }

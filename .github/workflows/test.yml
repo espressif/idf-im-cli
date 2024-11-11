@@ -121,7 +121,7 @@ jobs:
               run: |
                   choco install ninja -y
 
-            - name: Run test script (Windows)
+            - name: Run IDF installation and post install test script (Windows)
               if: runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
