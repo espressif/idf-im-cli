@@ -125,6 +125,7 @@ export class InteractiveCLITestRunner {
         if (this.process && !this.exited) {
             return new Promise((resolve) => {
                 // First, try to send a termination signal
+                this.process.write("\x03");
                 this.process.write("exit\r");
 
                 // Set up a timeout

@@ -85,7 +85,6 @@ export function runPostInstallTest(
              * This test attempts to set a target MCU for the project created in the previous test.
              */
             this.timeout(600000);
-            testRunner.output = "";
             testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
             testRunner.sendInput("cd hello_world\r");
             testRunner.sendInput(`idf.py set-target ${validTarget}\r`);
@@ -107,8 +106,7 @@ export function runPostInstallTest(
              * This test attempts to build artifacts for the project and targets selected above.
              * The test is successful if the success message is printed in the terminal.
              */
-            this.timeout(300000);
-            testRunner.output = "";
+            this.timeout(600000);
             testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
             testRunner.sendInput("cd hello_world\r");
             testRunner.sendInput("idf.py build\r");

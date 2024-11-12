@@ -30,7 +30,7 @@ if (process.env.EIM_FILE_PATH) {
 if (process.env.EIM_VERSION) {
     eimVersion = process.env.EIM_VERSION;
 } else {
-    eimVersion = "idf-im-cli 0.1.3";
+    eimVersion = "idf-im-cli 0.1.4";
 }
 
 const pathToIDFScript =
