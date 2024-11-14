@@ -15,7 +15,10 @@ pub async fn select_target() -> Result<Vec<String>, String> {
     first_defaulted_multiselect("wizard.select_target.prompt", &available_targets)
 }
 
-pub async fn select_idf_version(target: &str) -> Result<Vec<String>, String> {
+pub async fn select_idf_version(
+    target: &str,
+    non_interactive: bool,
+) -> Result<Vec<String>, String> {
     let mut avalible_versions = if target == "all" {
         //todo process vector of targets
         idf_im_lib::idf_versions::get_idf_names().await
@@ -23,7 +26,12 @@ pub async fn select_idf_version(target: &str) -> Result<Vec<String>, String> {
         idf_im_lib::idf_versions::get_idf_name_by_target(&target.to_string().to_lowercase()).await
     };
     avalible_versions.push("master".to_string());
-    first_defaulted_multiselect("wizard.select_idf_version.prompt", &avalible_versions)
+    if non_interactive {
+        debug!("Non-interactive mode, selecting first available IDF version.");
+        return Ok(vec![avalible_versions.first().unwrap().clone()]);
+    } else {
+        first_defaulted_multiselect("wizard.select_idf_version.prompt", &avalible_versions)
+    }
 }
 
 fn check_prerequisites() -> Result<Vec<String>, String> {
@@ -40,8 +48,15 @@ fn check_prerequisites() -> Result<Vec<String>, String> {
         Err(err) => Err(err),
     }
 }
-pub fn check_and_install_prerequisites() -> Result<(), String> {
-    let unsatisfied_prerequisites = run_with_spinner(check_prerequisites)?;
+pub fn check_and_install_prerequisites(
+    non_interactive: bool,
+    install_all_prerequisites: bool,
+) -> Result<(), String> {
+    let unsatisfied_prerequisites = if non_interactive {
+        check_prerequisites()?
+    } else {
+        run_with_spinner(check_prerequisites)?
+    };
     if !unsatisfied_prerequisites.is_empty() {
         info!(
             "{}",
@@ -51,8 +66,14 @@ pub fn check_and_install_prerequisites() -> Result<(), String> {
             )
         );
         if std::env::consts::OS == "windows" {
-            //TODO: remove afte prerequisities install fix in linux
-            if generic_confirm("prerequisites.install.prompt").map_err(|e| e.to_string())? {
+            let res = if !install_all_prerequisites && !non_interactive {
+                generic_confirm("prerequisites.install.prompt")
+            } else if install_all_prerequisites {
+                Ok(true)
+            } else {
+                Ok(false)
+            };
+            if res.map_err(|e| e.to_string())? {
                 system_dependencies::install_prerequisites(unsatisfied_prerequisites)
                     .map_err(|e| e.to_string())?;
 
@@ -100,12 +121,28 @@ fn python_sanity_check(python: Option<&str>) -> Result<(), String> {
         Err(t!("python.sanitycheck.fail").to_string())
     }
 }
-pub fn check_and_install_python() -> Result<(), String> {
+pub fn check_and_install_python(
+    non_interactive: bool,
+    install_all_prerequisites: bool,
+) -> Result<(), String> {
     info!("{}", t!("python.sanitycheck.info"));
-    if let Err(err) = run_with_spinner(|| python_sanity_check(None)) {
+    let check_result = if non_interactive {
+        python_sanity_check(None)
+    } else {
+        run_with_spinner(|| python_sanity_check(None))
+    };
+    if let Err(err) = check_result {
         if std::env::consts::OS == "windows" {
             info!("{}", t!("python.sanitycheck.fail"));
-            if generic_confirm("pythhon.install.prompt").map_err(|e| e.to_string())? {
+            let res = if !install_all_prerequisites && !non_interactive {
+                generic_confirm("pythhon.install.prompt")
+            } else if install_all_prerequisites {
+                Ok(true)
+            } else {
+                Ok(false)
+            };
+
+            if res.map_err(|e| e.to_string())? {
                 system_dependencies::install_prerequisites(vec!["python@3.11.5".to_string()])
                     .map_err(|e| e.to_string())?;
                 let scp = system_dependencies::get_scoop_path();
@@ -138,51 +175,68 @@ pub fn check_and_install_python() -> Result<(), String> {
 }
 
 pub fn select_mirrors(mut config: Settings) -> Result<Settings, String> {
-    config.idf_mirror = match config.idf_mirror {
-        Some(mirror) => Some(mirror),
-        None => Some(generic_select(
+    if (config.wizard_all_questions.unwrap_or_default()
+        || config.idf_mirror.is_none()
+        || config.is_default("idf_mirror"))
+        && config.non_interactive == Some(false)
+    {
+        config.idf_mirror = Some(generic_select(
             "wizard.idf.mirror",
             idf_im_lib::get_idf_mirrors_list(),
-        )?),
-    };
+        )?)
+    }
 
-    config.mirror = match config.mirror {
-        Some(mirror) => Some(mirror),
-        None => Some(generic_select(
+    if (config.wizard_all_questions.unwrap_or_default()
+        || config.mirror.is_none()
+        || config.is_default("mirror"))
+        && config.non_interactive == Some(false)
+    {
+        config.mirror = Some(generic_select(
             "wizard.tools.mirror",
             idf_im_lib::get_idf_tools_mirrors_list(),
-        )?),
-    };
+        )?)
+    }
 
     Ok(config)
 }
 
 pub fn select_installation_path(mut config: Settings) -> Result<Settings, String> {
-    if config.path.is_none() {
-        let default_path = if std::env::consts::OS == "windows" {
-            "C:\\esp\\".to_string()
-        } else {
-            format!("{}/.espressif", dirs::home_dir().unwrap().display())
-        };
-        let mut installation_path = PathBuf::new();
-        let path = generic_input(
+    if (config.wizard_all_questions.unwrap_or_default()
+        || config.path.is_none()
+        || config.is_default("path"))
+        && config.non_interactive == Some(false)
+    {
+        let path = match generic_input(
             "wizard.instalation_path.prompt",
             "wizard.instalation_path.unselected",
-            &default_path,
-        )
-        .unwrap();
-
-        installation_path.push(path);
-        config.path = Some(installation_path.clone());
+            &config.path.clone().unwrap_or_default().to_str().unwrap(),
+        ) {
+            Ok(path) => PathBuf::from(path),
+            Err(e) => {
+                log::error!("Error: {}", e);
+                config.path.clone().unwrap_or_default()
+            }
+        };
+        config.path = Some(path);
     }
 
     Ok(config)
 }
 
 pub fn save_config_if_desired(config: &Settings) -> Result<(), String> {
-    if let Ok(true) = generic_confirm("wizard.after_install.save_config.prompt") {
+    let res =
+        if config.non_interactive.unwrap_or_default() && config.config_file_save_path.is_some() {
+            debug!("Saving config in non-interactive mode.");
+            Ok(true)
+        } else if config.non_interactive.unwrap_or_default() {
+            debug!("Skipping config save in non-interactive mode.");
+            Ok(false)
+        } else {
+            generic_confirm("wizard.after_install.save_config.prompt")
+        };
+    if let Ok(true) = res {
         config
-            .save("eim_config.toml")
+            .save()
             .map_err(|e| format!("{} {:?}", t!("wizard.after_install.config.save_failed"), e))?;
         println!("{}", t!("wizard.after_install.config.saved"));
     }
