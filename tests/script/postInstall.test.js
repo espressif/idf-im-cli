@@ -13,36 +13,33 @@ export function runPostInstallTest(
 ) {
     describe("create and build sample project", function () {
         this.timeout(600000);
-        let testRunner;
+        let testRunner = null;
 
         beforeEach(async function () {
-            this.timeout(5000);
+            this.timeout(10000);
             logger.debug(
-                `Starting IDF terminal using for idf script ${pathToIDFScript}, sample project copied at ${path.join(
+                `Starting IDF terminal using activation script ${pathToIDFScript}, sample project copied at ${path.join(
                     os.homedir(),
                     pathToProjectFolder
                 )}`
             );
             testRunner = new InteractiveCLITestRunner();
-            try {
-                await testRunner.runIDFTerminal(pathToIDFScript);
-            } catch (error) {
-                logger.debug(`Error starting process: ${error}`);
-                throw error;
-            }
+            await testRunner.runIDFTerminal(pathToIDFScript);
         });
 
         afterEach(async function () {
-            this.timeout(10000);
+            this.timeout(20000);
             if (this.currentTest.state === "failed") {
                 logger.info(
-                    `Terminal output on failure: >>>>>>>>>>>>>>>\r ${testRunner.output}`
+                    `Terminal output on failure: >>\r ${testRunner.output}`
                 );
             }
-            if (testRunner) {
-                await testRunner.stop();
+            try {
+                await testRunner.stop(6000);
+                testRunner = null;
+            } catch {
+                logger.debug("Error to clean up terminal after test");
             }
-            testRunner = null;
         });
 
         it("Should create a new project based on a template", async function () {

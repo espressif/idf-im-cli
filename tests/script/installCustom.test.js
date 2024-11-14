@@ -11,7 +11,7 @@ export function runInstallCustom(
     recursiveSubmodules
 ) {
     describe("run custom installation using given parameters", function () {
-        let testRunner;
+        let testRunner = null;
 
         before(async function () {
             logger.debug(
@@ -21,12 +21,13 @@ export function runInstallCustom(
             logger.debug(`Recurse submodules active? : ${recursiveSubmodules}`);
             this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
+            await testRunner.start();
         });
 
         afterEach(function () {
             if (this.currentTest.state === "failed") {
                 logger.info(
-                    `Terminal output on failure: >>>>>>>>>>>>>>>\r ${testRunner.output}`
+                    `Terminal output on failure: >>\r ${testRunner.output}`
                 );
             }
         });
@@ -34,10 +35,11 @@ export function runInstallCustom(
         after(async function () {
             logger.info("Custom installation routine completed");
             this.timeout(10000);
-            if (testRunner) {
-                await testRunner.stop();
+            try {
+                await testRunner.stop(6000);
+            } catch {
+                logger.debug("Error to clean up terminal after test");
             }
-            testRunner = null;
         });
 
         /** Run installation with full parameters, no need to ask questions
@@ -47,7 +49,6 @@ export function runInstallCustom(
          */
 
         it("Should install IDF using specified parameters", async function () {
-            testRunner.runTerminal();
             logger.info("Sent command line for IDF installation");
             testRunner.sendInput(
                 `${pathToEim} -p ${installPath} -t ${targetList} -i ${idfVersionList} --tool-download-folder-name dist --tool-install-folder-name tools --idf-tools-path ./tools/idf_tools.py --tools-json-file tools/tools.json -m https://github.com --idf-mirror https://github.com -r ${recursiveSubmodules}\r`

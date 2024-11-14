@@ -32,7 +32,7 @@ describe("Check if prerequisites are installed", function () {
         this.timeout(5000);
         testRunner = new InteractiveCLITestRunner();
         try {
-            await testRunner.runTerminal();
+            await testRunner.start();
             testRunner.sendInput(`${pathToEim}\r`);
         } catch (error) {
             logger.debug(`Error starting process: ${error}`);
@@ -56,7 +56,7 @@ describe("Check if prerequisites are installed", function () {
     (os.platform() !== "win32" ? describe : describe.skip)(
         "Pre-Requisites test on non windows platform",
         function () {
-            afterEach(async function () {
+            afterEach(function () {
                 this.timeout(10000);
                 if (this.currentTest.state === "failed") {
                     logger.info(

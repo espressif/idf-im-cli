@@ -134,6 +134,8 @@ Default arguments are:
 Options:
   -p, --path <PATH>
           Base Path to which all the files and folder will be installed
+      --esp-idf-json-path <ESP_IDF_JSON_PATH>
+          Absolute path to save esp_idf.json file. Default is $HOME/.esp_installation_manager/esp_idf.json
   -c, --config <FILE>
   -t, --target <TARGET>
           You can provide multiple targets separated by comma
@@ -158,8 +160,13 @@ Options:
       --log-file <LOG_FILE>
           file in which logs will be stored (default: eim.log)
   -r, --recurse-submodules <RECURSE_SUBMODULES>
-          Should the installer recurse into submodules of the ESP-IDF repository (derfault true)
+          Should the installer recurse into submodules of the ESP-IDF repository (default true)
           [possible values: true, false]
+  -a, --install-all-prerequisites <INSTALL_ALL_PREREQUISITES>
+          Should the installer attempt to install all missing prerequisites (default false). This flag only affects Windows platforms as we do not offer prerequisites for other platforms.
+          [possible values: true, false]
+      --config-file-save-path <CONFIG_FILE_SAVE_PATH>
+          if set, the installer will as it's very last move save the configuration to the specified file path. This file can than be used to repeat the instalation with the same settings.
   -h, --help
           Print help (see a summary with '-h')
   -V, --version

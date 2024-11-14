@@ -11,19 +11,13 @@ export function runInstallWizardTests(pathToEim) {
             logger.debug(`Starting installation wizard with default options`);
             this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
-            try {
-                await testRunner.runTerminal();
-                testRunner.sendInput(`${pathToEim}\r`);
-            } catch (error) {
-                logger.debug(`Error starting process: ${error}`);
-                throw error;
-            }
+            await testRunner.start();
         });
 
         afterEach(function () {
             if (this.currentTest.state === "failed") {
                 logger.info(
-                    `Terminal output on failure: >>>>>>>>>>>>>>>\r ${testRunner.output}`
+                    `Terminal output on failure: \r >>${testRunner.output}<<`
                 );
             }
         });
@@ -31,10 +25,11 @@ export function runInstallWizardTests(pathToEim) {
         after(async function () {
             logger.info("Install Wizard routine completed");
             this.timeout(10000);
-            if (testRunner) {
-                await testRunner.stop();
+            try {
+                await testRunner.stop(6000);
+            } catch {
+                logger.debug("Error to clean up terminal after test");
             }
-            testRunner = null;
         });
 
         /** Run install wizard
@@ -45,6 +40,7 @@ export function runInstallWizardTests(pathToEim) {
          */
 
         it("Should install IDF using wizard and default values", async function () {
+            testRunner.sendInput(`${pathToEim}\r`);
             const selectTargetQuestion = await testRunner.waitForOutput(
                 "Please select all of the target platforms",
                 20000
@@ -112,6 +108,7 @@ export function runInstallWizardTests(pathToEim) {
                 "Successfully installed IDF"
             );
             expect(installationSuccessful).to.be.true;
+
             logger.info("installation successful");
         });
     });
