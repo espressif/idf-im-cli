@@ -1649,7 +1649,7 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
 name = "idf-im-cli"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "byte-unit",
  "clap",
@@ -1677,7 +1677,7 @@ dependencies = [
 [[package]]
 name = "idf-im-lib"
 version = "0.1.7"
-source = "git+https://github.com/espressif/idf-im-lib.git?branch=master#98e7b899bc57b75c059d1b4611d37312a83f5b56"
+source = "git+https://github.com/espressif/idf-im-lib.git?tag=v0.1.7#e20af7bcefc0b6f2387343cffb8f4c978ece3e8f"
 dependencies = [
  "colored",
  "config",
