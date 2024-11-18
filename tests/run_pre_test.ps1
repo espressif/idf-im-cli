@@ -15,13 +15,11 @@ $env:EIM_VERSION = $Version
 Set-Location -Path "./tests"
 
 # Expand Node modules folder
-# The zip file is currently being expanded in the pre-test, if it was not executed before please run this line locally
-# Expand-Archive node_modules.zip
+Expand-Archive node_modules.zip
 
 # Install node modules using npm ci
 # This can be used if the node modules folder is not packed with the repo
 # npm ci
 
 # Run tests using npm run AllTest
-npm run default-test
-npm run variation1-test
+npm run pre-test

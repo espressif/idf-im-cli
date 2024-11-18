@@ -1,6 +1,7 @@
 import pty from "node-pty";
 import os from "os";
 import logger from "./logger.class.js";
+import { createCipheriv } from "crypto";
 
 export class InteractiveCLITestRunner {
     constructor() {
@@ -9,84 +10,98 @@ export class InteractiveCLITestRunner {
         this.exited = false;
         this.exitCode = null;
         this.error = null;
-    }
-
-    runTerminal() {
-        const command = os.platform() !== "win32" ? "bash" : "powershell.exe";
-        const args =
+        this.prompt = os.platform() !== "win32" ? "$" : ">";
+        this.command = os.platform() !== "win32" ? "bash" : "powershell.exe";
+        this.args =
             os.platform() !== "win32"
                 ? []
                 : ["-ExecutionPolicy", "Bypass", "-NoProfile"];
-
-        logger.debug(`Starting terminal ${command} with args ${args}`);
-        this.start(command, args);
     }
 
-    runIDFTerminal(loadScript) {
-        this.runTerminal();
-        const loadCommand =
-            os.platform() !== "win32"
-                ? `source ${loadScript}`
-                : `. "${loadScript}"`;
-        logger.debug(`Script load command sent to terminal ${loadCommand}`);
-        this.sendInput(`${loadCommand}\r`);
+    async runIDFTerminal(loadScript, timeout = 3000) {
+        try {
+            await this.start();
+            const loadCommand =
+                os.platform() !== "win32"
+                    ? `source ${loadScript}`
+                    : `. "${loadScript}"`;
+            logger.debug(`Script load command sent to terminal ${loadCommand}`);
+            this.sendInput(`${loadCommand}\r`);
+            const startTime = Date.now();
+            while (Date.now() - startTime < timeout) {
+                if (
+                    !this.exited &&
+                    !this.error &&
+                    this.output.includes("(python)")
+                ) {
+                    return Promise.resolve();
+                }
+                await new Promise((resolve) => setTimeout(resolve, 200));
+            }
+            return Promise.reject();
+        } catch {
+            logger.debug("Error loading IDF terminal");
+            return Promise.reject();
+        }
     }
 
-    start(command, fullArgs = []) {
-        return new Promise((resolve, reject) => {
-            logger.debug("Starting terminal emulator process...");
-            this.process = pty.spawn(command, fullArgs, {
-                name: "eim-terminal",
-                cols: 80,
-                rows: 30,
-                cwd: process.cwd(),
-                env: process.env,
-            });
-            this.exited = false;
-
-            this.process.onData((data) => {
-                try {
-                    this.output += data;
-                    logger.debug(data);
-                } catch (error) {
-                    logger.debug(`Error receiving data: ${error}`);
-                    this.error = error;
-                    this.exited = true;
-                    reject(error);
-                }
-            });
-            this.process.onExit(({ exitCode }) => {
-                logger.debug(`Exiting with code:>>>${exitCode}<<<`);
-                this.exited = true;
-                this.exitCode = exitCode;
-                if (!this.error) {
-                    resolve();
-                }
-            });
-
-            this.process.on("error", (error) => {
-                logger.debug(`Process error:>>>>${error}<<<<<<`);
-                this.error = error;
-                this.exited = true;
-                reject(error);
-            });
-
-            // Resolve after a short delay if the process hasn't exited or errored
-            setTimeout(() => {
-                if (!this.exited && !this.error) {
-                    resolve();
-                }
-            }, 1000);
+    async start(command = this.command, fullArgs = this.args, timeout = 5000) {
+        logger.debug(
+            `Starting terminal emulator ${this.command} with args ${this.args}`
+        );
+        this.process = pty.spawn(command, fullArgs, {
+            name: "eim-terminal",
+            cols: 80,
+            rows: 30,
+            cwd: process.cwd(),
+            env: process.env,
         });
+        this.exited = false;
+
+        this.process.onData((data) => {
+            logger.debug(data);
+            this.output += data;
+        });
+
+        this.process.onExit(({ exitCode }) => {
+            this.exited = true;
+            this.exitCode = exitCode;
+            logger.debug(`Terminal exited with code:>>${exitCode}<<`);
+        });
+
+        this.process.on("error", (error) => {
+            this.error = error;
+            this.exited = true;
+            logger.debug(`Terminal error:>>${error}<<`);
+        });
+
+        await new Promise((resolve) => {
+            setTimeout(resolve, 2000);
+        });
+
+        // Wait until prompt is ready
+        if (!this.exited && !this.error) {
+            try {
+                await this.waitForPrompt();
+                return Promise.resolve();
+            } catch (error) {
+                logger.debug(`Error detecting prompt >>${this.output}<<< `);
+                return Promise.reject(error);
+            }
+        } else {
+            return Promise.reject(`Could not start terminal`);
+        }
     }
 
     sendInput(input) {
-        logger.debug(`Sending ${input.replace(/\r$/, "")} to terminal`);
+        logger.debug(
+            `Attempting to send ${input.replace(/\r$/, "")} to terminal`
+        );
         if (this.process && !this.exited) {
             try {
                 this.process.write(input);
             } catch (error) {
-                logger.debug(`Error sending input:>>>>${error}<<<<<<<<<<<`);
+                logger.info(`Error sending input:>>${error}<<`);
                 this.error = error;
                 this.exited = true;
             }
@@ -109,42 +124,53 @@ export class InteractiveCLITestRunner {
         return false;
     }
 
-    async waitForExit(expectedLastOutput, timeout = 5000) {
+    async waitForPrompt(timeout = 3000) {
         const startTime = Date.now();
         while (Date.now() - startTime < timeout) {
-            if (this.exited) {
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-                return this.output.includes(expectedLastOutput);
+            if (this.output.slice(-20).includes(this.prompt)) {
+                return Promise.resolve();
             }
             await new Promise((resolve) => setTimeout(resolve, 200));
         }
-        return false;
+        return Promise.reject("Timeout without a prompt");
     }
 
     async stop(timeout = 3000) {
         if (this.process && !this.exited) {
-            return new Promise((resolve) => {
-                // First, try to send a termination signal
-                this.process.write("exit\r");
+            try {
+                this.sendInput("exit\r");
 
-                // Set up a timeout
-                const timer = setTimeout(() => {
-                    logger.info(
-                        "Process didn't exit gracefully, forcing termination"
-                    );
-                    this.process.kill();
-                    resolve();
-                }, timeout);
-
-                // Listen for the process to exit on its own
-                this.process.onExit(() => {
-                    clearTimeout(timer);
-                    this.process = null;
-                    this.exited = true;
-                    this.output = "";
-                    resolve();
-                });
-            });
+                const exitTime = Date.now();
+                while (Date.now() - exitTime < timeout * 2) {
+                    if (this.exited) {
+                        logger.debug("terminal exited gracefully");
+                        return Promise.resolve();
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 200));
+                }
+                logger.debug("Terminal didn't exit gracefully, killing task");
+                this.process.kill();
+                const killTime = Date.now();
+                while (Date.now() - killTime < timeout) {
+                    if (this.exited) {
+                        logger.debug("Terminal is now killed");
+                        return Promise.resolve();
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 200));
+                }
+                return Promise.reject("Could not stop terminal task");
+            } catch (error) {
+                logger.error("Error stopping terminal:", error);
+                this.exited = true;
+                this.process = null;
+                return Promise.reject(error);
+            }
+        } else {
+            logger.debug("Terminal has already exited");
+            this.process = null;
+            this.exited = true;
+            this.output = "";
+            return Promise.resolve();
         }
     }
 }

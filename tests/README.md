@@ -11,8 +11,8 @@ All tests are developed in Node.js using Chain and Mocha as test libraries in co
 
 On the test machine, the first step is to copy the testing artifacts. The location of the artifacts can be set using environment variable, or the test will look for the `eim` file in the default location:
 
-Windows: $USERPROFILE\espressif\
-Linux/MacOS: $HOME/espressif
+Windows: $USERPROFILE\eim-cli\
+Linux/MacOS: $HOME/eim-cli/
 
 ### Windows
 
@@ -23,15 +23,15 @@ Run this command with administrator priviledges.
 
 Install Node.js:
 https://nodejs.org/en/download/prebuilt-installer/current
-`choco install nodejs --version="20.17.0" -y`
+`choco install nodejs-lts --version="22.11.0" -y`
 
 Install git:
 https://git-scm.com/download/win
 `choco install git.install -y`
 
-Clone the test trunk from the public repository:
+Clone the public repository:
 
-`git clone -b autotest https://github.com/espressif/idf-im-cli.git`
+`git clone https://github.com/espressif/idf-im-cli.git`
 
 ### Linux:
 
@@ -40,16 +40,42 @@ Install Git and curl and build-essential packages
 `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash`
 
 Start a new terminal (to load nvm)
-`nvm install 20`
+`nvm install 22`
 
-Clone the test trunk from the public repository:
-`git clone -b autotest https://github.com/espressif/idf-im-cli.git`
+Clone the public repository:
+`git clone https://github.com/espressif/idf-im-cli.git`
 
-At his point test for prerequisits can be run, the remaining tests requires the pre-requisites to be installed.
+> At his point test for prerequisits can be run, the remaining tests requires the pre-requisites to be installed.
 
+Install ESP-IDF pre-requisites
+https://docs.espressif.com/projects/esp-idf/en/v5.3.1/esp32/get-started/linux-macos-setup.html
 `sudo apt install git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-dev python3 python3-venv python3-pip`
 
 ### MacOS
+
+Install homebrew package manager if not already installed:
+https://brew.sh/
+`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+
+Install node.js
+https://nodejs.org/en/download/package-manager
+`brew install node@22`
+`echo 'export PATH="/usr/local/opt/node@22/bin:$PATH"' >> ~/.zshrc`
+
+> This requires to restart the terminal in order to load Node.JS
+
+Install git
+https://git-scm.com/downloads/mac
+`brew install git`
+
+Clone the public repository:
+`git clone https://github.com/espressif/idf-im-cli.git`
+
+> At his point test for prerequisites can be run, the remaining tests requires the pre-requisites to be installed.
+
+Install ESP-IDF pre-requisites
+https://docs.espressif.com/projects/esp-idf/en/v5.3.1/esp32/get-started/linux-macos-setup.html
+`brew install cmake ninja dfu-util`
 
 ## Commands summary
 
@@ -61,26 +87,42 @@ The scripts should be executed passing as arguments the path to the `eim` applic
 Open Powershell, and enable script execution:
 `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
 
+Prerequisites test can be executed by running:
+`.\tests\run_pre_test.ps1 "<PATH TO EIM.EXE>" "<Version being tested>"`
+Default arguments are:
+`.\tests\run_pre_test.ps1 "$env:USERPROFILE\eim-cli\eim.exe" "idf-im-cli 0.1.4"`
+
 To execute tests on windows, use the script
 `.\tests\run_test.ps1 "<PATH TO EIM.EXE>" "<Version being tested>"`
-
 Default arguments are:
-`.\tests\run_test.ps1 "$env:USERPROFILE\espressif\eim.exe" "idf-im-cli 0.1.3"`
+`.\tests\run_test.ps1 "$env:USERPROFILE\eim-cli\eim.exe" "idf-im-cli 0.1.4"`
 
 #### Linux
 
 (if needed) Give execution permission to the test script
 `chmod +x ./tests/run_test.sh`
 
+Prerequisites test can be executed by running:
+`. ./tests/run_pre_test.sh "<PATH TO EIM>" "<Version being tested>"`
+Default arguments are:
+`. ./tests/run_pre_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.4"`
+
 To execute tests on linux, use the script:
 `. ./tests/run_test.sh "<PATH TO EIM>" "<Version being tested>"`
-
 Default arguments are:
-`. ./tests/run_test.sh "$HOME/espressif/eim" "idf-im-cli 0.1.3"`
+`. ./tests/run_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.4"`
 
 #### MacOS
 
-To executing testins in MacOS, use the script:
+Prerequisites test can be executed by running:
+`. ./tests/run_pre_test.sh "<PATH TO EIM>" "<Version being tested>"`
+Default arguments are:
+`. ./tests/run_pre_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.3"`
+
+To execute tests on linux, use the script:
+`. ./tests/run_test.sh "<PATH TO EIM>" "<Version being tested>"`
+Default arguments are:
+`. ./tests/run_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.3"`
 
 <TODO>
 
@@ -92,6 +134,8 @@ To executing testins in MacOS, use the script:
 Options:
   -p, --path <PATH>
           Base Path to which all the files and folder will be installed
+      --esp-idf-json-path <ESP_IDF_JSON_PATH>
+          Absolute path to save esp_idf.json file. Default is $HOME/.esp_installation_manager/esp_idf.json
   -c, --config <FILE>
   -t, --target <TARGET>
           You can provide multiple targets separated by comma
@@ -116,8 +160,13 @@ Options:
       --log-file <LOG_FILE>
           file in which logs will be stored (default: eim.log)
   -r, --recurse-submodules <RECURSE_SUBMODULES>
-          Should the installer recurse into submodules of the ESP-IDF repository (derfault true)
+          Should the installer recurse into submodules of the ESP-IDF repository (default true)
           [possible values: true, false]
+  -a, --install-all-prerequisites <INSTALL_ALL_PREREQUISITES>
+          Should the installer attempt to install all missing prerequisites (default false). This flag only affects Windows platforms as we do not offer prerequisites for other platforms.
+          [possible values: true, false]
+      --config-file-save-path <CONFIG_FILE_SAVE_PATH>
+          if set, the installer will as it's very last move save the configuration to the specified file path. This file can than be used to repeat the instalation with the same settings.
   -h, --help
           Print help (see a summary with '-h')
   -V, --version

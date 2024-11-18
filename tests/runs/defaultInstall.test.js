@@ -2,7 +2,6 @@ import { describe, it, before, after } from "mocha";
 import { runArgumentsTests } from "../script/commandLineArguments.test.js";
 import { runInstallWizardTests } from "../script/installWizard.test.js";
 import { runPostInstallTest } from "../script/postInstall.test.js";
-import logger from "../classes/logger.class.js";
 import os from "os";
 import path from "path";
 
@@ -24,13 +23,13 @@ let eimVersion;
 if (process.env.EIM_FILE_PATH) {
     pathToEim = process.env.EIM_FILE_PATH;
 } else {
-    pathToEim = path.join(os.homedir(), "espressif/eim");
+    pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
 if (process.env.EIM_VERSION) {
     eimVersion = process.env.EIM_VERSION;
 } else {
-    eimVersion = "idf-im-cli 0.1.3";
+    eimVersion = "idf-im-cli 0.1.4";
 }
 
 const pathToIDFScript =
