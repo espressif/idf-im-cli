@@ -28,15 +28,19 @@ export function runArgumentsTests(pathToEim, eimVersion) {
             await testRunner.start();
             testRunner.sendInput(`${pathToEim} -V\r`);
             const meetVersion = await testRunner.waitForOutput(eimVersion);
-            expect(meetVersion).to.be.true;
+            expect(meetVersion, "EIM showing incorrect version number").to.be
+                .true;
         });
 
         it("should show help with --help argument", async function () {
             await testRunner.start();
             testRunner.sendInput(`${pathToEim} --help\r`);
             const printHelp = await testRunner.waitForOutput("Options:");
-            expect(printHelp).to.be.true;
-            expect(testRunner.output).to.include("Usage:");
+            expect(printHelp, "EIM failed to print help options").to.be.true;
+            expect(
+                testRunner.output,
+                "EIM failed to print usage help"
+            ).to.include("Usage:");
         });
 
         it("should handle invalid arguments", async function () {
@@ -45,7 +49,10 @@ export function runArgumentsTests(pathToEim, eimVersion) {
             const wrongArgument = await testRunner.waitForOutput(
                 "unexpected argument"
             );
-            expect(wrongArgument).to.be.true;
+            expect(
+                wrongArgument,
+                "Missing error when sending non-existing argument"
+            ).to.be.true;
         });
     });
 }

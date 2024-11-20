@@ -3,14 +3,8 @@ import { describe, it, before, after, beforeEach, afterEach } from "mocha";
 import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
 import logger from "../classes/logger.class.js";
 
-export function runInstallCustom(
-    pathToEim,
-    installPath,
-    targetList,
-    idfVersionList,
-    recursiveSubmodules
-) {
-    describe("run custom installation using given parameters", function () {
+export function runInstallCustom(pathToEim, args = []) {
+    describe("Run custom installation using given parameters", function () {
         let testRunner = null;
 
         before(async function () {
@@ -29,6 +23,7 @@ export function runInstallCustom(
                 logger.info(
                     `Terminal output on failure: >>\r ${testRunner.output}`
                 );
+                testRunner.sendInput("\x03");
             }
         });
 
@@ -50,18 +45,23 @@ export function runInstallCustom(
 
         it("Should install IDF using specified parameters", async function () {
             logger.info("Sent command line for IDF installation");
-            testRunner.sendInput(
-                `${pathToEim} -p ${installPath} -t ${targetList} -i ${idfVersionList} --tool-download-folder-name dist --tool-install-folder-name tools --idf-tools-path ./tools/idf_tools.py --tools-json-file tools/tools.json -m https://github.com --idf-mirror https://github.com -r ${recursiveSubmodules}\r`
-            );
+            testRunner.sendInput(`${pathToEim} ${args.join(" ")}\r`);
             const installationCompleted = await testRunner.waitForOutput(
                 "Do you want to save the installer configuration",
                 1200000
             );
-            expect(installationCompleted).to.be.true;
-            expect(testRunner.output).to.not.include("error");
-            expect(testRunner.output).to.include(
-                "Finished fetching submodules"
-            );
+            expect(
+                installationCompleted,
+                "Failed to ask to save installation configuration - failure to install using full arguments on run time"
+            ).to.be.true;
+            expect(
+                testRunner.output,
+                "Error message during installation"
+            ).to.not.include("error");
+            expect(
+                testRunner.output,
+                "Failed to download submodules, missing 'Finished fetching submodules'"
+            ).to.include("Finished fetching submodules");
 
             logger.info("Installation completed");
             testRunner.output = "";
@@ -71,10 +71,14 @@ export function runInstallCustom(
                 "Successfully installed IDF"
             );
 
-            expect(installationSuccessful).to.be.true;
-            expect(testRunner.output).to.include(
-                "Now you can start using IDF tools"
-            );
+            expect(
+                installationSuccessful,
+                "Failed to complete installation, missing 'Successfully Installed IDF'"
+            ).to.be.true;
+            expect(
+                testRunner.output,
+                "Failed to complete installation, missing 'Now you can start using IDF tools'"
+            ).to.include("Now you can start using IDF tools");
         });
     });
 }

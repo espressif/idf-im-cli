@@ -60,18 +60,21 @@ describe("Check if prerequisites are installed", function () {
                 this.timeout(10000);
                 if (this.currentTest.state === "failed") {
                     logger.info(
-                        `Terminal output on failure: >>>>>>>>>>>>>>>\r ${testRunner.output}`
+                        `Terminal output on failure: >>\r ${testRunner.output}`
                     );
                 }
             });
 
             it("Should detect missing requirements", async function () {
-                this.timeout(20000);
+                this.timeout(25000);
                 const missingRequisites = await testRunner.waitForOutput(
                     "Error: Please install the missing prerequisites",
                     20000
                 );
-                expect(missingRequisites).to.be.true;
+                expect(
+                    missingRequisites,
+                    'EIM did not show error message indicating "Please install prerequisites"'
+                ).to.be.true;
             });
         }
     );
@@ -93,19 +96,25 @@ describe("Check if prerequisites are installed", function () {
             });
 
             it("should offer to install prerequisites and exit upon negative answer", async function () {
-                this.timeout(20000);
+                this.timeout(25000);
                 const promptRequisites = await testRunner.waitForOutput(
                     "Do you want to install prerequisites?"
                 );
 
-                expect(promptRequisites).to.be.true;
+                expect(
+                    promptRequisites,
+                    "EIM did not offer to install the missing prerequisites"
+                ).to.be.true;
 
                 testRunner.sendInput("n");
 
                 const terminalExited = await testRunner.waitForOutput(
                     "Please install the missing prerequisites and try again"
                 );
-                expect(terminalExited).to.be.true;
+                expect(
+                    terminalExited,
+                    "EIM did not fails after denying to install pre-requisites"
+                ).to.be.true;
             });
         }
     );

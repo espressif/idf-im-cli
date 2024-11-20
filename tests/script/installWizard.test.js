@@ -45,8 +45,14 @@ export function runInstallWizardTests(pathToEim) {
                 "Please select all of the target platforms",
                 20000
             );
-            expect(selectTargetQuestion).to.be.true;
-            expect(testRunner.output).to.include("all");
+            expect(
+                selectTargetQuestion,
+                "Failed to ask for installation targets"
+            ).to.be.true;
+            expect(
+                testRunner.output,
+                "Failed to offer installation for 'all' targets"
+            ).to.include("all");
 
             logger.info("Select Target Passed");
             testRunner.output = "";
@@ -55,8 +61,12 @@ export function runInstallWizardTests(pathToEim) {
             const selectIDFVersion = await testRunner.waitForOutput(
                 "Please select the desired ESP-IDF version"
             );
-            expect(selectIDFVersion).to.be.true;
-            expect(testRunner.output).to.include("v5.3.1");
+            expect(selectIDFVersion, "Failed to ask for IDF version").to.be
+                .true;
+            expect(testRunner.output),
+                "Failed to offer installation for version 5.3.1".to.include(
+                    "v5.3.1"
+                );
 
             logger.info("Select IDF Version passed");
             testRunner.output = "";
@@ -65,8 +75,12 @@ export function runInstallWizardTests(pathToEim) {
             const selectIDFMirror = await testRunner.waitForOutput(
                 "Select the source from which to download esp-idf"
             );
-            expect(selectIDFMirror).to.be.true;
-            expect(testRunner.output).to.include("https://github.com");
+            expect(selectIDFMirror, "Failed to ask for IDF download mirrors").to
+                .be.true;
+            expect(
+                testRunner.output,
+                "Failed to offer github as a download mirror option"
+            ).to.include("https://github.com");
 
             logger.info("Select IDF mirror passed");
             testRunner.output = "";
@@ -75,8 +89,12 @@ export function runInstallWizardTests(pathToEim) {
             const selectToolsMirror = await testRunner.waitForOutput(
                 "Select a source from which to download tools"
             );
-            expect(selectToolsMirror).to.be.true;
-            expect(testRunner.output).to.include("https://github.com");
+            expect(selectToolsMirror, "Failed to ask for tools download mirror")
+                .to.be.true;
+            expect(
+                testRunner.output,
+                "Failed to offer github as tools download mirror"
+            ).to.include("https://github.com");
 
             logger.info("Select tools mirror passed");
             testRunner.output = "";
@@ -85,8 +103,12 @@ export function runInstallWizardTests(pathToEim) {
             const selectInstallPath = await testRunner.waitForOutput(
                 "Please select the ESP-IDF installation location"
             );
-            expect(selectInstallPath).to.be.true;
-            expect(testRunner.output).to.include("esp");
+            expect(selectInstallPath, "Failed to ask for installation path").to
+                .be.true;
+            expect(
+                testRunner.output,
+                "Failed to provide default installation path"
+            ).to.include("esp");
 
             logger.info("Select install path passed");
             testRunner.output = "";
@@ -96,9 +118,18 @@ export function runInstallWizardTests(pathToEim) {
                 "Do you want to save the installer configuration",
                 1200000
             );
-            expect(installationCompleted).to.be.true;
-            expect(testRunner.output).to.not.include("error");
-            expect(testRunner.output).to.include("Downloading tools");
+            expect(
+                installationCompleted,
+                "Failed to ask to save installation configuration - failure to install using wizard parameters"
+            ).to.be.true;
+            expect(
+                testRunner.output,
+                "Error message during installation"
+            ).to.not.include("error");
+            expect(
+                testRunner.output,
+                "Error to download the tools, missing 'Downloading Tools'"
+            ).to.include("Downloading tools");
 
             logger.info("Installation completed");
             testRunner.output = "";
@@ -107,7 +138,10 @@ export function runInstallWizardTests(pathToEim) {
             const installationSuccessful = await testRunner.waitForOutput(
                 "Successfully installed IDF"
             );
-            expect(installationSuccessful).to.be.true;
+            expect(
+                installationSuccessful,
+                "Failed to complete installation, missing 'Successfully Installed IDF'"
+            ).to.be.true;
 
             logger.info("installation successful");
         });

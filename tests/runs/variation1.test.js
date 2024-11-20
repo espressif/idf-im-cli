@@ -26,11 +26,18 @@ if (process.env.EIM_FILE_PATH) {
 
 logger.debug(`Starting custom installation using EIM on ${pathToEim}`);
 
-const installPath = path.join(os.homedir(), ".espressif2");
-const targetList = ["esp32s2"];
-const idfVersionList = ["v5.2.3"];
-const recursiveSubmodules = true;
-const pathToProjectFolder = path.join(os.homedir(), ".espressif2/project");
+const targetList = ["esp32s2"]; // targets used for IDF installation
+const idfVersionList = ["v5.2.3"]; // IDF versions to be installed
+const installFolder = ".espressif2";
+const projectFolder = "project";
+
+let installArgs = [];
+installArgs.push(`-p ${path.join(os.homedir(), installFolder)}`); // Install Path
+installArgs.push(`-t ${targetList.join(",")}`); // Targets (in case of multiple separate with ,)
+installArgs.push(`-i ${idfVersionList.join(",")}`); // IDF versions (in case of multiple separate with ,)
+installArgs.push(`-m https://github.com`); // IDF tools mirror
+installArgs.push(`--idf-mirror https://github.com`); // ESP-IDF mirror
+installArgs.push(`-r true`); // recursive submodules init
 
 const pathToIDFScript =
     os.platform() !== "win32"
@@ -44,17 +51,11 @@ const pathToIDFScript =
 describe("Installation using custom settings", function () {
     this.timeout(2400000);
 
-    runInstallCustom(
-        pathToEim,
-        installPath,
-        targetList.join(","),
-        idfVersionList.join(","),
-        recursiveSubmodules
-    );
+    runInstallCustom(pathToEim, installArgs);
 
     runPostInstallTest(
         pathToIDFScript,
-        pathToProjectFolder,
+        path.join(os.homedir(), installFolder, projectFolder),
         targetList[0],
         "esp32c6"
     );

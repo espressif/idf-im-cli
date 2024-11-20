@@ -70,9 +70,18 @@ export function runPostInstallTest(
                 "sdkconfig.ci"
             );
 
-            expect(confirmFolderContent).to.be.true;
-            expect(testRunner.output).to.include("pytest_hello_world.py");
-            expect(testRunner.output).to.include("main");
+            expect(
+                confirmFolderContent,
+                "sdkconfig.ci file not shown after a ls command, file copy failed"
+            ).to.be.true;
+            expect(
+                testRunner.output,
+                "pytest_hello_world.py file not shown after a ls command, file copy failed"
+            ).to.include("pytest_hello_world.py");
+            expect(
+                testRunner.output,
+                "main folder not shown after a ls command, file copy failed"
+            ).to.include("main");
 
             logger.info("sample project creation Passed");
         });
@@ -91,9 +100,18 @@ export function runPostInstallTest(
                 600000
             );
 
-            expect(targetSet).to.be.true;
-            expect(testRunner.output).to.include("Configuring done");
-            expect(testRunner.output).to.include("Generating done");
+            expect(
+                targetSet,
+                "expecting 'Build files have been written to', failed to complete the set-target task"
+            ).to.be.true;
+            expect(
+                testRunner.output,
+                "expecting 'configuring done', failed to complete the set-target task"
+            ).to.include("Configuring done");
+            expect(
+                testRunner.output,
+                "expecting 'Generating Done', failed to complete the set-target task"
+            ).to.include("Generating done");
 
             logger.info("Set Target Passed");
         });
@@ -113,10 +131,14 @@ export function runPostInstallTest(
                 450000
             );
 
-            expect(buildComplete).to.be.true;
-            expect(testRunner.output).to.include(
-                `Successfully created ${validTarget} image`
-            );
+            expect(
+                buildComplete,
+                "Expecting 'Project build complete', filed to build the sample project"
+            ).to.be.true;
+            expect(
+                testRunner.output,
+                "Expecting to successfully create target image, filed to build the sample project"
+            ).to.include(`Successfully created ${validTarget} image`);
             logger.info("Build Passed");
         });
     });
