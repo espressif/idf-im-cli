@@ -166,7 +166,7 @@ Options:
           Should the installer attempt to install all missing prerequisites (default false). This flag only affects Windows platforms as we do not offer prerequisites for other platforms.
           [possible values: true, false]
       --config-file-save-path <CONFIG_FILE_SAVE_PATH>
-          if set, the installer will as it's very last move save the configuration to the specified file path. This file can than be used to repeat the instalation with the same settings.
+          if set, the installer will as it's very last move save the configuration to the specified file path. This file can than be used to repeat the installation with the same settings.
   -h, --help
           Print help (see a summary with '-h')
   -V, --version
@@ -224,6 +224,17 @@ idf_mirror = "https://github.com"
 `./eim --log-file InstManager.log`
 
 ## References
+
+Alternative Mirrors:
+
+IDF:
+https://github.com
+https://jihulab.com/esp-mirror
+
+Tools:
+https://github.com
+https://dl.espressif.com/github_assets
+https://dl.espressif.cn/github_assets
 
 Packages required by EIM:
 

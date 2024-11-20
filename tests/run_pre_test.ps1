@@ -23,3 +23,4 @@ Expand-Archive node_modules.zip
 
 # Run tests using npm run AllTest
 npm run pre-test
+npm run pre-install

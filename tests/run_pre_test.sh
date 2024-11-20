@@ -10,4 +10,5 @@ cd tests
 npm ci
 
 # run tests
+set +e
 npm run pre-test
