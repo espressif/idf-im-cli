@@ -85,13 +85,13 @@ pub struct Cli {
     #[arg(
         short,
         long,
-        help = "url for download mirror to use instead of github.com"
+        help = "URL for tools download mirror to be used instead of github.com"
     )]
     pub mirror: Option<String>,
 
     #[arg(
         long,
-        help = "url for download mirror to use instead of github.com for downloading esp-idf"
+        help = "URL for ESP-IDF download mirror to be used instead of github.com"
     )]
     pub idf_mirror: Option<String>,
 
@@ -125,7 +125,7 @@ pub struct Cli {
 
     #[arg(
         long,
-        help = "if set, the installer will as it's very last move save the configuration to the specified file path. This file can than be used to repeat the instalation with the same settings."
+        help = "if set, the installer will as it's very last move save the configuration to the specified file path. This file can than be used to repeat the installation with the same settings."
     )]
     pub config_file_save_path: Option<String>,
 }
