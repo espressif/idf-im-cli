@@ -24,6 +24,8 @@ jobs:
                       package_name: windows-x64
                     - os: macos-latest
                       package_name: macos-aarch64
+                    - os: ubuntu-latest
+                      package_name: CNRunner                      
 
         steps:
             - name: Checkout repository
@@ -34,8 +36,7 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "20"
-
+                  node-version: "22"
             - name: Download artifacts
               uses: actions/download-artifact@v4
               with:
@@ -64,7 +65,7 @@ jobs:
                   chmod +x ./test-bin/eim
 
             - name: Run prerequisites test script (non-Windows)
-              if: runner.os != 'Windows'
+              if: runner.os != 'Windows' && matrix.package_name != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_pre_test.sh
@@ -81,11 +82,18 @@ jobs:
                   brew install cmake ninja dfu-util
 
             - name: Run IDF installation and post install test script (non-Windows)
-              if: runner.os != 'Windows'
+              if: runner.os != 'Windows' && matrix.package_name != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_test.sh
                   . ./tests/run_test.sh "../test-bin/eim" "idf-im-cli ${{ env.CLI_TAG }}"
+
+            - name: Run IDF installation from alternative mirrors in mainland China
+              if: matrix.package_name == 'CNRunner'
+              run: |
+                  export LOG_TO_FILE="true"
+                  chmod +x ./tests/run_cnrunner.sh
+                  . ./tests/run_cnrunner.sh "../test-bin/eim" "idf-im-cli ${{ env.CLI_TAG }}"
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

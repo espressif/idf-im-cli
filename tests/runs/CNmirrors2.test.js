@@ -32,18 +32,21 @@ const installFolder = ".espressif5";
 const projectFolder = "project";
 
 let installArgs = [];
-installArgs.push(`-p ${path.join(os.homedir(), installFolder)}`); // Install Path
-installArgs.push(`-t ${targetList.join(",")}`); // Targets (in case of multiple separate with ,)
-installArgs.push(`-i ${idfVersionList.join(",")}`); // IDF versions (in case of multiple separate with ,)
-installArgs.push(`-m https://dl.espressif.cn/github_assets`); // IDF tools mirror
-installArgs.push(`--idf-mirror https://jihulab.com/esp-mirror`); // ESP-IDF mirror
-installArgs.push(`-r true`); // recursive submodules init
+installArgs.push(` -p ${path.join(os.homedir(), installFolder)}`); // Install Path
+installArgs.push(` -m https://dl.espressif.cn/github_assets`); // IDF tools mirror
+installArgs.push(` --idf-mirror https://jihulab.com/esp-mirror`); // ESP-IDF mirror
+installArgs.push(` -r true`); // recursive submodules init
 
 const pathToIDFScript =
     os.platform() !== "win32"
-        ? path.join(installPath, `activate_idf_${idfVersionList[0]}.sh`)
+        ? path.join(
+              os.homedir(),
+              installFolder,
+              `activate_idf_${idfVersionList[0]}.sh`
+          )
         : path.join(
-              installPath,
+              os.homedir(),
+              installFolder,
               idfVersionList[0],
               `Microsoft.PowerShell_profile.ps1`
           );

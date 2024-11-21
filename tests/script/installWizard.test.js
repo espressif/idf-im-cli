@@ -24,7 +24,7 @@ export function runInstallWizardTests(pathToEim) {
 
         after(async function () {
             logger.info("Install Wizard routine completed");
-            this.timeout(10000);
+            this.timeout(20000);
             try {
                 await testRunner.stop(6000);
             } catch {
@@ -63,10 +63,10 @@ export function runInstallWizardTests(pathToEim) {
             );
             expect(selectIDFVersion, "Failed to ask for IDF version").to.be
                 .true;
-            expect(testRunner.output),
-                "Failed to offer installation for version 5.3.1".to.include(
-                    "v5.3.1"
-                );
+            expect(
+                testRunner.output,
+                "Failed to offer installation for version 5.3.1"
+            ).to.include("v5.3.1");
 
             logger.info("Select IDF Version passed");
             testRunner.output = "";

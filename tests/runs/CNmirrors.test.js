@@ -26,22 +26,27 @@ if (process.env.EIM_FILE_PATH) {
 
 logger.debug(`Starting installation using alternative download mirrors`);
 
+const targetList = ["esp32c6"]; // targets used for IDF installation
+const idfVersionList = ["v5.3.1"]; // IDF versions to be installed
 const installFolder = ".espressif4";
 const projectFolder = "project";
 
 let installArgs = [];
-installArgs.push(`-p ${path.join(os.homedir(), installFolder)}`); // Install Path
-installArgs.push(`-t ${targetList.join(",")}`); // Targets (in case of multiple separate with ,)
-installArgs.push(`-i ${idfVersionList.join(",")}`); // IDF versions (in case of multiple separate with ,)
-installArgs.push(`-m https://dl.espressif.com/github_assets`); // IDF tools mirror
-installArgs.push(`--idf-mirror https://jihulab.com/esp-mirror`); // ESP-IDF mirror
-installArgs.push(`-r true`); // recursive submodules init
+installArgs.push(` -p ${path.join(os.homedir(), installFolder)}`); // Install Path
+installArgs.push(` -m https://dl.espressif.com/github_assets`); // IDF tools mirror
+installArgs.push(` --idf-mirror https://jihulab.com/esp-mirror`); // ESP-IDF mirror
+installArgs.push(` -r true`); // recursive submodules init
 
 const pathToIDFScript =
     os.platform() !== "win32"
-        ? path.join(installPath, `activate_idf_${idfVersionList[0]}.sh`)
+        ? path.join(
+              os.homedir(),
+              installFolder,
+              `activate_idf_${idfVersionList[0]}.sh`
+          )
         : path.join(
-              installPath,
+              os.homedir(),
+              installFolder,
               idfVersionList[0],
               `Microsoft.PowerShell_profile.ps1`
           );

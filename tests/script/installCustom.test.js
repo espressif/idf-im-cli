@@ -29,7 +29,7 @@ export function runInstallCustom(pathToEim, args = []) {
 
         after(async function () {
             logger.info("Custom installation routine completed");
-            this.timeout(10000);
+            this.timeout(20000);
             try {
                 await testRunner.stop(6000);
             } catch {

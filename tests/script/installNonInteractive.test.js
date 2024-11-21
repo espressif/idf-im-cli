@@ -9,7 +9,7 @@ export function runInstallNonInteractive(pathToEim, args = []) {
 
         before(async function () {
             logger.debug(`Starting non interactive installation`);
-            logger.debug(`Using parameters ${args.join("")}`);
+            logger.debug(`Using parameters ${args.join(" ")}`);
             this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
             await testRunner.start();
@@ -26,7 +26,7 @@ export function runInstallNonInteractive(pathToEim, args = []) {
 
         after(async function () {
             logger.info("Custom installation routine completed");
-            this.timeout(10000);
+            this.timeout(20000);
             try {
                 await testRunner.stop(6000);
             } catch {
@@ -43,7 +43,7 @@ export function runInstallNonInteractive(pathToEim, args = []) {
 
         it("Should install IDF using specified parameters", async function () {
             logger.info("Sent command line for IDF installation");
-            testRunner.sendInput(`${pathToEim} ${args.join("")} -n true \r`);
+            testRunner.sendInput(`${pathToEim} ${args.join(" ")} -n true \r`);
 
             const installationSuccessful = await testRunner.waitForOutput(
                 "Successfully installed IDF",
