@@ -24,7 +24,7 @@ if (process.env.EIM_FILE_PATH) {
     pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
-logger.debug(`Starting installation using alternative download mirrors`);
+logger.debug(`Starting installation using mirror jihulab and dl.espressif.cn`);
 
 const targetList = ["esp32"]; // targets used for IDF installation
 const idfVersionList = ["v5.0.7"]; // IDF versions to be installed

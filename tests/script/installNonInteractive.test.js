@@ -43,7 +43,7 @@ export function runInstallNonInteractive(pathToEim, args = []) {
 
         it("Should install IDF using specified parameters", async function () {
             logger.info("Sent command line for IDF installation");
-            testRunner.sendInput(`${pathToEim} ${args.join(" ")} -n true \r`);
+            testRunner.sendInput(`${pathToEim} ${args.join(" ")} -n true\r`);
 
             const installationSuccessful = await testRunner.waitForOutput(
                 "Successfully installed IDF",

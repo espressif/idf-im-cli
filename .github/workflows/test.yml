@@ -149,8 +149,12 @@ jobs:
                   name: test-results-${{ matrix.package_name }}-${{matrix.run_on}}.zip
                   path: |
                       ./tests/results-pre-test.xml
+                      ./tests/results-pre-install-test.xml
                       ./tests/results-default-test.xml
                       ./tests/results-variation1-test.xml
+                      ./tests/results-non-interactive-test.xml
+                      ./tests/results-CNMirror-test.xml
+                      ./tests/results-CNMirror2-test.xml
                       ./tests/test.log
 
     publish-test-results:

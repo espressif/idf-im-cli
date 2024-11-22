@@ -27,7 +27,7 @@ export function runPostInstallTest(
                 logger.info("Error to start IDF terminal");
                 logger.info(testRunner.output);
                 throw new Error(
-                    "One test in teh chain failed, aborting the entire suite."
+                    "One test in the chain failed, aborting the entire suite."
                 );
             }
         });

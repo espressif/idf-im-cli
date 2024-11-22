@@ -40,7 +40,7 @@ describe("Check Pre-requisites installation on Windows", function () {
     });
 
     afterEach(async function () {
-        this.timeout(10000);
+        this.timeout(20000);
         if (this.currentTest.state === "failed") {
             logger.info(
                 `Terminal output on failure: >>\r ${testRunner.output}`
@@ -49,7 +49,7 @@ describe("Check Pre-requisites installation on Windows", function () {
         try {
             await testRunner.stop(6000);
         } catch {
-            logger.debug("Error to clean up terminal after test");
+            logger.info("Error to clean up terminal after test");
         }
         testRunner = null;
     });
