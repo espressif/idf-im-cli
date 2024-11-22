@@ -20,12 +20,16 @@ jobs:
                 include:
                     - os: ubuntu-latest
                       package_name: linux-x64
+                      run_on: GitHub
                     - os: windows-latest
                       package_name: windows-x64
+                      run_on: GitHub
                     - os: macos-latest
                       package_name: macos-aarch64
+                      run_on: GitHub
                     - os: ubuntu-latest
-                      package_name: CNRunner                      
+                      package_name: linux-x64
+                      run_on: CNRunner
 
         steps:
             - name: Checkout repository
@@ -36,7 +40,8 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "22"
+                  node-version: "20"
+
             - name: Download artifacts
               uses: actions/download-artifact@v4
               with:
@@ -64,8 +69,8 @@ jobs:
               run: |
                   chmod +x ./test-bin/eim
 
-            - name: Run prerequisites test script (non-Windows)
-              if: runner.os != 'Windows' && matrix.package_name != 'CNRunner'
+            - name: Run prerequisites test script (non-Windows), skip for CNRunner
+              if: runner.os != 'Windows' && matrix.run_on != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_pre_test.sh
@@ -82,14 +87,14 @@ jobs:
                   brew install cmake ninja dfu-util
 
             - name: Run IDF installation and post install test script (non-Windows)
-              if: runner.os != 'Windows' && matrix.package_name != 'CNRunner'
+              if: runner.os != 'Windows' && matrix.run_on != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_test.sh
                   . ./tests/run_test.sh "../test-bin/eim" "idf-im-cli ${{ env.CLI_TAG }}"
 
             - name: Run IDF installation from alternative mirrors in mainland China
-              if: matrix.package_name == 'CNRunner'
+              if: matrix.run_on == 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_cnrunner.sh
