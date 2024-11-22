@@ -9,10 +9,10 @@ export function runInstallCustom(pathToEim, args = []) {
 
         before(async function () {
             logger.debug(
-                `Installing IDF version: ${idfVersionList} on path: ${installPath}`
+                `Installing custom IDF version with parameters ${args.join(
+                    " "
+                )}`
             );
-            logger.debug(`Installing IDF for targets ${targetList}`);
-            logger.debug(`Recurse submodules active? : ${recursiveSubmodules}`);
             this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
             await testRunner.start();

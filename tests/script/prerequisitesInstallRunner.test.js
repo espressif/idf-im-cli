@@ -46,8 +46,10 @@ describe("Check Pre-requisites installation on Windows", function () {
                 `Terminal output on failure: >>\r ${testRunner.output}`
             );
         }
-        if (!testRunner.exited) {
-            await testRunner.stop();
+        try {
+            await testRunner.stop(6000);
+        } catch {
+            logger.debug("Error to clean up terminal after test");
         }
         testRunner = null;
     });
@@ -64,7 +66,7 @@ describe("Check Pre-requisites installation on Windows", function () {
         ).to.be.true;
 
         logger.info("Question to install prerequisites passed");
-        testRunner.output = "";
+
         testRunner.sendInput("y");
 
         const selectTargetQuestion = await testRunner.waitForOutput(
@@ -78,10 +80,10 @@ describe("Check Pre-requisites installation on Windows", function () {
     });
 
     it("should detect all prerequisites are installed", async function () {
-        this.timeout(20000);
+        this.timeout(22000);
         const selectTargetQuestion2 = await testRunner.waitForOutput(
             "Please select all of the target platforms",
-            240000
+            20000
         );
         expect(
             selectTargetQuestion2,

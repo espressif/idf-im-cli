@@ -146,7 +146,7 @@ jobs:
               uses: actions/upload-artifact@v4
               if: always()
               with:
-                  name: test-results-${{ matrix.package_name }} - ${{matrix.run_on}}.zip
+                  name: test-results-${{ matrix.package_name }}-${{matrix.run_on}}.zip
                   path: |
                       ./tests/results-pre-test.xml
                       ./tests/results-default-test.xml

@@ -18,13 +18,18 @@ export function runPostInstallTest(
         beforeEach(async function () {
             this.timeout(10000);
             logger.debug(
-                `Starting IDF terminal using activation script ${pathToIDFScript}, sample project copied at ${path.join(
-                    os.homedir(),
-                    pathToProjectFolder
-                )}`
+                `Starting IDF terminal using activation script ${pathToIDFScript}, sample project copied at ${pathToProjectFolder}`
             );
             testRunner = new InteractiveCLITestRunner();
-            await testRunner.runIDFTerminal(pathToIDFScript);
+            try {
+                await testRunner.runIDFTerminal(pathToIDFScript);
+            } catch {
+                logger.info("Error to start IDF terminal");
+                logger.info(testRunner.output);
+                throw new Error(
+                    "One test in teh chain failed, aborting the entire suite."
+                );
+            }
         });
 
         afterEach(async function () {

@@ -12,14 +12,16 @@ export function runArgumentsTests(pathToEim, eimVersion) {
         });
 
         afterEach(async function () {
+            this.timeout(20000);
             if (this.currentTest.state === "failed") {
                 logger.info(
                     `Terminal output on failure: >>\r ${testRunner.output}`
                 );
             }
-            if (!testRunner.exited) {
-                logger.debug("Sending stop command to emulator");
-                await testRunner.stop();
+            try {
+                await testRunner.stop(6000);
+            } catch {
+                logger.debug("Error to clean up terminal after test");
             }
             testRunner = null;
         });

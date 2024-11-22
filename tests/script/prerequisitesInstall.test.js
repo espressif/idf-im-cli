@@ -46,8 +46,10 @@ describe("Check Pre-requisites installation on Windows", function () {
                 `Terminal output on failure: >>\r ${testRunner.output}`
             );
         }
-        if (!testRunner.exited) {
-            await testRunner.stop();
+        try {
+            await testRunner.stop(6000);
+        } catch {
+            logger.debug("Error to clean up terminal after test");
         }
         testRunner = null;
     });
