@@ -51,7 +51,7 @@ const pathToIDFScript =
               `Microsoft.PowerShell_profile.ps1`
           );
 
-describe("Installation using non-interactive settings", function () {
+describe("using mirror jihulab and dl.espressif.cn", function () {
     this.timeout(2400000);
 
     runInstallNonInteractive(pathToEim, installArgs);

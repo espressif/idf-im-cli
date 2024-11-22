@@ -24,7 +24,7 @@ if (process.env.EIM_FILE_PATH) {
     pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
-logger.debug(`Starting installation using alternative download mirrors`);
+logger.debug(`Starting installation using mirror jihulab and dl.espressif.com`);
 
 const targetList = ["esp32c6"]; // targets used for IDF installation
 const idfVersionList = ["v5.3.1"]; // IDF versions to be installed
@@ -51,7 +51,7 @@ const pathToIDFScript =
               `Microsoft.PowerShell_profile.ps1`
           );
 
-describe("Installation using non-interactive settings", function () {
+describe("Installation using mirror jihulab and dl.espressif.com", function () {
     this.timeout(2400000);
 
     runInstallNonInteractive(pathToEim, installArgs);

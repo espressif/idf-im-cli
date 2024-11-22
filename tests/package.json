@@ -10,7 +10,7 @@
     },
     "scripts": {
         "pre-test": "mocha --exit --bail --reporter mocha-junit-reporter --reporter-options mochaFile=./results-pre-test.xml script/prerequisites.test.js",
-        "pre-install": "mocha --exit --bail --reporter mocha-junit-reporter --reporter-options mochaFile=./results-pre-test.xml script/prerequisitesInstall.test.js",
+        "pre-install": "mocha --exit --bail --reporter mocha-junit-reporter --reporter-options mochaFile=./results-pre-test.xml script/prerequisitesInstallRunner.test.js",
         "default-test": "mocha --exit --bail --reporter mocha-junit-reporter --reporter-options mochaFile=./results-default-test.xml runs/defaultInstall.test.js",
         "variation1-test": "mocha --exit --bail --reporter mocha-junit-reporter --reporter-options mochaFile=./results-variation1-test.xml runs/variation1.test.js",
         "non-interactive-test": "mocha --exit --bail --reporter mocha-junit-reporter --reporter-options mochaFile=./results-variation1-test.xml runs/nonInteractiveInstall.test.js",
