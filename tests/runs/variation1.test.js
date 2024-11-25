@@ -33,8 +33,8 @@ const projectFolder = "project";
 
 let installArgs = [];
 installArgs.push(` -p ${path.join(os.homedir(), installFolder)}`); // Install Path
-installArgs.push(` -t ${targetList.join(",")}`); // Targets (in case of multiple separate with ,)
-installArgs.push(` -i ${idfVersionList.join(",")}`); // IDF versions (in case of multiple separate with ,)
+installArgs.push(` -t ${targetList.join(",")}`); // Targets
+installArgs.push(` -i ${idfVersionList.join(",")}`); // IDF versions
 installArgs.push(` -m https://github.com`); // IDF tools mirror
 installArgs.push(` --idf-mirror https://github.com`); // ESP-IDF mirror
 installArgs.push(` -r true`); // recursive submodules init

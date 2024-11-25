@@ -33,9 +33,11 @@ const projectFolder = "project";
 
 let installArgs = [];
 installArgs.push(` -p ${path.join(os.homedir(), installFolder)}`); // Install Path
+installArgs.push(` -t ${targetList.join(",")}`); // Targets
+installArgs.push(` -i ${idfVersionList.join(",")}`); // IDF versions
 installArgs.push(` -m https://dl.espressif.cn/github_assets`); // IDF tools mirror
 installArgs.push(` --idf-mirror https://jihulab.com/esp-mirror`); // ESP-IDF mirror
-installArgs.push(` -r true`); // recursive submodules init
+installArgs.push(` -r false`); // recursive submodules init
 
 const pathToIDFScript =
     os.platform() !== "win32"
