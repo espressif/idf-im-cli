@@ -55,6 +55,7 @@ describe("Check Pre-requisites installation on Windows", function () {
     });
 
     it("should install prerequisites and offer to install python and exit upon negative answer", async function () {
+        logger.info(`Starting test - check python requirement`);
         this.timeout(240000);
         const promptRequisites = await testRunner.waitForOutput(
             "Do you want to install prerequisites"
@@ -80,6 +81,7 @@ describe("Check Pre-requisites installation on Windows", function () {
     });
 
     it("should detect all prerequisites are installed", async function () {
+        logger.info(`Starting test - all requirements installed`);
         this.timeout(22000);
         const selectTargetQuestion2 = await testRunner.waitForOutput(
             "Please select all of the target platforms",

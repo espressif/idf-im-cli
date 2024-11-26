@@ -42,6 +42,10 @@ const pathToProjectFolder =
         ? path.join(os.homedir(), ".espressif/project")
         : "C:\\esp\\project";
 
+logger.info(
+    `Starting installation using wizard and default settings using EIM on ${pathToEim}`
+);
+
 describe("Installation using default settings", function () {
     this.timeout(2400000);
 

@@ -49,12 +49,13 @@ describe("Check Pre-requisites installation on Windows", function () {
         try {
             await testRunner.stop(6000);
         } catch {
-            logger.debug("Error to clean up terminal after test");
+            logger.info("Error to clean up terminal after test");
         }
         testRunner = null;
     });
 
     it("should install prerequisites and offer to install python and exit upon negative answer", async function () {
+        logger.info(`Starting test - check for missing requisites`);
         this.timeout(240000);
         const promptRequisites = await testRunner.waitForOutput(
             "Do you want to install prerequisites"
@@ -93,6 +94,7 @@ describe("Check Pre-requisites installation on Windows", function () {
     });
 
     it("should install python and proceed with installation", async function () {
+        logger.info(`Starting test - Check for python requisite`);
         this.timeout(240000);
         const promptPython2 = await testRunner.waitForOutput(
             "Do you want to install Python",
@@ -120,6 +122,7 @@ describe("Check Pre-requisites installation on Windows", function () {
     });
 
     it("should detect all prerequisites are installed", async function () {
+        logger.info(`Starting test - confirm no missing requisites`);
         this.timeout(20000);
         const selectTargetQuestion2 = await testRunner.waitForOutput(
             "Please select all of the target platforms",

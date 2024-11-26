@@ -11,7 +11,11 @@ export function runInstallWizardTests(pathToEim) {
             logger.debug(`Starting installation wizard with default options`);
             this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
-            await testRunner.start();
+            try {
+                await testRunner.start();
+            } catch {
+                logger.info("Error to start terminal");
+            }
         });
 
         afterEach(function () {
@@ -28,7 +32,7 @@ export function runInstallWizardTests(pathToEim) {
             try {
                 await testRunner.stop(6000);
             } catch {
-                logger.debug("Error to clean up terminal after test");
+                logger.info("Error to clean up terminal after test");
             }
         });
 
@@ -40,6 +44,7 @@ export function runInstallWizardTests(pathToEim) {
          */
 
         it("Should install IDF using wizard and default values", async function () {
+            logger.info(`Starting test - IDF installation wizard`);
             testRunner.sendInput(`${pathToEim}\r`);
             const selectTargetQuestion = await testRunner.waitForOutput(
                 "Please select all of the target platforms",

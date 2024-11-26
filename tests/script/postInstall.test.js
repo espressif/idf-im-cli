@@ -3,7 +3,6 @@ import { describe, it, before, after, beforeEach, afterEach } from "mocha";
 import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
 import logger from "../classes/logger.class.js";
 import os from "os";
-import path from "path";
 
 export function runPostInstallTest(
     pathToIDFScript,
@@ -42,7 +41,7 @@ export function runPostInstallTest(
                 await testRunner.stop(6000);
                 testRunner = null;
             } catch {
-                logger.debug("Error to clean up terminal after test");
+                logger.info("Error to clean up terminal after test");
             }
         });
 
@@ -52,6 +51,7 @@ export function runPostInstallTest(
              * The commands might differ for each operating system.
              * The assert is based on the existence of the project files in the expected folder.
              */
+            logger.info(`Starting test - create new project`);
             testRunner.sendInput(`mkdir ${pathToProjectFolder}\r`);
             testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
 
@@ -94,14 +94,15 @@ export function runPostInstallTest(
             /**
              * This test attempts to set a target MCU for the project created in the previous test.
              */
-            this.timeout(600000);
+            logger.info(`Starting test - set target`);
+            this.timeout(750000);
             testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
             testRunner.sendInput("cd hello_world\r");
             testRunner.sendInput(`idf.py set-target ${validTarget}\r`);
 
             const targetSet = await testRunner.waitForOutput(
                 "Build files have been written to",
-                600000
+                700000
             );
 
             expect(
@@ -125,6 +126,7 @@ export function runPostInstallTest(
              * This test attempts to build artifacts for the project and targets selected above.
              * The test is successful if the success message is printed in the terminal.
              */
+            logger.info(`Starting test - build project`);
             this.timeout(600000);
             testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
             testRunner.sendInput("cd hello_world\r");

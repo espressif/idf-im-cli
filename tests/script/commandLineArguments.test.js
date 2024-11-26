@@ -21,12 +21,13 @@ export function runArgumentsTests(pathToEim, eimVersion) {
             try {
                 await testRunner.stop(6000);
             } catch {
-                logger.debug("Error to clean up terminal after test");
+                logger.info("Error to clean up terminal after test");
             }
             testRunner = null;
         });
 
         it("should show correct version number", async function () {
+            logger.info(`Starting test - show correct version`);
             await testRunner.start();
             testRunner.sendInput(`${pathToEim} -V\r`);
             const meetVersion = await testRunner.waitForOutput(eimVersion);
@@ -35,6 +36,7 @@ export function runArgumentsTests(pathToEim, eimVersion) {
         });
 
         it("should show help with --help argument", async function () {
+            logger.info(`Starting test - show help`);
             await testRunner.start();
             testRunner.sendInput(`${pathToEim} --help\r`);
             const printHelp = await testRunner.waitForOutput("Options:");
@@ -46,6 +48,7 @@ export function runArgumentsTests(pathToEim, eimVersion) {
         });
 
         it("should handle invalid arguments", async function () {
+            logger.info(`Starting test - invalid argument`);
             await testRunner.start();
             testRunner.sendInput(`${pathToEim} --KK\r`);
             const wrongArgument = await testRunner.waitForOutput(

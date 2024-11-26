@@ -85,7 +85,7 @@ export class InteractiveCLITestRunner {
                 await this.waitForPrompt();
                 return Promise.resolve();
             } catch (error) {
-                logger.debug(`Error detecting prompt >>${this.output}<<< `);
+                logger.info(`Error detecting prompt >>${this.output}<<< `);
                 return Promise.reject(error);
             }
         } else {
@@ -143,17 +143,17 @@ export class InteractiveCLITestRunner {
                 const exitTime = Date.now();
                 while (Date.now() - exitTime < timeout * 2) {
                     if (this.exited) {
-                        logger.debug("terminal exited gracefully");
+                        logger.info("terminal exited gracefully");
                         return Promise.resolve();
                     }
                     await new Promise((resolve) => setTimeout(resolve, 200));
                 }
-                logger.debug("Terminal didn't exit gracefully, killing task");
+                logger.info("Terminal didn't exit gracefully, killing task");
                 this.process.kill();
                 const killTime = Date.now();
                 while (Date.now() - killTime < timeout) {
                     if (this.exited) {
-                        logger.debug("Terminal is now killed");
+                        logger.info("Terminal is now killed");
                         return Promise.resolve();
                     }
                     await new Promise((resolve) => setTimeout(resolve, 200));

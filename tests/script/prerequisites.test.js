@@ -35,7 +35,7 @@ describe("Check if prerequisites are installed", function () {
             await testRunner.start();
             testRunner.sendInput(`${pathToEim}\r`);
         } catch (error) {
-            logger.debug(`Error starting process: ${error}`);
+            logger.info(`Error starting process: ${error}`);
             throw error;
         }
     });
@@ -45,7 +45,7 @@ describe("Check if prerequisites are installed", function () {
         try {
             await testRunner.stop(6000);
         } catch {
-            logger.debug("Error to clean up terminal after test");
+            logger.info("Error to clean up terminal after test");
         }
         testRunner = null;
     });
@@ -68,6 +68,7 @@ describe("Check if prerequisites are installed", function () {
             });
 
             it("Should detect missing requirements", async function () {
+                logger.info(`Starting test - confirm requirements are missing`);
                 this.timeout(25000);
                 const missingRequisites = await testRunner.waitForOutput(
                     "Error: Please install the missing prerequisites",
@@ -98,6 +99,7 @@ describe("Check if prerequisites are installed", function () {
             });
 
             it("should offer to install prerequisites and exit upon negative answer", async function () {
+                logger.info(`Starting test - confirm requirements are missing`);
                 this.timeout(25000);
                 const promptRequisites = await testRunner.waitForOutput(
                     "Do you want to install prerequisites?"

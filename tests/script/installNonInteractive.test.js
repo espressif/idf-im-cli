@@ -12,7 +12,11 @@ export function runInstallNonInteractive(pathToEim, args = []) {
             logger.debug(`Using parameters ${args.join(" ")}`);
             this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
-            await testRunner.start();
+            try {
+                await testRunner.start();
+            } catch {
+                logger.info("Error to start terminal");
+            }
         });
 
         afterEach(function () {
@@ -30,7 +34,7 @@ export function runInstallNonInteractive(pathToEim, args = []) {
             try {
                 await testRunner.stop(6000);
             } catch {
-                logger.debug("Error to clean up terminal after test");
+                logger.info("Error to clean up terminal after test");
             }
         });
 
@@ -42,7 +46,7 @@ export function runInstallNonInteractive(pathToEim, args = []) {
          */
 
         it("Should install IDF using specified parameters", async function () {
-            logger.info("Sent command line for IDF installation");
+            logger.info(`Starting test - IDF non-interactive installation`);
             testRunner.sendInput(`${pathToEim} ${args.join(" ")} -n true\r`);
 
             const installationSuccessful = await testRunner.waitForOutput(

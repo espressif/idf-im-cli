@@ -24,8 +24,6 @@ if (process.env.EIM_FILE_PATH) {
     pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
-logger.debug(`Starting installation using mirror jihulab and dl.espressif.cn`);
-
 const targetList = ["esp32"]; // targets used for IDF installation
 const idfVersionList = ["v5.0.7"]; // IDF versions to be installed
 const installFolder = ".espressif5";
@@ -52,6 +50,10 @@ const pathToIDFScript =
               idfVersionList[0],
               `Microsoft.PowerShell_profile.ps1`
           );
+
+logger.info(
+    `Starting installation using mirror jihulab and dl.espressif.cn and EIM on ${pathToEim}`
+);
 
 describe("using mirror jihulab and dl.espressif.cn", function () {
     this.timeout(2400000);

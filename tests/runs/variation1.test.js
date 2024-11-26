@@ -24,8 +24,6 @@ if (process.env.EIM_FILE_PATH) {
     pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
-logger.debug(`Starting custom installation using EIM on ${pathToEim}`);
-
 const targetList = ["esp32s2"]; // targets used for IDF installation
 const idfVersionList = ["v5.2.3"]; // IDF versions to be installed
 const installFolder = ".espressif2";
@@ -52,6 +50,8 @@ const pathToIDFScript =
               idfVersionList[0],
               `Microsoft.PowerShell_profile.ps1`
           );
+
+logger.debug(`Starting custom installation using EIM on ${pathToEim}`);
 
 describe("Installation using custom settings", function () {
     this.timeout(2400000);

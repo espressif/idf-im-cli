@@ -15,7 +15,11 @@ export function runInstallCustom(pathToEim, args = []) {
             );
             this.timeout(5000);
             testRunner = new InteractiveCLITestRunner();
-            await testRunner.start();
+            try {
+                await testRunner.start();
+            } catch {
+                logger.info("Error to start terminal");
+            }
         });
 
         afterEach(function () {
@@ -33,7 +37,7 @@ export function runInstallCustom(pathToEim, args = []) {
             try {
                 await testRunner.stop(6000);
             } catch {
-                logger.debug("Error to clean up terminal after test");
+                logger.info("Error to clean up terminal after test");
             }
         });
 
@@ -44,7 +48,7 @@ export function runInstallCustom(pathToEim, args = []) {
          */
 
         it("Should install IDF using specified parameters", async function () {
-            logger.info("Sent command line for IDF installation");
+            logger.info(`Starting test - IDF custom installation`);
             testRunner.sendInput(`${pathToEim} ${args.join(" ")}\r`);
             const installationCompleted = await testRunner.waitForOutput(
                 "Do you want to save the installer configuration",
