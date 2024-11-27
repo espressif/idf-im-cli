@@ -5,8 +5,8 @@ use cli_args::{Cli, Commands};
 use config::ConfigError;
 use log::{debug, error, info, LevelFilter};
 extern crate idf_im_lib;
-use idf_im_lib::get_log_directory;
 use idf_im_lib::settings::Settings;
+use idf_im_lib::{get_log_directory, version_manager::select_idf_version_by_name};
 mod cli_args;
 mod wizard;
 
@@ -132,37 +132,54 @@ async fn main() {
             }
         }
         Commands::Select { version } => {
-            // Implement version selection
-            println!("Selecting version: {}", version);
+            if version.is_none() {
+                match idf_im_lib::version_manager::list_installed_versions() {
+                    Ok(versions) => {
+                        if versions.len() == 0 {
+                            println!("No versions installed");
+                        } else {
+                            println!("Available versions:");
+                            let options = versions.iter().map(|v| v.name.clone()).collect();
+                            match crate::wizard::helpers::generic_select(
+                                "Which version do you want to select?",
+                                &options,
+                            ) {
+                                Ok(selected) => match select_idf_version_by_name(&selected) {
+                                    Ok(_) => {
+                                        println!("Selected version: {}", selected);
+                                    }
+                                    Err(err) => error!("Error: {}", err),
+                                },
+                                Err(err) => error!("Error: {}", err),
+                            }
+                        }
+                    }
+                    Err(err) => error!("Error: {}", err),
+                }
+            } else {
+                // Implement version selection
+                match select_idf_version_by_name(&version.clone().unwrap()) {
+                    Ok(_) => {
+                        println!("Selected version: {}", version.clone().unwrap());
+                    }
+                    Err(err) => error!("Error: {}", err),
+                }
+            }
         }
         Commands::Discover => {
             // Implement version discovery
             println!("Discovering available versions...");
+            unimplemented!();
         }
         Commands::Remove { version } => {
             // Implement version removal
             println!("Removing version: {}", version);
+            unimplemented!();
         }
         Commands::Purge => {
             // Implement complete purge
             println!("Purging all installations...");
+            unimplemented!();
         }
     }
-
-    // let settings = Settings::new(cli.config.clone(), cli.into_iter());
-    // // let settings = cli_args::Settings::new();
-    // match settings {
-    //     Ok(settings) => {
-    //         let result = wizard::run_wizzard_run(settings).await;
-    //         match result {
-    //             Ok(r) => {
-    //                 info!("Wizard result: {:?}", r);
-    //                 println!("Successfully installed IDF");
-    //                 println!("Now you can start using IDF tools");
-    //             }
-    //             Err(err) => error!("Error: {}", err),
-    //         }
-    //     }
-    //     Err(err) => error!("Error: {}", err),
-    // }
 }

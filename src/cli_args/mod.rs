@@ -51,6 +51,7 @@ pub struct Cli {
     pub log_file: Option<String>,
 }
 
+// todo: add rename
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     /// Install ESP-IDF versions and tools
@@ -62,7 +63,7 @@ pub enum Commands {
     /// Select an ESP-IDF version as active
     Select {
         #[arg(help = "Version to select as active")]
-        version: String,
+        version: Option<String>,
     },
 
     /// Discover available ESP-IDF versions
