@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::Parser;
 use cli_args::{Cli, Commands};
 use config::ConfigError;
-use idf_im_lib::version_manager::select_idf_version;
+use idf_im_lib::version_manager::{remove_single_idf_version, select_idf_version};
 use log::{debug, error, info, LevelFilter};
 extern crate idf_im_lib;
 use idf_im_lib::get_log_directory;
@@ -224,9 +224,36 @@ async fn main() {
             unimplemented!();
         }
         Commands::Remove { version } => {
-            // Implement version removal
-            println!("Removing version: {}", version);
-            unimplemented!();
+            // todo: add spinner
+            if version.is_none() {
+                match idf_im_lib::version_manager::list_installed_versions() {
+                    Ok(versions) => {
+                        if versions.len() == 0 {
+                            println!("No versions installed");
+                        } else {
+                            println!("Available versions:");
+                            let options = versions.iter().map(|v| v.name.clone()).collect();
+                            match generic_select("Which version do you want to remove?", &options) {
+                                Ok(selected) => match remove_single_idf_version(&selected) {
+                                    Ok(_) => {
+                                        println!("Removed version: {}", selected);
+                                    }
+                                    Err(err) => error!("Error: {}", err),
+                                },
+                                Err(err) => error!("Error: {}", err),
+                            }
+                        }
+                    }
+                    Err(err) => error!("Error: {}", err),
+                }
+            } else {
+                match remove_single_idf_version(&version.clone().unwrap()) {
+                    Ok(_) => {
+                        println!("Removed version: {}", version.clone().unwrap());
+                    }
+                    Err(err) => error!("Error: {}", err),
+                }
+            }
         }
         Commands::Purge => {
             // Implement complete purge

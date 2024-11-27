@@ -72,7 +72,7 @@ pub enum Commands {
     /// Remove specific ESP-IDF version
     Remove {
         #[arg(help = "Version to remove")]
-        version: String,
+        version: Option<String>,
     },
 
     /// Remove specific ESP-IDF version
