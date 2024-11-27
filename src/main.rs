@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use clap::Parser;
+use cli_args::{Cli, Commands};
 use config::ConfigError;
 use log::{debug, error, info, LevelFilter};
 extern crate idf_im_lib;
@@ -87,29 +88,68 @@ fn set_locale(locale: &Option<String>) {
 
 #[tokio::main]
 async fn main() {
-    let cli = cli_args::Cli::parse();
+    let cli = Cli::parse();
 
     setup_logging(&cli).unwrap();
     set_locale(&cli.locale);
 
-    let settings = Settings::new(cli.config.clone(), cli.into_iter());
-    // let settings = cli_args::Settings::new();
-    match settings {
-        Ok(settings) => {
-            let result = wizard::run_wizzard_run(settings).await;
-            match result {
-                Ok(r) => {
-                    info!("Wizard result: {:?}", r);
-                    println!("Successfully installed IDF");
-                    println!("Now you can start using IDF tools");
+    match &cli.command {
+        Commands::Install(install_args) => {
+            let settings = Settings::new(
+                install_args.config.clone(),
+                install_args.clone().into_iter(),
+            );
+            match settings {
+                Ok(settings) => {
+                    let result = wizard::run_wizzard_run(settings).await;
+                    match result {
+                        Ok(r) => {
+                            info!("Wizard result: {:?}", r);
+                            println!("Successfully installed IDF");
+                            println!("Now you can start using IDF tools");
+                        }
+                        Err(err) => error!("Error: {}", err),
+                    }
                 }
                 Err(err) => error!("Error: {}", err),
             }
         }
-        Err(err) => error!("Error: {}", err),
+        Commands::List => {
+            // Implement listing installed versions
+            println!("Listing installed versions...");
+        }
+        Commands::Select { version } => {
+            // Implement version selection
+            println!("Selecting version: {}", version);
+        }
+        Commands::Discover => {
+            // Implement version discovery
+            println!("Discovering available versions...");
+        }
+        Commands::Remove { version } => {
+            // Implement version removal
+            println!("Removing version: {}", version);
+        }
+        Commands::Purge => {
+            // Implement complete purge
+            println!("Purging all installations...");
+        }
     }
 
-    // next step is source the env vars
-    // activate venvironment
-    // or at least spit user instruction how to do this
+    // let settings = Settings::new(cli.config.clone(), cli.into_iter());
+    // // let settings = cli_args::Settings::new();
+    // match settings {
+    //     Ok(settings) => {
+    //         let result = wizard::run_wizzard_run(settings).await;
+    //         match result {
+    //             Ok(r) => {
+    //                 info!("Wizard result: {:?}", r);
+    //                 println!("Successfully installed IDF");
+    //                 println!("Now you can start using IDF tools");
+    //             }
+    //             Err(err) => error!("Error: {}", err),
+    //         }
+    //     }
+    //     Err(err) => error!("Error: {}", err),
+    // }
 }

@@ -1,6 +1,8 @@
 use clap::builder::styling::{AnsiColor, Color, Style, Styles};
-use clap::{arg, command, ColorChoice, Parser};
+use clap::{arg, command, ColorChoice, Parser, Subcommand};
 use std::path::PathBuf;
+
+// use clap::builder::styling::{AnsiColor, Color, Style, Styles};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -31,6 +33,53 @@ fn custom_styles() -> Styles {
     styles = custom_styles()
 )]
 pub struct Cli {
+    #[command(subcommand)]
+    pub command: Commands,
+
+    #[arg(short, long, help = "Set the language for the wizard (en, cn)")]
+    pub locale: Option<String>,
+
+    #[arg(
+        short,
+        long,
+        action = clap::ArgAction::Count,
+        help = "Increase verbosity level (can be used multiple times)"
+    )]
+    pub verbose: u8,
+
+    #[arg(long, help = "file in which logs will be stored (default: eim.log)")]
+    pub log_file: Option<String>,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    /// Install ESP-IDF versions and tools
+    Install(InstallArgs),
+
+    /// List installed ESP-IDF versions and tools
+    List,
+
+    /// Select an ESP-IDF version as active
+    Select {
+        #[arg(help = "Version to select as active")]
+        version: String,
+    },
+
+    /// Discover available ESP-IDF versions
+    Discover,
+
+    /// Remove specific ESP-IDF version
+    Remove {
+        #[arg(help = "Version to remove")]
+        version: String,
+    },
+
+    /// Purge all ESP-IDF installations
+    Purge,
+}
+
+#[derive(Parser, Debug, Clone)]
+pub struct InstallArgs {
     #[arg(
         short,
         long,
@@ -98,20 +147,6 @@ pub struct Cli {
     #[arg(
         short,
         long,
-        action = clap::ArgAction::Count,
-        help = "Increase verbosity level (can be used multiple times)"
-    )]
-    pub verbose: u8,
-
-    #[arg(short, long, help = "Set the language for the wizard (en, cn)")]
-    pub locale: Option<String>,
-
-    #[arg(long, help = "file in which logs will be stored (default: eim.log)")]
-    pub log_file: Option<String>,
-
-    #[arg(
-        short,
-        long,
         help = "Should the installer recurse into submodules of the ESP-IDF repository (default true) "
     )]
     pub recurse_submodules: Option<bool>,
@@ -136,7 +171,7 @@ pub struct Cli {
     pub idf_features: Option<String>,
 }
 
-impl IntoIterator for Cli {
+impl IntoIterator for InstallArgs {
     type Item = (String, Option<config::Value>);
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
