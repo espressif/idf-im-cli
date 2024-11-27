@@ -256,9 +256,26 @@ async fn main() {
             }
         }
         Commands::Purge => {
-            // Implement complete purge
-            println!("Purging all installations...");
-            unimplemented!();
+            // Todo: offer to run discovery first
+            println!("Purging all IDF installations...");
+            match idf_im_lib::version_manager::list_installed_versions() {
+                Ok(versions) => {
+                    if versions.len() == 0 {
+                        println!("No versions installed");
+                    } else {
+                        for version in versions {
+                            println!("Removing version: {}", version.name);
+                            match remove_single_idf_version(&version.name) {
+                                Ok(_) => {
+                                    println!("Removed version: {}", version.name);
+                                }
+                                Err(err) => error!("Error: {}", err),
+                            }
+                        }
+                    }
+                }
+                Err(err) => error!("Error: {}", err),
+            }
         }
     }
 }
