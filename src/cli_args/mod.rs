@@ -51,7 +51,7 @@ pub struct Cli {
     pub log_file: Option<String>,
 }
 
-// todo: add rename
+// todo: add fix command which will reinstall using the existing IDF repository
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     /// Install ESP-IDF versions and tools
@@ -73,6 +73,13 @@ pub enum Commands {
     Remove {
         #[arg(help = "Version to remove")]
         version: String,
+    },
+
+    /// Remove specific ESP-IDF version
+    Rename {
+        #[arg(help = "Version to rename")]
+        version: Option<String>,
+        new_name: Option<String>,
     },
 
     /// Purge all ESP-IDF installations

@@ -3,10 +3,11 @@ use std::path::PathBuf;
 use clap::Parser;
 use cli_args::{Cli, Commands};
 use config::ConfigError;
+use idf_im_lib::version_manager::select_idf_version;
 use log::{debug, error, info, LevelFilter};
 extern crate idf_im_lib;
+use idf_im_lib::get_log_directory;
 use idf_im_lib::settings::Settings;
-use idf_im_lib::{get_log_directory, version_manager::select_idf_version_by_name};
 mod cli_args;
 mod wizard;
 
@@ -17,6 +18,7 @@ use log4rs::{
     config::{Appender, Root},
     encode::pattern::PatternEncoder,
 };
+use wizard::helpers::{generic_input, generic_select};
 
 fn setup_logging(cli: &cli_args::Cli) -> Result<(), config::ConfigError> {
     let log_file_name = cli.log_file.clone().map_or_else(
@@ -115,7 +117,6 @@ async fn main() {
             }
         }
         Commands::List => {
-            // Implement listing installed versions
             println!("Listing installed versions...");
             match idf_im_lib::version_manager::get_esp_ide_config() {
                 Ok(config) => {
@@ -140,11 +141,8 @@ async fn main() {
                         } else {
                             println!("Available versions:");
                             let options = versions.iter().map(|v| v.name.clone()).collect();
-                            match crate::wizard::helpers::generic_select(
-                                "Which version do you want to select?",
-                                &options,
-                            ) {
-                                Ok(selected) => match select_idf_version_by_name(&selected) {
+                            match generic_select("Which version do you want to select?", &options) {
+                                Ok(selected) => match select_idf_version(&selected) {
                                     Ok(_) => {
                                         println!("Selected version: {}", selected);
                                     }
@@ -157,10 +155,64 @@ async fn main() {
                     Err(err) => error!("Error: {}", err),
                 }
             } else {
-                // Implement version selection
-                match select_idf_version_by_name(&version.clone().unwrap()) {
+                match select_idf_version(&version.clone().unwrap()) {
                     Ok(_) => {
                         println!("Selected version: {}", version.clone().unwrap());
+                    }
+                    Err(err) => error!("Error: {}", err),
+                }
+            }
+        }
+        Commands::Rename { version, new_name } => {
+            if version.is_none() {
+                match idf_im_lib::version_manager::list_installed_versions() {
+                    Ok(versions) => {
+                        if versions.len() == 0 {
+                            println!("No versions installed");
+                        } else {
+                            let options = versions.iter().map(|v| v.name.clone()).collect();
+                            let version = crate::wizard::helpers::generic_select(
+                                "Which version do you want to rename?",
+                                &options,
+                            )
+                            .unwrap(); // todo move to function and add error handling
+                            let new_name = generic_input(
+                                "Enter new name:",
+                                "you need to enter a new name",
+                                "",
+                            )
+                            .unwrap(); // todo move to function and add error handling
+                            match idf_im_lib::version_manager::rename_idf_version(
+                                &version, new_name,
+                            ) {
+                                Ok(_) => {
+                                    println!("Version renamed.");
+                                }
+                                Err(err) => error!("Error: {}", err),
+                            }
+                        }
+                    }
+                    Err(err) => error!("Error: {}", err),
+                }
+            } else if new_name.is_none() {
+                let new_name =
+                    generic_input("Enter new name:", "you need to enter a new name", "").unwrap(); // todo move to function and add error handling
+                match idf_im_lib::version_manager::rename_idf_version(
+                    &version.clone().unwrap(),
+                    new_name,
+                ) {
+                    Ok(_) => {
+                        println!("Version renamed.");
+                    }
+                    Err(err) => error!("Error: {}", err),
+                }
+            } else {
+                match idf_im_lib::version_manager::rename_idf_version(
+                    &version.clone().unwrap(),
+                    new_name.clone().unwrap(),
+                ) {
+                    Ok(_) => {
+                        println!("Version renamed.");
                     }
                     Err(err) => error!("Error: {}", err),
                 }
