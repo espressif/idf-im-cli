@@ -117,6 +117,15 @@ async fn main() {
         Commands::List => {
             // Implement listing installed versions
             println!("Listing installed versions...");
+            match idf_im_lib::version_manager::list_installed_versions() {
+                Ok(versions) => {
+                    println!("Installed versions:");
+                    for version in versions {
+                        println!("- {}", version.name);
+                    }
+                }
+                Err(err) => error!("Error: {}", err),
+            }
         }
         Commands::Select { version } => {
             // Implement version selection
