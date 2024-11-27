@@ -117,11 +117,15 @@ async fn main() {
         Commands::List => {
             // Implement listing installed versions
             println!("Listing installed versions...");
-            match idf_im_lib::version_manager::list_installed_versions() {
-                Ok(versions) => {
+            match idf_im_lib::version_manager::get_esp_ide_config() {
+                Ok(config) => {
                     println!("Installed versions:");
-                    for version in versions {
-                        println!("- {}", version.name);
+                    for version in config.idf_installed {
+                        if version.id == config.idf_selected_id {
+                            println!("- {} (selected)", version.name);
+                        } else {
+                            println!("- {}", version.name);
+                        }
                     }
                 }
                 Err(err) => error!("Error: {}", err),
