@@ -54,10 +54,10 @@ pub struct Cli {
 // todo: add fix command which will reinstall using the existing IDF repository
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// Install ESP-IDF versions and tools
+    /// Install ESP-IDF versions
     Install(InstallArgs),
 
-    /// List installed ESP-IDF versions and tools
+    /// List installed ESP-IDF versions
     List,
 
     /// Select an ESP-IDF version as active
@@ -66,7 +66,7 @@ pub enum Commands {
         version: Option<String>,
     },
 
-    /// Discover available ESP-IDF versions
+    /// Discover available ESP-IDF versions (not implemented yet)
     Discover,
 
     /// Remove specific ESP-IDF version
@@ -75,7 +75,7 @@ pub enum Commands {
         version: Option<String>,
     },
 
-    /// Remove specific ESP-IDF version
+    /// Rename specific ESP-IDF version
     Rename {
         #[arg(help = "Version to rename")]
         version: Option<String>,
