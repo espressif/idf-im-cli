@@ -2,6 +2,7 @@ import { describe, it, before, after } from "mocha";
 import { runArgumentsTests } from "../script/commandLineArguments.test.js";
 import { runInstallWizardTests } from "../script/installWizard.test.js";
 import { runPostInstallTest } from "../script/postInstall.test.js";
+import logger from "../classes/logger.class.js";
 import os from "os";
 import path from "path";
 

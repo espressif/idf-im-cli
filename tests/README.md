@@ -28,7 +28,7 @@ Install Node.js:
 
 > https://nodejs.org/en/download/prebuilt-installer/current
 
-`choco install nodejs-lts --version="22.11.0" -y`
+`choco install nodejs-lts --version="20.18.1" -y`
 
 Install git:
 
@@ -50,7 +50,7 @@ Install Git and curl and build-essential packages
 
 Start a new terminal (to load nvm)
 
-`nvm install 22`
+`nvm install 20`
 
 Clone the public repository:
 
@@ -76,9 +76,9 @@ Install node.js
 
 > https://nodejs.org/en/download/package-manager
 
-`brew install node@22`
+`brew install node@20`
 
-`echo 'export PATH="/usr/local/opt/node@22/bin:$PATH"' >> ~/.zshrc`
+`echo 'export PATH="/usr/local/opt/node@20/bin:$PATH"' >> ~/.zshrc`
 
 > This requires to restart the terminal in order to load Node.JS
 
@@ -114,12 +114,12 @@ Open Powershell, and enable script execution:
 Prerequisites test can be executed by running:  
 `.\tests\run_pre_test.ps1 "<PATH TO EIM.EXE>" "<Version being tested>"`  
 Default arguments are:  
-`.\tests\run_pre_test.ps1 "$env:USERPROFILE\eim-cli\eim.exe" "idf-im-cli 0.1.4"`
+`.\tests\run_pre_test.ps1 "$env:USERPROFILE\eim-cli\eim.exe" "idf-im-cli 0.1.5"`
 
 To execute tests on windows, use the script  
 `.\tests\run_test.ps1 "<PATH TO EIM.EXE>" "<Version being tested>"`  
 Default arguments are:  
-`.\tests\run_test.ps1 "$env:USERPROFILE\eim-cli\eim.exe" "idf-im-cli 0.1.4"`
+`.\tests\run_test.ps1 "$env:USERPROFILE\eim-cli\eim.exe" "idf-im-cli 0.1.5"`
 
 #### Linux
 
@@ -129,24 +129,24 @@ Default arguments are:
 Prerequisites test can be executed by running:  
 `. ./tests/run_pre_test.sh "<PATH TO EIM>" "<Version being tested>"`  
 Default arguments are:  
-`. ./tests/run_pre_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.4"`
+`. ./tests/run_pre_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.5"`
 
 To execute tests on linux, use the script:  
 `. ./tests/run_test.sh "<PATH TO EIM>" "<Version being tested>"`  
 Default arguments are:  
-`. ./tests/run_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.4"`
+`. ./tests/run_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.5"`
 
 #### MacOS
 
 Prerequisites test can be executed by running:  
 `. ./tests/run_pre_test.sh "<PATH TO EIM>" "<Version being tested>"`  
 Default arguments are:  
-`. ./tests/run_pre_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.3"`
+`. ./tests/run_pre_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.5"`
 
 To execute tests on linux, use the script:  
 `. ./tests/run_test.sh "<PATH TO EIM>" "<Version being tested>"`  
 Default arguments are:  
-`. ./tests/run_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.3"`
+`. ./tests/run_test.sh "$HOME/eim-cli/eim" "idf-im-cli 0.1.5"`
 
 # Installation Manager Usage
 

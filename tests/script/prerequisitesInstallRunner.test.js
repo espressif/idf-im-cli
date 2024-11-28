@@ -47,9 +47,10 @@ describe("Check Pre-requisites installation on Windows", function () {
             );
         }
         try {
-            await testRunner.stop(6000);
-        } catch {
+            await testRunner.stop();
+        } catch (error) {
             logger.info("Error to clean up terminal after test");
+            throw error;
         }
         testRunner = null;
     });

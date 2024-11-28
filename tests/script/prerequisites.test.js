@@ -43,9 +43,10 @@ describe("Check if prerequisites are installed", function () {
     afterEach(async function () {
         this.timeout(20000);
         try {
-            await testRunner.stop(6000);
-        } catch {
+            await testRunner.stop();
+        } catch (error) {
             logger.info("Error to clean up terminal after test");
+            throw error;
         }
         testRunner = null;
     });

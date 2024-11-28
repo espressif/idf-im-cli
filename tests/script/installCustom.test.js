@@ -27,7 +27,6 @@ export function runInstallCustom(pathToEim, args = []) {
                 logger.info(
                     `Terminal output on failure: >>\r ${testRunner.output}`
                 );
-                testRunner.sendInput("\x03");
             }
         });
 
@@ -35,9 +34,10 @@ export function runInstallCustom(pathToEim, args = []) {
             logger.info("Custom installation routine completed");
             this.timeout(20000);
             try {
-                await testRunner.stop(6000);
-            } catch {
+                await testRunner.stop();
+            } catch (error) {
                 logger.info("Error to clean up terminal after test");
+                throw error;
             }
         });
 

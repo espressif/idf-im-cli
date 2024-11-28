@@ -38,10 +38,11 @@ export class InteractiveCLITestRunner {
                 }
                 await new Promise((resolve) => setTimeout(resolve, 200));
             }
-            return Promise.reject();
+            logger.info("Failed to terminate terminal process");
+            return Promise.resolve();
         } catch {
             logger.debug("Error loading IDF terminal");
-            return Promise.reject();
+            return Promise.resolve();
         }
     }
 
@@ -139,9 +140,19 @@ export class InteractiveCLITestRunner {
         if (this.process && !this.exited) {
             try {
                 this.sendInput("exit\r");
-
                 const exitTime = Date.now();
-                while (Date.now() - exitTime < timeout * 2) {
+                while (Date.now() - exitTime < timeout) {
+                    if (this.exited) {
+                        logger.info("terminal exited gracefully");
+                        return Promise.resolve();
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 200));
+                }
+                logger.info("Terminal didn't exit gracefully, repeat Attempt");
+                testRunner.sendInput("\x03");
+                this.sendInput("exit\r");
+                const closeTime = Date.now();
+                while (Date.now() - closeTime < timeout) {
                     if (this.exited) {
                         logger.info("terminal exited gracefully");
                         return Promise.resolve();
@@ -158,12 +169,12 @@ export class InteractiveCLITestRunner {
                     }
                     await new Promise((resolve) => setTimeout(resolve, 200));
                 }
-                return Promise.reject("Could not stop terminal task");
+                throw new Error("Could not stop terminal task");
             } catch (error) {
                 logger.error("Error stopping terminal:", error);
                 this.exited = true;
                 this.process = null;
-                return Promise.reject(error);
+                throw error;
             }
         } else {
             logger.debug("Terminal has already exited");
