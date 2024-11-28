@@ -149,7 +149,7 @@ export class InteractiveCLITestRunner {
                     await new Promise((resolve) => setTimeout(resolve, 200));
                 }
                 logger.info("Terminal didn't exit gracefully, repeat Attempt");
-                testRunner.sendInput("\x03");
+                this.sendInput("\x03");
                 this.sendInput("exit\r");
                 const closeTime = Date.now();
                 while (Date.now() - closeTime < timeout) {

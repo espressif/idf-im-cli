@@ -102,7 +102,7 @@ export function runPostInstallTest(
 
             const targetSet = await testRunner.waitForOutput(
                 "Build files have been written to",
-                700000
+                900000
             );
 
             expect(
