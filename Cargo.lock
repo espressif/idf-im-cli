@@ -1698,6 +1698,7 @@ dependencies = [
 [[package]]
 name = "idf-im-lib"
 version = "0.1.8"
+source = "git+https://github.com/espressif/idf-im-lib.git?rev=fb40d740dcb15f98f75c0cd91f1b0cfa84ffbc6a#fb40d740dcb15f98f75c0cd91f1b0cfa84ffbc6a"
 dependencies = [
  "anyhow",
  "colored",
