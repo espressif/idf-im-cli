@@ -1085,6 +1085,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "eim"
+version = "0.1.5"
+dependencies = [
+ "byte-unit",
+ "clap",
+ "config",
+ "console",
+ "crossterm 0.27.0",
+ "dialoguer",
+ "dirs",
+ "git2",
+ "idf-im-lib",
+ "indicatif",
+ "log",
+ "log4rs",
+ "openssl-sys",
+ "ratatui-splash-screen",
+ "rfd",
+ "rust-i18n",
+ "serde",
+ "simple_logger",
+ "tokio",
+ "toml 0.8.19",
+ "walkdir",
+]
+
+[[package]]
 name = "either"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1646,33 +1673,6 @@ name = "ident_case"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
-
-[[package]]
-name = "idf-im-cli"
-version = "0.1.5"
-dependencies = [
- "byte-unit",
- "clap",
- "config",
- "console",
- "crossterm 0.27.0",
- "dialoguer",
- "dirs",
- "git2",
- "idf-im-lib",
- "indicatif",
- "log",
- "log4rs",
- "openssl-sys",
- "ratatui-splash-screen",
- "rfd",
- "rust-i18n",
- "serde",
- "simple_logger",
- "tokio",
- "toml 0.8.19",
- "walkdir",
-]
 
 [[package]]
 name = "idf-im-lib"

@@ -1,5 +1,5 @@
 [package]
-name = "idf-im-cli"
+name = "eim"
 version = "0.1.5"
 edition = "2021"
 
