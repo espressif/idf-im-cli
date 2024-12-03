@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use anyhow::Result;
+use colored::Colorize;
 use dialoguer::FolderSelect;
 use idf_im_lib::idf_tools::ToolsFile;
 use idf_im_lib::settings::Settings;
@@ -625,6 +626,7 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
     }
     // TODO: stop using useless param
     let ide_conf_path = ide_conf_path_tmp.join("esp_ide.json");
+    // todo: remove unused path param ide_conf_path
     match config.save_esp_ide_json(ide_conf_path.to_str().unwrap()) {
         Ok(_) => debug!("IDE configuration saved to: {}", ide_conf_path.display()),
         Err(err) => {
@@ -641,7 +643,17 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
         _ => {
             println!("{}", t!("wizard.posix.finish_steps.line_1"));
             println!("{}", t!("wizard.posix.finish_steps.line_2"));
-            println!("{:?}", config.path.clone().unwrap());
+            println!(
+                "{:?}",
+                config
+                    .path
+                    .clone()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string()
+                    .red()
+            );
             println!("{}", t!("wizard.posix.finish_steps.line_3"));
             println!("============================================");
             println!("{}:", t!("wizard.posix.finish_steps.line_4"));

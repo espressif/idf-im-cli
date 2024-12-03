@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::Parser;
 use cli_args::{Cli, Commands};
@@ -120,12 +120,18 @@ async fn main() {
             println!("Listing installed versions...");
             match idf_im_lib::version_manager::get_esp_ide_config() {
                 Ok(config) => {
-                    println!("Installed versions:");
-                    for version in config.idf_installed {
-                        if version.id == config.idf_selected_id {
-                            println!("- {} (selected)", version.name);
-                        } else {
-                            println!("- {}", version.name);
+                    if config.idf_installed.len() == 0 {
+                        println!(
+                            "No versions found. Use eim install to install a new ESP-IDF version."
+                        );
+                    } else {
+                        println!("Installed versions:");
+                        for version in config.idf_installed {
+                            if version.id == config.idf_selected_id {
+                                println!("- {} (selected)", version.name);
+                            } else {
+                                println!("- {}", version.name);
+                            }
                         }
                     }
                 }
@@ -221,7 +227,10 @@ async fn main() {
         Commands::Discover => {
             // Implement version discovery
             println!("Discovering available versions...");
-            unimplemented!();
+            let idf_dirs = idf_im_lib::version_manager::find_esp_idf_folders("/");
+            for dir in idf_dirs {
+                println!("Found IDF directory: {}", dir);
+            }
         }
         Commands::Remove { version } => {
             // todo: add spinner

@@ -27,7 +27,7 @@ fn custom_styles() -> Styles {
 #[command(
     author,
     version = VERSION,
-    about = "ESP-IDF Install Manager",
+    about = "ESP-IDF Installation Manager",
     long_about = "All you need to manage your ESP-IDF installations",
     color = ColorChoice::Always,
     styles = custom_styles()
