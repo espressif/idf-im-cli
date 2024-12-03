@@ -46,9 +46,16 @@ pub fn generic_select(prompt_key: &str, options: &[&str]) -> Result<String, Stri
 }
 
 pub fn generic_confirm(prompt_key: &str) -> Result<bool, dialoguer::Error> {
+    generic_confirm_with_default(prompt_key, false)
+}
+
+pub fn generic_confirm_with_default(
+    prompt_key: &str,
+    default: bool,
+) -> Result<bool, dialoguer::Error> {
     Confirm::with_theme(&create_theme())
         .with_prompt(t!(prompt_key))
-        .default(false)
+        .default(default)
         .interact()
 }
 

@@ -9,6 +9,8 @@ use idf_im_lib::system_dependencies;
 use log::{debug, info};
 use rust_i18n::t;
 
+use self::helpers::generic_confirm_with_default;
+
 pub async fn select_target() -> Result<Vec<String>, String> {
     let mut available_targets = idf_im_lib::idf_versions::get_avalible_targets().await?;
     available_targets.insert(0, "all".to_string());
@@ -232,7 +234,7 @@ pub fn save_config_if_desired(config: &Settings) -> Result<(), String> {
             debug!("Skipping config save in non-interactive mode.");
             Ok(false)
         } else {
-            generic_confirm("wizard.after_install.save_config.prompt")
+            generic_confirm_with_default("wizard.after_install.save_config.prompt", true)
         };
     if let Ok(true) = res {
         config
