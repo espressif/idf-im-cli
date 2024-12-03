@@ -1,7 +1,6 @@
 import pty from "node-pty";
 import os from "os";
 import logger from "./logger.class.js";
-import { createCipheriv } from "crypto";
 
 export class InteractiveCLITestRunner {
     constructor() {
@@ -160,7 +159,9 @@ export class InteractiveCLITestRunner {
                     await new Promise((resolve) => setTimeout(resolve, 200));
                 }
                 logger.info("Terminal didn't exit gracefully, killing task");
-                this.process.kill();
+                try {
+                    this.process.kill();
+                } catch {}
                 const killTime = Date.now();
                 while (Date.now() - killTime < timeout) {
                     if (this.exited) {
@@ -171,7 +172,7 @@ export class InteractiveCLITestRunner {
                 }
                 throw new Error("Could not stop terminal task");
             } catch (error) {
-                logger.error("Error stopping terminal:", error);
+                logger.info("Error stopping terminal:", error);
                 this.exited = true;
                 this.process = null;
                 throw error;
