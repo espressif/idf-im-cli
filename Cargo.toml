@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 tokio = {version = "1.37.0", features=["full"]}
-idf-im-lib = { git = "https://github.com/espressif/idf-im-lib.git", tag="v0.1.8" } 
+idf-im-lib = { git = "https://github.com/espressif/idf-im-lib.git", rev="cea140a9cc33fd996a0eb978f07ef0c352a34079" }
 clap = {version = "4.5", features = ["cargo", "derive", "color"]}
 crossterm = "0.27.0"
 dialoguer = { git = "https://github.com/Hahihula/dialoguer.git", branch = "folder-select", features = ["folder-select"] }
@@ -24,6 +24,8 @@ rust-i18n = "3.0.1"
 dirs = "5.0.1"
 toml = "0.8.14"
 log4rs = "1.3.0"
+anyhow = "1.0.93"
+colored = "2.1.0"
 
 [dependencies.openssl-sys]
 version = "0.9"
