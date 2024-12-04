@@ -149,6 +149,7 @@ export class InteractiveCLITestRunner {
                 }
                 logger.info("Terminal didn't exit gracefully, repeat Attempt");
                 this.sendInput("\x03");
+                this.sendInput("\x03");
                 this.sendInput("exit\r");
                 const closeTime = Date.now();
                 while (Date.now() - closeTime < timeout) {
@@ -158,19 +159,10 @@ export class InteractiveCLITestRunner {
                     }
                     await new Promise((resolve) => setTimeout(resolve, 200));
                 }
-                logger.info("Terminal didn't exit gracefully, killing task");
-                try {
-                    this.process.kill();
-                } catch {}
-                const killTime = Date.now();
-                while (Date.now() - killTime < timeout) {
-                    if (this.exited) {
-                        logger.info("Terminal is now killed");
-                        return Promise.resolve();
-                    }
-                    await new Promise((resolve) => setTimeout(resolve, 200));
-                }
-                throw new Error("Could not stop terminal task");
+                logger.info(
+                    "Terminal didn't exit gracefully, abandoning task, should be terminated by node."
+                );
+                throw new Error("Could not stop terminal gracefully");
             } catch (error) {
                 logger.info("Error stopping terminal:", error);
                 this.exited = true;
