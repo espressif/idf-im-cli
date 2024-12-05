@@ -74,7 +74,7 @@ jobs:
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_pre_test.sh
-                  . ./tests/run_pre_test.sh "../test-bin/eim" "idf-im-cli ${{ env.CLI_TAG }}"
+                  . ./tests/run_pre_test.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}"
 
             - name: Install dependencies (Ubuntu)
               if: runner.os == 'Linux'
@@ -91,14 +91,14 @@ jobs:
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_test.sh
-                  . ./tests/run_test.sh "../test-bin/eim" "idf-im-cli ${{ env.CLI_TAG }}"
+                  . ./tests/run_test.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}"
 
             - name: Run IDF installation from alternative mirrors in mainland China
               if: matrix.run_on == 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_cnrunner.sh
-                  . ./tests/run_cnrunner.sh "../test-bin/eim" "idf-im-cli ${{ env.CLI_TAG }}"
+                  . ./tests/run_cnrunner.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}"
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -127,7 +127,7 @@ jobs:
               if: runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
-                  .\tests\run_pre_test.ps1 "..\test-bin\eim.exe" "idf-im-cli ${{ env.CLI_TAG }}"
+                  .\tests\run_pre_test.ps1 "..\test-bin\eim.exe" "eim ${{ env.CLI_TAG }}"
 
             - name: Install dependencies (Windows)
               if: runner.os == 'windows'
@@ -138,7 +138,7 @@ jobs:
               if: runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
-                  .\tests\run_test.ps1 "..\test-bin\eim.exe" "idf-im-cli ${{ env.CLI_TAG }}"
+                  .\tests\run_test.ps1 "..\test-bin\eim.exe" "eim ${{ env.CLI_TAG }}"
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
