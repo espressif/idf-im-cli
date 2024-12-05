@@ -27,7 +27,7 @@ jobs:
             package_name: windows-x64
           - os: macos-latest
             package_name: macos-aarch64
-          - os: macos-12
+          - os: macos-13
             package_name: macos-x64
 
     steps:

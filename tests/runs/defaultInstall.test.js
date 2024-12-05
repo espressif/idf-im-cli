@@ -2,6 +2,7 @@ import { describe, it, before, after } from "mocha";
 import { runArgumentsTests } from "../script/commandLineArguments.test.js";
 import { runInstallWizardTests } from "../script/installWizard.test.js";
 import { runPostInstallTest } from "../script/postInstall.test.js";
+import logger from "../classes/logger.class.js";
 import os from "os";
 import path from "path";
 
@@ -41,6 +42,10 @@ const pathToProjectFolder =
     os.platform() !== "win32"
         ? path.join(os.homedir(), ".espressif/project")
         : "C:\\esp\\project";
+
+logger.info(
+    `Starting installation using wizard and default settings using EIM on ${pathToEim}`
+);
 
 describe("Installation using default settings", function () {
     this.timeout(2400000);

@@ -8,10 +8,9 @@ cd tests
 
 # install node modules
 # The zip file is currently being expanded in the pre-test, if it was not executed before please run this line locally
-# npm ci
+npm ci
 
 # run tests
 set +e
-npm run default-test
-npm run variation1-test
-npm run non-interactive-test
+npm run cnrunner1-test
+npm run cnrunner2-test

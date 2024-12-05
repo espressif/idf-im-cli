@@ -20,10 +20,16 @@ jobs:
                 include:
                     - os: ubuntu-latest
                       package_name: linux-x64
+                      run_on: GitHub
                     - os: windows-latest
                       package_name: windows-x64
+                      run_on: GitHub
                     - os: macos-latest
                       package_name: macos-aarch64
+                      run_on: GitHub
+                    - os: ubuntu-latest
+                      package_name: linux-x64
+                      run_on: CNRunner
 
         steps:
             - name: Checkout repository
@@ -63,12 +69,12 @@ jobs:
               run: |
                   chmod +x ./test-bin/eim
 
-            - name: Run prerequisites test script (non-Windows)
-              if: runner.os != 'Windows'
+            - name: Run prerequisites test script (non-Windows), skip for CNRunner
+              if: runner.os != 'Windows' && matrix.run_on != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_pre_test.sh
-                  . ./tests/run_pre_test.sh "../test-bin/eim" "idf-im-cli ${{ env.CLI_TAG }}"
+                  . ./tests/run_pre_test.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}"
 
             - name: Install dependencies (Ubuntu)
               if: runner.os == 'Linux'
@@ -81,11 +87,18 @@ jobs:
                   brew install cmake ninja dfu-util
 
             - name: Run IDF installation and post install test script (non-Windows)
-              if: runner.os != 'Windows'
+              if: runner.os != 'Windows' && matrix.run_on != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_test.sh
-                  . ./tests/run_test.sh "../test-bin/eim" "idf-im-cli ${{ env.CLI_TAG }}"
+                  . ./tests/run_test.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}"
+
+            - name: Run IDF installation from alternative mirrors in mainland China
+              if: matrix.run_on == 'CNRunner'
+              run: |
+                  export LOG_TO_FILE="true"
+                  chmod +x ./tests/run_cnrunner.sh
+                  . ./tests/run_cnrunner.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}"
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -114,7 +127,7 @@ jobs:
               if: runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
-                  .\tests\run_pre_test.ps1 "..\test-bin\eim.exe" "idf-im-cli ${{ env.CLI_TAG }}"
+                  .\tests\run_pre_test.ps1 "..\test-bin\eim.exe" "eim ${{ env.CLI_TAG }}"
 
             - name: Install dependencies (Windows)
               if: runner.os == 'windows'
@@ -125,7 +138,7 @@ jobs:
               if: runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
-                  .\tests\run_test.ps1 "..\test-bin\eim.exe" "idf-im-cli ${{ env.CLI_TAG }}"
+                  .\tests\run_test.ps1 "..\test-bin\eim.exe" "eim ${{ env.CLI_TAG }}"
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -133,11 +146,15 @@ jobs:
               uses: actions/upload-artifact@v4
               if: always()
               with:
-                  name: test-results-${{ matrix.package_name }}.zip
+                  name: test-results-${{ matrix.package_name }}-${{matrix.run_on}}.zip
                   path: |
                       ./tests/results-pre-test.xml
+                      ./tests/results-pre-install-test.xml
                       ./tests/results-default-test.xml
                       ./tests/results-variation1-test.xml
+                      ./tests/results-non-interactive-test.xml
+                      ./tests/results-CNMirror-test.xml
+                      ./tests/results-CNMirror2-test.xml
                       ./tests/test.log
 
     publish-test-results:

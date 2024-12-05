@@ -3,7 +3,6 @@ import { describe, it, before, after, beforeEach, afterEach } from "mocha";
 import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
 import logger from "../classes/logger.class.js";
 import os from "os";
-import path from "path";
 
 export function runPostInstallTest(
     pathToIDFScript,
@@ -18,13 +17,17 @@ export function runPostInstallTest(
         beforeEach(async function () {
             this.timeout(10000);
             logger.debug(
-                `Starting IDF terminal using activation script ${pathToIDFScript}, sample project copied at ${path.join(
-                    os.homedir(),
-                    pathToProjectFolder
-                )}`
+                `Starting IDF terminal using activation script ${pathToIDFScript}, sample project copied at ${pathToProjectFolder}`
             );
             testRunner = new InteractiveCLITestRunner();
-            await testRunner.runIDFTerminal(pathToIDFScript);
+            try {
+                await testRunner.runIDFTerminal(pathToIDFScript);
+            } catch {
+                logger.info("Error to start IDF terminal");
+                logger.info(testRunner.output);
+                this.test.error(new Error("Error starting IDF Terminal"));
+                throw error;
+            }
         });
 
         afterEach(async function () {
@@ -35,10 +38,10 @@ export function runPostInstallTest(
                 );
             }
             try {
-                await testRunner.stop(6000);
-                testRunner = null;
-            } catch {
-                logger.debug("Error to clean up terminal after test");
+                await testRunner.stop();
+            } catch (error) {
+                logger.info("Error to clean up terminal after test");
+                throw error;
             }
         });
 
@@ -48,6 +51,7 @@ export function runPostInstallTest(
              * The commands might differ for each operating system.
              * The assert is based on the existence of the project files in the expected folder.
              */
+            logger.info(`Starting test - create new project`);
             testRunner.sendInput(`mkdir ${pathToProjectFolder}\r`);
             testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
 
@@ -70,9 +74,18 @@ export function runPostInstallTest(
                 "sdkconfig.ci"
             );
 
-            expect(confirmFolderContent).to.be.true;
-            expect(testRunner.output).to.include("pytest_hello_world.py");
-            expect(testRunner.output).to.include("main");
+            expect(
+                confirmFolderContent,
+                "sdkconfig.ci file not shown after a ls command, file copy failed"
+            ).to.be.true;
+            expect(
+                testRunner.output,
+                "pytest_hello_world.py file not shown after a ls command, file copy failed"
+            ).to.include("pytest_hello_world.py");
+            expect(
+                testRunner.output,
+                "main folder not shown after a ls command, file copy failed"
+            ).to.include("main");
 
             logger.info("sample project creation Passed");
         });
@@ -81,19 +94,29 @@ export function runPostInstallTest(
             /**
              * This test attempts to set a target MCU for the project created in the previous test.
              */
-            this.timeout(600000);
+            logger.info(`Starting test - set target`);
+            this.timeout(750000);
             testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
             testRunner.sendInput("cd hello_world\r");
             testRunner.sendInput(`idf.py set-target ${validTarget}\r`);
 
             const targetSet = await testRunner.waitForOutput(
                 "Build files have been written to",
-                600000
+                900000
             );
 
-            expect(targetSet).to.be.true;
-            expect(testRunner.output).to.include("Configuring done");
-            expect(testRunner.output).to.include("Generating done");
+            expect(
+                targetSet,
+                "expecting 'Build files have been written to', failed to complete the set-target task"
+            ).to.be.true;
+            expect(
+                testRunner.output,
+                "expecting 'configuring done', failed to complete the set-target task"
+            ).to.include("Configuring done");
+            expect(
+                testRunner.output,
+                "expecting 'Generating Done', failed to complete the set-target task"
+            ).to.include("Generating done");
 
             logger.info("Set Target Passed");
         });
@@ -103,6 +126,7 @@ export function runPostInstallTest(
              * This test attempts to build artifacts for the project and targets selected above.
              * The test is successful if the success message is printed in the terminal.
              */
+            logger.info(`Starting test - build project`);
             this.timeout(600000);
             testRunner.sendInput(`cd ${pathToProjectFolder}\r`);
             testRunner.sendInput("cd hello_world\r");
@@ -113,10 +137,14 @@ export function runPostInstallTest(
                 450000
             );
 
-            expect(buildComplete).to.be.true;
-            expect(testRunner.output).to.include(
-                `Successfully created ${validTarget} image`
-            );
+            expect(
+                buildComplete,
+                "Expecting 'Project build complete', filed to build the sample project"
+            ).to.be.true;
+            expect(
+                testRunner.output,
+                "Expecting to successfully create target image, filed to build the sample project"
+            ).to.include(`Successfully created ${validTarget} image`);
             logger.info("Build Passed");
         });
     });

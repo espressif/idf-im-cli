@@ -1,6 +1,6 @@
 import { describe, it, before, after } from "mocha";
-import { runInstallCustom } from "../script/installCustom.test.js";
 import { runPostInstallTest } from "../script/postInstall.test.js";
+import { runInstallNonInteractive } from "../script/installNonInteractive.test.js";
 import logger from "../classes/logger.class.js";
 import os from "os";
 import path from "path";
@@ -24,9 +24,9 @@ if (process.env.EIM_FILE_PATH) {
     pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
-const targetList = ["esp32s2"]; // targets used for IDF installation
-const idfVersionList = ["v5.2.3"]; // IDF versions to be installed
-const installFolder = ".espressif2";
+const targetList = ["esp32c6"]; // targets used for IDF installation
+const idfVersionList = ["v5.3.1"]; // IDF versions to be installed
+const installFolder = ".espressif3";
 const projectFolder = "project";
 
 let installArgs = [];
@@ -51,12 +51,12 @@ const pathToIDFScript =
               `Microsoft.PowerShell_profile.ps1`
           );
 
-logger.debug(`Starting custom installation using EIM on ${pathToEim}`);
+logger.debug(`Starting non-interactive installation using EIM on ${pathToEim}`);
 
-describe("Installation using custom settings", function () {
+describe("Installation using non-interactive settings", function () {
     this.timeout(2400000);
 
-    runInstallCustom(pathToEim, installArgs);
+    runInstallNonInteractive(pathToEim, installArgs);
 
     runPostInstallTest(
         pathToIDFScript,
