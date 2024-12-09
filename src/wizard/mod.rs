@@ -581,8 +581,15 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
             return Err(err.to_string());
         }
     }
+    // TODO: stop using useless param
     let ide_conf_path = ide_conf_path_tmp.join("esp_ide.json");
-    config.save_esp_ide_json(ide_conf_path.to_str().unwrap())?;
+    match config.save_esp_ide_json(ide_conf_path.to_str().unwrap()) {
+        Ok(_) => debug!("IDE configuration saved to: {}", ide_conf_path.display()),
+        Err(err) => {
+            error!("Failed to save IDE configuration: {}", err);
+            return Err(err.to_string());
+        }
+    };
 
     match std::env::consts::OS {
         "windows" => {

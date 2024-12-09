@@ -1050,11 +1050,31 @@ dependencies = [
 
 [[package]]
 name = "dirs"
+version = "4.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca3aa72a6f96ea37bbc5aa912f6788242832f75369bdfdadcb0e38423f100059"
+dependencies = [
+ "dirs-sys 0.3.7",
+]
+
+[[package]]
+name = "dirs"
 version = "5.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
 dependencies = [
- "dirs-sys",
+ "dirs-sys 0.4.1",
+]
+
+[[package]]
+name = "dirs-sys"
+version = "0.3.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b1d1d91c932ef41c0f2663aa8b0ca0342d444d842c06914aa0a7e352d0bada6"
+dependencies = [
+ "libc",
+ "redox_users",
+ "winapi",
 ]
 
 [[package]]
@@ -1094,7 +1114,7 @@ dependencies = [
  "console",
  "crossterm 0.27.0",
  "dialoguer",
- "dirs",
+ "dirs 5.0.1",
  "git2",
  "idf-im-lib",
  "indicatif",
@@ -1676,17 +1696,19 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
 name = "idf-im-lib"
-version = "0.1.8"
-source = "git+https://github.com/espressif/idf-im-lib.git?tag=v0.1.8#395f0f8c72c442054686a08e5d1602c222e6e1f5"
+version = "0.1.9"
+source = "git+https://github.com/espressif/idf-im-lib.git?tag=v0.1.9#3d6b712f85e16ede07eeee53f5c68f1458118cc7"
 dependencies = [
+ "anyhow",
  "colored",
  "config",
  "decompress",
- "dirs",
+ "dirs 5.0.1",
  "git2",
  "log",
  "regex",
  "reqwest",
+ "rust_search",
  "serde",
  "serde_derive",
  "serde_json",
@@ -2234,6 +2256,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "num_cpus"
+version = "1.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4161fcb6d602d4d2081af7c3a45852d875a03dd337a6bfdd6e06407b61342a43"
+dependencies = [
+ "hermit-abi 0.3.9",
+ "libc",
 ]
 
 [[package]]
@@ -3072,6 +3104,19 @@ dependencies = [
  "rkyv",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "rust_search"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d27d7be20245d289c9dde663f06521de08663d73cbaefc45785aa65d02022378"
+dependencies = [
+ "dirs 4.0.0",
+ "ignore",
+ "num_cpus",
+ "regex",
+ "strsim 0.10.0",
 ]
 
 [[package]]
