@@ -40,7 +40,7 @@ pub struct Cli {
 
     #[arg(
         long,
-        help = "Absolute path to save esp_idf.json file. Default is $HOME/.esp_installation_manager/esp_idf.json"
+        help = "Absolute path to save eim_idf.json file. Default is $HOME/.espressif/tools/eim_idf.json on POSIX systems and C:\\Espressif\\tools\\eim_idf.json on Windows systems"
     )]
     esp_idf_json_path: Option<String>,
 
