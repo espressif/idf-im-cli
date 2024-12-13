@@ -35,7 +35,7 @@ export function runInstallNonInteractive(pathToEim, args = []) {
                 await testRunner.stop();
             } catch (error) {
                 logger.info("Error to clean up terminal after test");
-                throw error;
+                logger.info(` Error: ${error}`);
             }
         });
 

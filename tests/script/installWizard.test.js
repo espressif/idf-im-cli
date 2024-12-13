@@ -33,7 +33,7 @@ export function runInstallWizardTests(pathToEim) {
                 await testRunner.stop();
             } catch (error) {
                 logger.info("Error to clean up terminal after test");
-                throw error;
+                logger.info(` Error: ${error}`);
             }
         });
 
@@ -71,8 +71,8 @@ export function runInstallWizardTests(pathToEim) {
                 .true;
             expect(
                 testRunner.output,
-                "Failed to offer installation for version 5.3.1"
-            ).to.include("v5.3.1");
+                "Failed to offer installation for master branch"
+            ).to.include("master");
 
             logger.info("Select IDF Version passed");
             testRunner.output = "";

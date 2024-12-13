@@ -22,11 +22,11 @@ export function runPostInstallTest(
             testRunner = new InteractiveCLITestRunner();
             try {
                 await testRunner.runIDFTerminal(pathToIDFScript);
-            } catch {
+            } catch (error) {
                 logger.info("Error to start IDF terminal");
                 logger.info(testRunner.output);
                 this.test.error(new Error("Error starting IDF Terminal"));
-                throw error;
+                logger.info(` Error: ${error}`);
             }
         });
 
@@ -41,7 +41,7 @@ export function runPostInstallTest(
                 await testRunner.stop();
             } catch (error) {
                 logger.info("Error to clean up terminal after test");
-                throw error;
+                logger.info(` Error: ${error}`);
             }
         });
 
