@@ -25,7 +25,7 @@ if (process.env.EIM_FILE_PATH) {
 }
 
 const targetList = ["esp32c6"]; // targets used for IDF installation
-const idfVersionList = ["v5.3.1"]; // IDF versions to be installed
+const idfVersionList = ["v5.3.2"]; // IDF versions to be installed
 const installFolder = ".espressif4";
 const projectFolder = "project";
 
