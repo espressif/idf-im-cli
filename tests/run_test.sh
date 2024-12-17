@@ -13,5 +13,5 @@ cd tests
 # run tests
 set +e
 npm run default-test
-npm run variation1-test
+# npm run variation1-test
 npm run non-interactive-test

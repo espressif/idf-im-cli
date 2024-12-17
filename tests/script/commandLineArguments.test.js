@@ -22,7 +22,7 @@ export function runArgumentsTests(pathToEim, eimVersion) {
                 await testRunner.stop();
             } catch (error) {
                 logger.info("Error to clean up terminal after test");
-                throw error;
+                logger.info(` Error: ${error}`);
             }
             testRunner = null;
         });

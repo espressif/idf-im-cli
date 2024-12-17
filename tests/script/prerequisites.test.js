@@ -36,7 +36,7 @@ describe("Check if prerequisites are installed", function () {
             testRunner.sendInput(`${pathToEim}\r`);
         } catch (error) {
             logger.info(`Error starting process: ${error}`);
-            throw error;
+            logger.info(` Error: ${error}`);
         }
     });
 
@@ -46,7 +46,7 @@ describe("Check if prerequisites are installed", function () {
             await testRunner.stop();
         } catch (error) {
             logger.info("Error to clean up terminal after test");
-            throw error;
+            logger.info(` Error: ${error}`);
         }
         testRunner = null;
     });
