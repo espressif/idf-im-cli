@@ -225,3 +225,21 @@ jobs:
     with:
       run_id: ${{ github.run_id }}
       ref: ${{ github.event.pull_request.head.ref }}
+
+  fetch-latest-release:
+    name: Fetch Latest Release Info
+    needs: [build]
+    runs-on: ubuntu-latest
+    # This ensures the job runs after a release is created or when manually triggered
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Fetch latest release
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ap-east-1
+        run: |
+          curl -s https://api.github.com/repos/espressif/idf-im-cli/releases/latest > eim_cli_release.json
+          echo "Latest release tag: $(jq -r .tag_name eim_cli_release.json)"
+          aws s3 cp --acl=public-read "eim_cli_release.json" s3://espdldata/dl/eim/eim_cli_release.json
