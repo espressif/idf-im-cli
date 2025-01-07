@@ -25,6 +25,9 @@ jobs:
             package_name: linux-x64
           - os: windows-latest
             package_name: windows-x64
+          - os: windows-latest
+            package_name: windows-arm64
+            target: aarch64-pc-windows-gnullvm
           - os: macos-latest
             package_name: macos-aarch64
           - os: macos-13
@@ -39,13 +42,18 @@ jobs:
         with:
           toolchain: stable
           override: true
+          target: ${{ matrix.target }}
 
       - name: Install OpenSSL (Windows)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
           echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
-          vcpkg install openssl:x64-windows-static-md
+          if ("${{ matrix.target }}" -eq "aarch64-pc-windows-gnullvm") {
+            vcpkg install openssl:arm64-windows-static-md
+          } else {
+            vcpkg install openssl:x64-windows-static-md
+          }
 
       - name: Install OpenSSL (Macos)
         if: matrix.os == 'macos-latest'
@@ -55,23 +63,26 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-registry
           restore-keys: |
-            ${{ runner.os }}-cargo-registry
+            ${{ runner.os }}-${{ matrix.target }}-cargo-registry
 
       - name: Cache cargo index
         uses: actions/cache@v4
         with:
           path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-index
           restore-keys: |
-            ${{ runner.os }}-cargo-index
+            ${{ runner.os }}-${{ matrix.target }}-cargo-index
 
       - name: Build
-        run: cargo build --release
-
-      # - name: Run tests
-      #   run: cargo test --release
+        run: |
+          if [ "${{ matrix.target }}" != "" ]; then
+            cargo build --release --target ${{ matrix.target }}
+          else
+            cargo build --release
+          fi
+        shell: bash
 
       - name: Create release directory
         run: mkdir -p release
@@ -81,10 +92,15 @@ jobs:
 
       - name: Copy binary to release directory Windows
         if: matrix.os == 'windows-latest'
-        run: cp target/release/eim.exe release/${{ matrix.package_name }}/eim.exe
+        run: |
+          if ("${{ matrix.target }}" -eq "aarch64-pc-windows-gnullvm") {
+            cp target/aarch64-pc-windows-gnullvm/release/eim.exe release/${{ matrix.package_name }}/eim.exe
+          } else {
+            cp target/release/eim.exe release/${{ matrix.package_name }}/eim.exe
+          }
 
       - name: Sign Windows Binary
-        if: matrix.platform == 'windows-latest'
+        if: matrix.os == 'windows-latest'
         env:
           WINDOWS_PFX_FILE: ${{ secrets.WIN_CERTIFICATE }}
           WINDOWS_PFX_PASSWORD: ${{ secrets.WIN_CERTIFICATE_PWD }}
