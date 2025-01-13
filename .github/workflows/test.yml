@@ -58,7 +58,13 @@ jobs:
                   echo "CLI_TAG=$STRIPPED_TAG" >> $GITHUB_ENV
 
             - name: Fetch latest IDF release
+              if: runner.os != 'Windows'
               run: |
+                  if [[ "$RUNNER_OS" == "macOS" ]]; then
+                    brew install jq
+                  else
+                    sudo apt-get install -y jq
+                  fi
                   curl -s https://api.github.com/repos/espressif/esp-idf/releases/latest > IDF_latest_release.json
                   IDF_TAG=$(jq -r .tag_name IDF_latest_release.json)
                   echo "IDF_TAG=$IDF_TAG" >> $GITHUB_ENV
@@ -118,6 +124,7 @@ jobs:
                   echo "CLI_TAG=$STRIPPED_TAG" | Out-File -FilePath $env:GITHUB_ENV -Append
 
             - name: Fetch latest IDF release
+              if: runner.os == 'Windows'
               run: |
                   curl -s https://api.github.com/repos/espressif/esp-idf/releases/latest -o IDF_latest_release.json
                   $IDF_TAG = (Get-Content IDF_latest_release.json | ConvertFrom-Json).tag_name
