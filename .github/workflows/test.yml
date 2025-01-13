@@ -59,10 +59,10 @@ jobs:
 
             - name: Fetch latest IDF release
               run: |
-                curl -s https://api.github.com/repos/espressif/esp-idf/releases/latest > IDF_latest_release.json
-                IDF_TAG=$(jq -r .tag_name IDF_latest_release.json)
-                echo "IDF_TAG=$IDF_TAG" >> $GITHUB_ENV
-                echo "Latest IDF for default install: ${{IDF_TAG}}"
+                  curl -s https://api.github.com/repos/espressif/esp-idf/releases/latest > IDF_latest_release.json
+                  IDF_TAG=$(jq -r .tag_name IDF_latest_release.json)
+                  echo "IDF_TAG=$IDF_TAG" >> $GITHUB_ENV
+                  echo "Latest IDF for default install: $IDF_TAG"
 
             - name: Extract artifact (non-Windows)
               if: runner.os != 'Windows'
@@ -119,10 +119,10 @@ jobs:
 
             - name: Fetch latest IDF release
               run: |
-                curl -s https://api.github.com/repos/espressif/esp-idf/releases/latest -o IDF_latest_release.json
-                $IDF_TAG = (Get-Content IDF_latest_release.json | ConvertFrom-Json).tag_name
-                echo "IDF_TAG=$IDF_TAG" | Out-File -FilePath $env:GITHUB_ENV -Append
-                echo "Latest IDF for default install: ${{IDF_TAG}}"
+                  curl -s https://api.github.com/repos/espressif/esp-idf/releases/latest -o IDF_latest_release.json
+                  $IDF_TAG = (Get-Content IDF_latest_release.json | ConvertFrom-Json).tag_name
+                  echo "IDF_TAG=$IDF_TAG" | Out-File -FilePath $env:GITHUB_ENV -Append
+                  echo "Latest IDF for default install: $IDF_TAG"
 
             - name: Extract artifact (Windows)
               if: runner.os == 'Windows'
