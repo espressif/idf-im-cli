@@ -5,7 +5,7 @@ param (
     [string]$Path_to_eim,
 
     [Parameter(Mandatory=$true)]
-    [string]$Version
+    [string]$Version,
 
     [Parameter(Mandatory=$true)]
     [string]$IDFVersion
