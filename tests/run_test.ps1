@@ -6,11 +6,15 @@ param (
 
     [Parameter(Mandatory=$true)]
     [string]$Version
+
+    [Parameter(Mandatory=$true)]
+    [string]$IDFVersion
 )
 
 # Save the arguments as environment variables
 $env:EIM_FILE_PATH = $Path_to_eim
 $env:EIM_VERSION = $Version
+$env:IDF_VERSION = $IDFVersion
 
 Set-Location -Path "./tests"
 

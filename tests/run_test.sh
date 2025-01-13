@@ -3,6 +3,7 @@
 # Save the arguments as environment variables
 export EIM_FILE_PATH="$1"
 export EIM_VERSION="$2"
+export IDF_VERSION="$3"
 
 cd tests
 
