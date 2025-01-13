@@ -35,8 +35,8 @@ if (process.env.EIM_VERSION) {
 
 const pathToIDFScript =
     os.platform() !== "win32"
-        ? path.join(os.homedir(), ".espressif/activate_idf_v5.3.2.sh")
-        : "C:\\esp\\v5.3.2\\Microsoft.PowerShell_profile.ps1";
+        ? path.join(os.homedir(), ".espressif/activate_idf_v5.4.sh")
+        : "C:\\esp\\v5.4\\Microsoft.PowerShell_profile.ps1";
 
 const pathToProjectFolder =
     os.platform() !== "win32"
