@@ -11,6 +11,7 @@ import path from "path";
  *
  * EIM_FILE_PATH to point to the eim application.
  * EIM_VERSION to specify expected version to be printed by the application.
+ * IDF_VERSION to specify the default version of the IDF to be installed.
  *
  * use:
  * Windows: $env:<variable>="<value>"
@@ -20,6 +21,7 @@ import path from "path";
 
 let pathToEim;
 let eimVersion;
+let IDFLatestVersion;
 
 if (process.env.EIM_FILE_PATH) {
     pathToEim = process.env.EIM_FILE_PATH;
@@ -33,10 +35,19 @@ if (process.env.EIM_VERSION) {
     eimVersion = "idf-im-cli 0.1.5";
 }
 
+if (process.env.IDF_VERSION) {
+    IDFLatestVersion = process.env.IDF_VERSION;
+} else {
+    IDFLatestVersion = "v5.4";
+}
+
 const pathToIDFScript =
     os.platform() !== "win32"
-        ? path.join(os.homedir(), ".espressif/activate_idf_v5.4.sh")
-        : "C:\\esp\\v5.4\\Microsoft.PowerShell_profile.ps1";
+        ? path.join(
+              os.homedir(),
+              `.espressif/activate_idf_${IDFLatestVersion}.sh`
+          )
+        : `C:\\esp\\${IDFLatestVersion}\\Microsoft.PowerShell_profile.ps1`;
 
 const pathToProjectFolder =
     os.platform() !== "win32"

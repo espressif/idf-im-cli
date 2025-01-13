@@ -57,6 +57,13 @@ jobs:
                   STRIPPED_TAG=${LATEST_TAG#v}
                   echo "CLI_TAG=$STRIPPED_TAG" >> $GITHUB_ENV
 
+            - name: Fetch latest IDF release
+              run: |
+                curl -s https://api.github.com/repos/espressif/esp-idf/releases/latest > IDF_latest_release.json
+                IDF_TAG=$(jq -r .tag_name IDF_latest_release.json)
+                echo "IDF_TAG=$IDF_TAG" >> $GITHUB_ENV
+                echo "Latest IDF for default install: ${{IDF_TAG}}"
+
             - name: Extract artifact (non-Windows)
               if: runner.os != 'Windows'
               run: |
@@ -91,14 +98,14 @@ jobs:
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_test.sh
-                  . ./tests/run_test.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}"
+                  . ./tests/run_test.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}" "${{ env.IDF_TAG }}"
 
             - name: Run IDF installation from alternative mirrors in mainland China
               if: matrix.run_on == 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   chmod +x ./tests/run_cnrunner.sh
-                  . ./tests/run_cnrunner.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}"
+                  . ./tests/run_cnrunner.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}" "${{ env.IDF_TAG }}"
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -109,6 +116,13 @@ jobs:
                   $LATEST_TAG = (git tag --sort=-creatordate | Select-Object -First 1)
                   $STRIPPED_TAG = $LATEST_TAG -replace '^v', ''
                   echo "CLI_TAG=$STRIPPED_TAG" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+            - name: Fetch latest IDF release
+              run: |
+                curl -s https://api.github.com/repos/espressif/esp-idf/releases/latest -o IDF_latest_release.json
+                $IDF_TAG = (Get-Content IDF_latest_release.json | ConvertFrom-Json).tag_name
+                echo "IDF_TAG=$IDF_TAG" | Out-File -FilePath $env:GITHUB_ENV -Append
+                echo "Latest IDF for default install: ${{IDF_TAG}}"
 
             - name: Extract artifact (Windows)
               if: runner.os == 'Windows'
@@ -138,7 +152,7 @@ jobs:
               if: runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
-                  .\tests\run_test.ps1 "..\test-bin\eim.exe" "eim ${{ env.CLI_TAG }}"
+                  .\tests\run_test.ps1 "..\test-bin\eim.exe" "eim ${{ env.CLI_TAG }}" "${{ env.IDF_TAG }}"
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -148,13 +162,13 @@ jobs:
               with:
                   name: test-results-${{ matrix.package_name }}-${{matrix.run_on}}.zip
                   path: |
-                      ./tests/results-pre-test.xml
-                      ./tests/results-pre-install-test.xml
-                      ./tests/results-default-test.xml
-                      ./tests/results-variation1-test.xml
-                      ./tests/results-non-interactive-test.xml
-                      ./tests/results-CNMirror-test.xml
-                      ./tests/results-CNMirror2-test.xml
+                      ./tests/results-pre-test.json
+                      ./tests/results-pre-install-test.json
+                      ./tests/results-default-test.json
+                      ./tests/results-variation1-test.json
+                      ./tests/results-non-interactive-test.json
+                      ./tests/results-CNMirror-test.json
+                      ./tests/results-CNMirror2-test.json
                       ./tests/test.log
 
     publish-test-results:
@@ -164,13 +178,29 @@ jobs:
         if: always()
 
         steps:
-            - name: Download Artifacts
-              uses: actions/download-artifact@v4
-              with:
-                  path: ./artifacts
-
             - name: Publish Test Results
-              uses: EnricoMi/publish-unit-test-result-action@v2
+              uses: dorny/test-reporter@v1
               with:
-                  action_fail: true
-                  files: "./artifacts/**/*.xml"
+                  artifact: /test-results-(.*)/
+                  name: "Auto Tests $1"
+                  path: "*.json"
+                  reporter: mocha-json
+                  fail-on-empty: "true"
+
+    # publish-test-results:
+    #     name: Automated Test Results
+    #     needs: test
+    #     runs-on: ubuntu-latest
+    #     if: always()
+
+    #     steps:
+    #         - name: Download Artifacts
+    #           uses: actions/download-artifact@v4
+    #           with:
+    #               path: ./artifacts
+
+    #         - name: Publish Test Results
+    #           uses: EnricoMi/publish-unit-test-result-action@v2
+    #           with:
+    #               action_fail: true
+    #               files: "./artifacts/**/*.xml"

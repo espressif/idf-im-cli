@@ -9,6 +9,7 @@ import path from "path";
  * Setup the following environmental variables to execute this test:
  *
  * EIM_FILE_PATH to point to the eim application.
+ * IDF_VERSION to specify the default version of the IDF to be installed.
  *
  * use:
  * Windows: $env:<variable>="<value>"
@@ -17,6 +18,7 @@ import path from "path";
  */
 
 let pathToEim;
+let IDFLatestVersion;
 
 if (process.env.EIM_FILE_PATH) {
     pathToEim = process.env.EIM_FILE_PATH;
@@ -24,8 +26,14 @@ if (process.env.EIM_FILE_PATH) {
     pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
+if (process.env.IDF_VERSION) {
+    IDFLatestVersion = process.env.IDF_VERSION;
+} else {
+    IDFLatestVersion = "v5.4";
+}
+
 const targetList = ["esp32c6"]; // targets used for IDF installation
-const idfVersionList = ["v5.4"]; // IDF versions to be installed
+const idfVersionList = [IDFLatestVersion]; // IDF versions to be installed
 const installFolder = ".espressif4";
 const projectFolder = "project";
 
