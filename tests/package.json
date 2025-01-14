@@ -15,6 +15,6 @@
         "variation1-test": "mocha --exit --bail --reporter json --reporter-options output=./results-variation1-test.json runs/variation1.test.js",
         "non-interactive-test": "mocha --exit --bail --reporter json --reporter-options output=./results-non-interactive-test.json runs/nonInteractiveInstall.test.js",
         "cnrunner1-test": "mocha --exit --bail --reporter json --reporter-options output=./results-CNMirror-test.json runs/CNmirrors.test.js",
-        "cnrunner2-test": "mocha --exit --bail --reporter json --reporter-options output=./results-CNmirrors2-test.json runs/CNmirrors2.test.js"
+        "cnrunner2-test": "mocha --exit --bail --reporter json --reporter-options output=./results-CNMirrors2-test.json runs/CNmirrors2.test.js"
     }
 }

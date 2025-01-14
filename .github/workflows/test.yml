@@ -60,12 +60,8 @@ jobs:
             - name: Fetch latest IDF release
               if: runner.os != 'Windows'
               run: |
-                  if [[ "$RUNNER_OS" == "macOS" ]]; then
-                    brew install jq
-                  else
-                    sudo apt-get install -y jq
-                  fi
-                  curl -s https://api.github.com/repos/espressif/esp-idf/releases/latest > IDF_latest_release.json
+                  curl -v -s https://api.github.com/repos/espressif/esp-idf/releases/latest > IDF_latest_release.json
+                  cat IDF_latest_release.json
                   IDF_TAG=$(jq -r .tag_name IDF_latest_release.json)
                   echo "IDF_TAG=$IDF_TAG" >> $GITHUB_ENV
                   echo "Latest IDF for default install: $IDF_TAG"
@@ -169,13 +165,7 @@ jobs:
               with:
                   name: test-results-${{ matrix.package_name }}-${{matrix.run_on}}.zip
                   path: |
-                      ./tests/results-pre-test.json
-                      ./tests/results-pre-install-test.json
-                      ./tests/results-default-test.json
-                      ./tests/results-variation1-test.json
-                      ./tests/results-non-interactive-test.json
-                      ./tests/results-CNMirror-test.json
-                      ./tests/results-CNMirror2-test.json
+                      ./tests/results-*.json
                       ./tests/test.log
 
     publish-test-results:
