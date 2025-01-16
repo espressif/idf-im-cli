@@ -82,8 +82,11 @@ jobs:
               if: runner.os != 'Windows' && matrix.run_on != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
-                  chmod +x ./tests/run_pre_test.sh
-                  . ./tests/run_pre_test.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}"
+                  export EIM_FILE_PATH="../test-bin/eim"
+                  export EIM_VERSION="eim ${{ env.CLI_TAG }}"
+                  cd tests
+                  npm ci
+                  npm run pre-test
 
             - name: Install dependencies (Ubuntu)
               if: runner.os == 'Linux'
@@ -95,19 +98,36 @@ jobs:
               run: |
                   brew install cmake ninja dfu-util
 
-            - name: Run IDF installation and post install test script (non-Windows)
+            - name: Run IDF basic install test script (non-Windows)
               if: runner.os != 'Windows' && matrix.run_on != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
-                  chmod +x ./tests/run_test.sh
-                  . ./tests/run_test.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}" "${{ env.IDF_TAG }}"
+                  export EIM_FILE_PATH="../test-bin/eim"
+                  export EIM_VERSION="eim ${{ env.CLI_TAG }}"
+                  export IDF_VERSION="${{ env.IDF_TAG }}"
+                  cd tests
+                  npm run basic-test
 
-            - name: Run IDF installation from alternative mirrors in mainland China
+            - name: Run IDF extended install test script (non-Windows)
+              if: runner.os != 'Windows' && matrix.run_on != 'CNRunner'
+              run: |
+                  export LOG_TO_FILE="true"
+                  export EIM_FILE_PATH="../test-bin/eim"
+                  export EIM_VERSION="eim ${{ env.CLI_TAG }}"
+                  export IDF_VERSION="${{ env.IDF_TAG }}"
+                  cd tests
+                  npm run extended-test
+
+            - name: Run IDF installation from alternative mirrors
               if: matrix.run_on == 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
-                  chmod +x ./tests/run_cnrunner.sh
-                  . ./tests/run_cnrunner.sh "../test-bin/eim" "eim ${{ env.CLI_TAG }}" "${{ env.IDF_TAG }}"
+                  export EIM_FILE_PATH="../test-bin/eim"
+                  export EIM_VERSION="eim ${{ env.CLI_TAG }}"
+                  export IDF_VERSION="${{ env.IDF_TAG }}"
+                  cd tests
+                  npm ci
+                  npm run mirrors-test
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -134,28 +154,41 @@ jobs:
                   7z x ./artifacts/eim-${{ inputs.run_id }}-${{ matrix.package_name }}/eim.zip -otest-bin
                   # 7z x ./test-bin/eim.zip -otest-bin
 
-            - name: Print powershell and windows version (Windows)
-              if: runner.os == 'Windows'
-              run: |
-                  $PSVersionTable
-                  [System.Environment]::OSVersion.Version
-
             - name: Run prerequisites test script (Windows)
               if: runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
-                  .\tests\run_pre_test.ps1 "..\test-bin\eim.exe" "eim ${{ env.CLI_TAG }}"
+                  $env:EIM_FILE_PATH = "..\test-bin\eim.exe"
+                  $env:EIM_VERSION = "eim ${{ env.CLI_TAG }}"
+                  Set-Location -Path "./tests"
+                  Expand-Archive node_modules.zip
+                  npm run pre-test
+                  npm run pre-install
 
             - name: Install dependencies (Windows)
               if: runner.os == 'windows'
               run: |
                   choco install ninja -y
 
-            - name: Run IDF installation and post install test script (Windows)
+            - name: Run IDF basic install test script (Windows)
               if: runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
-                  .\tests\run_test.ps1 "..\test-bin\eim.exe" "eim ${{ env.CLI_TAG }}" "${{ env.IDF_TAG }}"
+                  $env:EIM_FILE_PATH = "..\test-bin\eim.exe"
+                  $env:EIM_VERSION = "eim ${{ env.CLI_TAG }}"
+                  $env:IDF_VERSION = "${{ env.IDF_TAG }}"
+                  Set-Location -Path "./tests"
+                  npm run basic-test
+
+            - name: Run IDF extended install test script (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  $env:LOG_TO_FILE="true"
+                  $env:EIM_FILE_PATH = "..\test-bin\eim.exe"
+                  $env:EIM_VERSION = "eim ${{ env.CLI_TAG }}"
+                  $env:IDF_VERSION = "${{ env.IDF_TAG }}"
+                  Set-Location -Path "./tests"
+                  npm run extended-test
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
