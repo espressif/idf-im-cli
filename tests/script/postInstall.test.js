@@ -3,18 +3,26 @@ import { describe, it, before, after, beforeEach, afterEach } from "mocha";
 import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
 import logger from "../classes/logger.class.js";
 import os from "os";
+import path from "path";
+import fs from "fs";
 
 export function runPostInstallTest(
     pathToIDFScript,
-    pathToProjectFolder,
+    installFolder,
     validTarget = "esp32",
     invalidTarget = ""
 ) {
     describe("create and build sample project", function () {
         this.timeout(600000);
         let testRunner = null;
+        let pathToProjectFolder = path.join(installFolder, "project");
+        let postInstallStepFailed = false;
 
         beforeEach(async function () {
+            if (postInstallStepFailed) {
+                logger.info("Test failed, skipping next tests");
+                this.skip();
+            }
             this.timeout(10000);
             logger.debug(
                 `Starting IDF terminal using activation script ${pathToIDFScript}, sample project copied at ${pathToProjectFolder}`
@@ -34,14 +42,25 @@ export function runPostInstallTest(
             this.timeout(20000);
             if (this.currentTest.state === "failed") {
                 logger.info(
-                    `Terminal output on failure: >>\r ${testRunner.output}`
+                    `Post install test step failed -> output: >>\r ${testRunner.output}`
                 );
+                postInstallStepFailed = true;
             }
             try {
                 await testRunner.stop();
             } catch (error) {
                 logger.info("Error to clean up terminal after test");
                 logger.info(` Error: ${error}`);
+            }
+        });
+
+        after(function () {
+            logger.info("Post install test completed, starting cleanup");
+            try {
+                fs.rmSync(installFolder, { recursive: true, force: true });
+                logger.info(`Successfully deleted ${installFolder}`);
+            } catch (err) {
+                logger.info(`Error deleting ${installFolder}`);
             }
         });
 
@@ -58,7 +77,7 @@ export function runPostInstallTest(
             testRunner.sendInput(
                 os.platform() !== "win32"
                     ? `cp -r $IDF_PATH/examples/get-started/hello_world .\r`
-                    : `xcopy /e /i $env:IDF_PATH\\examples\\get-started\\hello_world hello_world\r`
+                    : `xcopy /E /I $env:IDF_PATH\\examples\\get-started\\hello_world hello_world\r`
             );
             if (os.platform() === "win32") {
                 const confirmFilesCopied = await testRunner.waitForOutput(

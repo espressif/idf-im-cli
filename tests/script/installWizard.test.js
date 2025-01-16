@@ -1,11 +1,14 @@
 import { expect } from "chai";
-import { describe, it, before, after, beforeEach, afterEach } from "mocha";
+import { describe, it, before, after, afterEach } from "mocha";
 import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
 import logger from "../classes/logger.class.js";
+import os from "os";
 
 export function runInstallWizardTests(pathToEim) {
     describe("Check IDF Install Wizard steps", function () {
+        this.timeout(800000);
         let testRunner = null;
+        let installationFailed = false;
 
         before(async function () {
             logger.debug(`Starting installation wizard with default options`);
@@ -21,19 +24,20 @@ export function runInstallWizardTests(pathToEim) {
         afterEach(function () {
             if (this.currentTest.state === "failed") {
                 logger.info(
-                    `Terminal output on failure: \r >>${testRunner.output}<<`
+                    `Installation using wizard failed -> output: \r >>${testRunner.output}<<`
                 );
+                installationFailed = true;
             }
         });
 
         after(async function () {
-            logger.info("Install Wizard routine completed");
+            logger.info("Installation wizard test cleanup");
             this.timeout(20000);
             try {
                 await testRunner.stop();
             } catch (error) {
                 logger.info("Error to clean up terminal after test");
-                logger.info(` Error: ${error}`);
+                logger.info(`${error}`);
             }
         });
 
@@ -46,6 +50,7 @@ export function runInstallWizardTests(pathToEim) {
 
         it("Should install IDF using wizard and default values", async function () {
             logger.info(`Starting test - IDF installation wizard`);
+            this.timeout(1500000);
             testRunner.sendInput(`${pathToEim}\r`);
             const selectTargetQuestion = await testRunner.waitForOutput(
                 "Please select all of the target platforms",
@@ -111,10 +116,15 @@ export function runInstallWizardTests(pathToEim) {
             );
             expect(selectInstallPath, "Failed to ask for installation path").to
                 .be.true;
+
+            const defaultPath =
+                os.platform() === "win32"
+                    ? "(C:\\esp)"
+                    : `(${os.homedir()}/.espressif)`;
             expect(
                 testRunner.output,
                 "Failed to provide default installation path"
-            ).to.include("esp");
+            ).to.include(defaultPath);
 
             logger.info("Select install path passed");
             testRunner.output = "";

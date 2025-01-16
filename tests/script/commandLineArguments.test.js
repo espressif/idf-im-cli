@@ -4,7 +4,7 @@ import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
 import logger from "../classes/logger.class.js";
 
 export function runArgumentsTests(pathToEim, eimVersion) {
-    describe("CLI Arguments Tests", function () {
+    describe("Basic Arguments Tests", function () {
         let testRunner = null;
 
         beforeEach(function () {
