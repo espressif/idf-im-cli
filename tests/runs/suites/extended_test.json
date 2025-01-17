@@ -27,7 +27,7 @@
     },
     {
         "type": "custom",
-        "name": "Extended 2",
+        "name": "Extended 3",
         "data": {
             "targetList": "esp32",
             "idfList": "v5.1.5",
@@ -40,7 +40,7 @@
     },
     {
         "type": "custom",
-        "name": "Extended 2",
+        "name": "Extended 4",
         "data": {
             "targetList": "esp32",
             "idfList": "v5.0.7",

@@ -28,13 +28,19 @@ export function testRun(jsonScript) {
     jsonScript.forEach((test) => {
         if (test.type === "arguments") {
             //routine for arguments tests
+
             describe("EIM command line arguments", function () {
+                logger.info(
+                    `################################################################################`
+                );
+                logger.info(`Starting CLI arguments test ${test.name}`);
                 this.timeout(20000);
 
                 runArgumentsTests(PATHTOEIM, EIMVERSION);
             });
         } else if (test.type === "default") {
             //routine for default installation tests
+
             const installFolder =
                 os.platform() !== "win32"
                     ? path.join(os.homedir(), `.espressif`)
@@ -53,6 +59,10 @@ export function testRun(jsonScript) {
                       );
 
             describe("Installation manager default installation", function () {
+                logger.info(
+                    `################################################################################`
+                );
+                logger.info(`Starting default installation ${test.name}`);
                 this.timeout(2400000);
 
                 runInstallWizardTests(PATHTOEIM);
@@ -61,10 +71,6 @@ export function testRun(jsonScript) {
             });
         } else if (test.type === "custom") {
             //routine for custom installation tests
-            logger.info(
-                `################################################################################`
-            );
-            logger.info(`Starting custom installation ${test.name}`);
             let installFolder;
             if (test.data.installFolder) {
                 installFolder = path.join(
@@ -120,7 +126,11 @@ export function testRun(jsonScript) {
                           idfVersionList.split("|")[0],
                           `Microsoft.PowerShell_profile.ps1`
                       );
-            describe("Installation using non-interactive settings", function () {
+            describe(`Installation using custom settings -> ${test.name}`, function () {
+                logger.info(
+                    `################################################################################`
+                );
+                logger.info(`Starting custom installation ${test.name}`);
                 this.timeout(2400000);
 
                 runInstallCustom(PATHTOEIM, installArgs);
