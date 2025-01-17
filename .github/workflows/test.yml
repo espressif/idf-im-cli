@@ -112,9 +112,9 @@ jobs:
                   runner.os != 'Windows' && 
                   matrix.run_on != 'CNRunner' &&
                   (success() || steps.pre-test-non-windows.outcome == 'failure' &&
-                  steps.install-deps-ubuntu == 'success' ||
+                  steps.install-deps-ubuntu.outcome == 'success' ||
                   steps.pre-test-non-windows.outcome == 'failure' &&
-                  steps.install-deps-macos == 'success')
+                  steps.install-deps-macos.outcome == 'success')
               run: |
                   export LOG_TO_FILE="true"
                   export EIM_FILE_PATH="../test-bin/eim"
@@ -128,9 +128,9 @@ jobs:
                   runner.os != 'Windows' && 
                   matrix.run_on != 'CNRunner' &&
                   (success() || steps.pre-test-non-windows.outcome == 'failure' &&
-                  steps.install-deps-ubuntu == 'success' ||
+                  steps.install-deps-ubuntu.outcome == 'success' ||
                   steps.pre-test-non-windows.outcome == 'failure' &&
-                  steps.install-deps-macos == 'success')
+                  steps.install-deps-macos.outcome == 'success')
               run: |
                   export LOG_TO_FILE="true"
                   export EIM_FILE_PATH="../test-bin/eim"
@@ -200,7 +200,7 @@ jobs:
               if: |
                   runner.os == 'Windows' &&
                   (success() || steps.pre-test-windows.outcome == 'failure' &&
-                  steps.install-deps-windows == 'success')
+                  steps.install-deps-windows.outcome == 'success')
               run: |
                   $env:LOG_TO_FILE="true"
                   $env:EIM_FILE_PATH = "..\test-bin\eim.exe"
@@ -213,7 +213,7 @@ jobs:
               if: |
                   runner.os == 'Windows' &&
                   (success() || steps.pre-test-windows.outcome == 'failure' &&
-                  steps.install-deps-windows == 'success')
+                  steps.install-deps-windows.outcome == 'success')
               run: |
                   $env:LOG_TO_FILE="true"
                   $env:EIM_FILE_PATH = "..\test-bin\eim.exe"

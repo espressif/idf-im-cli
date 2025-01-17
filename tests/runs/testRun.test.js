@@ -61,7 +61,10 @@ export function testRun(jsonScript) {
             });
         } else if (test.type === "custom") {
             //routine for custom installation tests
-            logger.info(`Starting custom installation ${test.data.name}`);
+            logger.info(
+                `################################################################################`
+            );
+            logger.info(`Starting custom installation ${test.name}`);
             let installFolder;
             if (test.data.installFolder) {
                 installFolder = path.join(
