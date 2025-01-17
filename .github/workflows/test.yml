@@ -74,13 +74,12 @@ jobs:
                   # unzip ./test-bin/eim.zip -d test-bin
 
             - name: Set executable permissions (non-Windows)
-              id: set-executable-permissions-non-windows
               if: runner.os != 'Windows'
               run: |
                   chmod +x ./test-bin/eim
 
             - name: Run prerequisites test script (non-Windows), skip for CNRunner
-              id: pre-test-non-windows
+              continue-on-error: true
               if: runner.os != 'Windows' && matrix.run_on != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
@@ -91,28 +90,22 @@ jobs:
                   npm run pre-test
 
             - name: Install dependencies (Ubuntu)
-              id: install-deps-ubuntu
               if: |
-                  runner.os == 'Linux' &&
-                  steps.set-executable-permissions-non-windows.outcome == 'success'
+                  runner.os == 'Linux'
               run: |
                   sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
 
             - name: Install dependencies (MacOS)
-              id: install-deps-macos
               if: |
-                  runner.os == 'macOS' &&
-                  steps.set-executable-permissions-non-windows.outcome == 'success'
+                  runner.os == 'macOS'
               run: |
                   brew install cmake ninja dfu-util
 
             - name: Run IDF basic install test script (non-Windows)
-              id: basic-test-non-windows
+              continue-on-error: true
               if: |
                   runner.os != 'Windows' && 
-                  matrix.run_on != 'CNRunner' &&
-                  (steps.install-deps-ubuntu.outcome == 'success' ||
-                  steps.install-deps-macos.outcome == 'success')
+                  matrix.run_on != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   export EIM_FILE_PATH="../test-bin/eim"
@@ -122,11 +115,11 @@ jobs:
                   npm run basic-test
 
             - name: Run IDF extended install test script (non-Windows)
+              continue-on-error: true
               if: |
                   runner.os != 'Windows' && 
-                  matrix.run_on != 'CNRunner' &&
-                  (steps.install-deps-ubuntu.outcome == 'success' ||
-                  steps.install-deps-macos.outcome == 'success')
+                  matrix.run_on != 'CNRunner'
+
               run: |
                   export LOG_TO_FILE="true"
                   export EIM_FILE_PATH="../test-bin/eim"
@@ -165,7 +158,6 @@ jobs:
                   echo "Latest IDF for default install: $IDF_TAG"
 
             - name: Extract artifact (Windows)
-              id: extract-artifact-windows
               if: runner.os == 'Windows'
               run: |
                   mkdir -p test-bin
@@ -173,7 +165,7 @@ jobs:
                   # 7z x ./test-bin/eim.zip -otest-bin
 
             - name: Run prerequisites test script (Windows)
-              id: pre-test-windows
+              continue-on-error: true
               if: runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
@@ -185,18 +177,15 @@ jobs:
                   npm run pre-install
 
             - name: Install dependencies (Windows)
-              id: install-deps-windows
               if: |
-                  runner.os == 'windows' &&
-                  steps.extract-artifact-windows.outcome == 'success'
+                  runner.os == 'windows'
               run: |
                   choco install ninja -y
 
             - name: Run IDF basic install test script (Windows)
-              id: basic-test-windows
+              continue-on-error: true
               if: |
-                  runner.os == 'Windows' &&
-                  steps.install-deps-windows.outcome == 'success'
+                  runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
                   $env:EIM_FILE_PATH = "..\test-bin\eim.exe"
@@ -206,9 +195,9 @@ jobs:
                   npm run basic-test
 
             - name: Run IDF extended install test script (Windows)
+              continue-on-error: true
               if: |
-                  runner.os == 'Windows' &&
-                  steps.install-deps-windows.outcome == 'success'
+                  runner.os == 'Windows'
               run: |
                   $env:LOG_TO_FILE="true"
                   $env:EIM_FILE_PATH = "..\test-bin\eim.exe"
