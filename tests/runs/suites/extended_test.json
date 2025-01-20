@@ -1,5 +1,6 @@
 [
     {
+        "id": 1,
         "type": "custom",
         "name": "Extended 1",
         "data": {
@@ -13,6 +14,7 @@
         }
     },
     {
+        "id": 2,
         "type": "custom",
         "name": "Extended 2",
         "data": {
@@ -26,6 +28,7 @@
         }
     },
     {
+        "id": 3,
         "type": "custom",
         "name": "Extended 3",
         "data": {
@@ -39,6 +42,7 @@
         }
     },
     {
+        "id": 4,
         "type": "custom",
         "name": "Extended 4",
         "data": {

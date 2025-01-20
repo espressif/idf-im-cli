@@ -23,17 +23,17 @@ export function testRun(jsonScript) {
 
     const EIMVERSION = process.env.EIM_VERSION || "eim 0.1.5";
 
-    const IDFDEFAULTVERSION = process.env.IDF_VERSION || "v5.4";
+    const IDFDEFAULTVERSION =
+        process.env.IDF_VERSION & (process.env.IDF_VERSION !== "null")
+            ? process.env.IDF_VERSION
+            : "v5.4";
 
+    // Test Runs
     jsonScript.forEach((test) => {
         if (test.type === "arguments") {
             //routine for arguments tests
 
-            describe("EIM command line arguments", function () {
-                logger.info(
-                    `################################################################################`
-                );
-                logger.info(`Starting CLI arguments test ${test.name}`);
+            describe(`${test.id} - EIM command line arguments ->`, function () {
                 this.timeout(20000);
 
                 runArgumentsTests(PATHTOEIM, EIMVERSION);
@@ -58,11 +58,7 @@ export function testRun(jsonScript) {
                           "Microsoft.PowerShell_profile.ps1"
                       );
 
-            describe("Installation manager default installation", function () {
-                logger.info(
-                    `################################################################################`
-                );
-                logger.info(`Starting default installation ${test.name}`);
+            describe(`${test.id} - Installation manager default installation ->`, function () {
                 this.timeout(2400000);
 
                 runInstallWizardTests(PATHTOEIM);
@@ -126,11 +122,7 @@ export function testRun(jsonScript) {
                           idfVersionList.split("|")[0],
                           `Microsoft.PowerShell_profile.ps1`
                       );
-            describe(`Installation using custom settings -> ${test.name}`, function () {
-                logger.info(
-                    `################################################################################`
-                );
-                logger.info(`Starting custom installation ${test.name}`);
+            describe(`${test.id} - Installation using custom settings -> ${test.name} ->`, function () {
                 this.timeout(2400000);
 
                 runInstallCustom(PATHTOEIM, installArgs);

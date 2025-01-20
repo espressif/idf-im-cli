@@ -23,7 +23,7 @@ if (process.env.EIM_FILE_PATH) {
     pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
-describe("Check Pre-requisites installation on Windows", function () {
+describe("Check Pre-requisites installation on Windows ->", function () {
     this.timeout(600000);
     let testRunner;
 

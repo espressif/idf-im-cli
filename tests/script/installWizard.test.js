@@ -5,7 +5,7 @@ import logger from "../classes/logger.class.js";
 import os from "os";
 
 export function runInstallWizardTests(pathToEim) {
-    describe("Check IDF Install Wizard steps", function () {
+    describe("Run Install Wizard steps ->", function () {
         this.timeout(800000);
         let testRunner = null;
         let installationFailed = false;

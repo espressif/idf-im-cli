@@ -12,7 +12,7 @@ export function runPostInstallTest(
     validTarget = "esp32",
     invalidTarget = ""
 ) {
-    describe("create and build sample project", function () {
+    describe("Post installation test (create and build project) ->", function () {
         this.timeout(600000);
         let testRunner = null;
         let pathToProjectFolder = path.join(installFolder, "project");
