@@ -55,7 +55,7 @@ describe("Check Pre-requisites installation on Windows ->", function () {
         testRunner = null;
     });
 
-    it("should install prerequisites and offer to install python and exit upon negative answer", async function () {
+    it("1 - should install prerequisites and offer to install python and exit upon negative answer", async function () {
         logger.info(`Starting test - check python requirement`);
         this.timeout(240000);
         const promptRequisites = await testRunner.waitForOutput(
@@ -81,7 +81,7 @@ describe("Check Pre-requisites installation on Windows ->", function () {
         ).to.be.true;
     });
 
-    it("should detect all prerequisites are installed", async function () {
+    it("2 - should detect all prerequisites are installed", async function () {
         logger.info(`Starting test - all requirements installed`);
         this.timeout(22000);
         const selectTargetQuestion2 = await testRunner.waitForOutput(
@@ -90,7 +90,7 @@ describe("Check Pre-requisites installation on Windows ->", function () {
         );
         expect(
             selectTargetQuestion2,
-            "EIM did not ask to select target, error detecting prerequisites"
+            "EIM did not ask to select target, error installing prerequisites"
         ).to.be.true;
     });
 });

@@ -5,7 +5,7 @@ import logger from "../classes/logger.class.js";
 import os from "os";
 
 export function runInstallWizardTests(pathToEim) {
-    describe("Run Install Wizard steps ->", function () {
+    describe("1 - Run Install Wizard steps ->", function () {
         this.timeout(800000);
         let testRunner = null;
         let installationFailed = false;

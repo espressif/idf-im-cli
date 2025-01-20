@@ -12,7 +12,7 @@ export function runPostInstallTest(
     validTarget = "esp32",
     invalidTarget = ""
 ) {
-    describe("Post installation test (create and build project) ->", function () {
+    describe("2 - Post installation test (create and build project) ->", function () {
         this.timeout(600000);
         let testRunner = null;
         let pathToProjectFolder = path.join(installFolder, "project");
@@ -64,7 +64,7 @@ export function runPostInstallTest(
             }
         });
 
-        it("Should create a new project based on a template", async function () {
+        it("1 - Should create a new project based on a template", async function () {
             /**
              * This test should attempt to create a copy of the Hello World Project into the ~/esp folder
              * The commands might differ for each operating system.
@@ -109,7 +109,7 @@ export function runPostInstallTest(
             logger.info("sample project creation Passed");
         });
 
-        it("Should set the target", async function () {
+        it("2 - Should set the target", async function () {
             /**
              * This test attempts to set a target MCU for the project created in the previous test.
              */
@@ -140,7 +140,7 @@ export function runPostInstallTest(
             logger.info("Set Target Passed");
         });
 
-        it("Should build project for the selected target", async function () {
+        it("3 - Should build project for the selected target", async function () {
             /**
              * This test attempts to build artifacts for the project and targets selected above.
              * The test is successful if the success message is printed in the terminal.

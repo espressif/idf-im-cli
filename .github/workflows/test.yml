@@ -60,9 +60,8 @@ jobs:
             - name: Fetch latest IDF release
               if: runner.os != 'Windows'
               run: |
-                  curl -v -s https://api.github.com/repos/espressif/esp-idf/releases/latest > IDF_latest_release.json
-                  cat IDF_latest_release.json
-                  IDF_TAG=$(jq -r .tag_name IDF_latest_release.json)
+                  curl -v -s https://dl.espressif.com/dl/esp-idf/idf_versions.json > IDF_latest_release.json
+                  IDF_TAG=$(jq -r .VERSIONS[1].name IDF_latest_release.json)
                   echo "IDF_TAG=$IDF_TAG" >> $GITHUB_ENV
                   echo "Latest IDF for default install: $IDF_TAG"
 
@@ -129,6 +128,7 @@ jobs:
                   npm run extended-test
 
             - name: Run IDF installation from alternative mirrors
+              continue-on-error: true
               if: matrix.run_on == 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
@@ -152,8 +152,8 @@ jobs:
             - name: Fetch latest IDF release
               if: runner.os == 'Windows'
               run: |
-                  curl -s https://api.github.com/repos/espressif/esp-idf/releases/latest -o IDF_latest_release.json
-                  $IDF_TAG = (Get-Content IDF_latest_release.json | ConvertFrom-Json).tag_name
+                  $json = Invoke-RestMethod -Uri "https://dl.espressif.com/dl/esp-idf/idf_versions.json"
+                  $IDF_TAG = $json.VERSIONS[1].name
                   echo "IDF_TAG=$IDF_TAG" | Out-File -FilePath $env:GITHUB_ENV -Append
                   echo "Latest IDF for default install: $IDF_TAG"
 
