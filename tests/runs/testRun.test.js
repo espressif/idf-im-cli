@@ -21,7 +21,7 @@ export function testRun(jsonScript) {
     const PATHTOEIM =
         process.env.EIM_FILE_PATH || path.join(os.homedir(), "eim-cli/eim");
 
-    const EIMVERSION = process.env.EIM_VERSION || "eim 0.1.5";
+    const EIMVERSION = process.env.EIM_VERSION || "eim 0.1.6";
 
     const IDFDEFAULTVERSION =
         process.env.IDF_VERSION & (process.env.IDF_VERSION !== "null")
