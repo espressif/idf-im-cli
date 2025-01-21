@@ -1,0 +1,306 @@
+{
+  "stats": {
+    "suites": 11,
+    "tests": 15,
+    "passes": 11,
+    "pending": 2,
+    "failures": 2,
+    "start": "2025-01-21T18:30:45.482Z",
+    "end": "2025-01-21T19:02:35.885Z",
+    "duration": 1910403
+  },
+  "tests": [
+    {
+      "title": "should show correct version number",
+      "fullTitle": "1 - EIM command line arguments -> Basic Arguments Tests -> should show correct version number",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 2107,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should show help with --help argument",
+      "fullTitle": "1 - EIM command line arguments -> Basic Arguments Tests -> should show help with --help argument",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 2107,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should handle invalid arguments",
+      "fullTitle": "1 - EIM command line arguments -> Basic Arguments Tests -> should handle invalid arguments",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 2105,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "Should install IDF using wizard and default values",
+      "fullTitle": "2 - Installation manager default installation -> 1 - Run Install Wizard steps -> Should install IDF using wizard and default values",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 222008,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "1 - Should create a new project based on a template",
+      "fullTitle": "2 - Installation manager default installation -> 2 - Post installation test (create and build project) -> 1 - Should create a new project based on a template",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 102,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "2 - Should set the target",
+      "fullTitle": "2 - Installation manager default installation -> 2 - Post installation test (create and build project) -> 2 - Should set the target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 97875,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "3 - Should build project for the selected target",
+      "fullTitle": "2 - Installation manager default installation -> 2 - Post installation test (create and build project) -> 3 - Should build project for the selected target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 11035,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "Should install IDF using specified parameters",
+      "fullTitle": "3 - Installation using custom settings -> non-interactive-basic -> 1 - Run custom installation using given parameters -> Should install IDF using specified parameters",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 221105,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "1 - Should create a new project based on a template",
+      "fullTitle": "3 - Installation using custom settings -> non-interactive-basic -> 2 - Post installation test (create and build project) -> 1 - Should create a new project based on a template",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 100,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "2 - Should set the target",
+      "fullTitle": "3 - Installation using custom settings -> non-interactive-basic -> 2 - Post installation test (create and build project) -> 2 - Should set the target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 97430,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "3 - Should build project for the selected target",
+      "fullTitle": "3 - Installation using custom settings -> non-interactive-basic -> 2 - Post installation test (create and build project) -> 3 - Should build project for the selected target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 10835,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "Should install IDF using specified parameters",
+      "fullTitle": "4 - Installation using custom settings -> non-interactive-full-parameters -> 1 - Run custom installation using given parameters -> Should install IDF using specified parameters",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 1200007,
+      "currentRetry": 0,
+      "err": {
+        "stack": "AssertionError: Failed to complete installation, missing 'Successfully Installed IDF': expected false to be true\n    at Context.<anonymous> (file:///home/fabricio/idf-im-cli/tests/script/installCustom.test.js:83:20)",
+        "message": "Failed to complete installation, missing 'Successfully Installed IDF': expected false to be true",
+        "actual": "false",
+        "expected": "true",
+        "showDiff": true,
+        "operator": "strictEqual"
+      }
+    },
+    {
+      "title": "1 - Should create a new project based on a template",
+      "fullTitle": "4 - Installation using custom settings -> non-interactive-full-parameters -> 2 - Post installation test (create and build project) -> 1 - Should create a new project based on a template",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 10048,
+      "currentRetry": 0,
+      "err": {
+        "stack": "AssertionError: sdkconfig.ci file not shown after a ls command, file copy failed: expected false to be true\n    at Context.<anonymous> (file:///home/fabricio/idf-im-cli/tests/script/postInstall.test.js:99:20)",
+        "message": "sdkconfig.ci file not shown after a ls command, file copy failed: expected false to be true",
+        "actual": "false",
+        "expected": "true",
+        "showDiff": true,
+        "operator": "strictEqual"
+      }
+    },
+    {
+      "title": "2 - Should set the target",
+      "fullTitle": "4 - Installation using custom settings -> non-interactive-full-parameters -> 2 - Post installation test (create and build project) -> 2 - Should set the target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "currentRetry": 0,
+      "err": {}
+    },
+    {
+      "title": "3 - Should build project for the selected target",
+      "fullTitle": "4 - Installation using custom settings -> non-interactive-full-parameters -> 2 - Post installation test (create and build project) -> 3 - Should build project for the selected target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "currentRetry": 0,
+      "err": {}
+    }
+  ],
+  "pending": [
+    {
+      "title": "2 - Should set the target",
+      "fullTitle": "4 - Installation using custom settings -> non-interactive-full-parameters -> 2 - Post installation test (create and build project) -> 2 - Should set the target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "currentRetry": 0,
+      "err": {}
+    },
+    {
+      "title": "3 - Should build project for the selected target",
+      "fullTitle": "4 - Installation using custom settings -> non-interactive-full-parameters -> 2 - Post installation test (create and build project) -> 3 - Should build project for the selected target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "currentRetry": 0,
+      "err": {}
+    }
+  ],
+  "failures": [
+    {
+      "title": "Should install IDF using specified parameters",
+      "fullTitle": "4 - Installation using custom settings -> non-interactive-full-parameters -> 1 - Run custom installation using given parameters -> Should install IDF using specified parameters",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 1200007,
+      "currentRetry": 0,
+      "err": {
+        "stack": "AssertionError: Failed to complete installation, missing 'Successfully Installed IDF': expected false to be true\n    at Context.<anonymous> (file:///home/fabricio/idf-im-cli/tests/script/installCustom.test.js:83:20)",
+        "message": "Failed to complete installation, missing 'Successfully Installed IDF': expected false to be true",
+        "actual": "false",
+        "expected": "true",
+        "showDiff": true,
+        "operator": "strictEqual"
+      }
+    },
+    {
+      "title": "1 - Should create a new project based on a template",
+      "fullTitle": "4 - Installation using custom settings -> non-interactive-full-parameters -> 2 - Post installation test (create and build project) -> 1 - Should create a new project based on a template",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 10048,
+      "currentRetry": 0,
+      "err": {
+        "stack": "AssertionError: sdkconfig.ci file not shown after a ls command, file copy failed: expected false to be true\n    at Context.<anonymous> (file:///home/fabricio/idf-im-cli/tests/script/postInstall.test.js:99:20)",
+        "message": "sdkconfig.ci file not shown after a ls command, file copy failed: expected false to be true",
+        "actual": "false",
+        "expected": "true",
+        "showDiff": true,
+        "operator": "strictEqual"
+      }
+    }
+  ],
+  "passes": [
+    {
+      "title": "should show correct version number",
+      "fullTitle": "1 - EIM command line arguments -> Basic Arguments Tests -> should show correct version number",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 2107,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should show help with --help argument",
+      "fullTitle": "1 - EIM command line arguments -> Basic Arguments Tests -> should show help with --help argument",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 2107,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should handle invalid arguments",
+      "fullTitle": "1 - EIM command line arguments -> Basic Arguments Tests -> should handle invalid arguments",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 2105,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "Should install IDF using wizard and default values",
+      "fullTitle": "2 - Installation manager default installation -> 1 - Run Install Wizard steps -> Should install IDF using wizard and default values",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 222008,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "1 - Should create a new project based on a template",
+      "fullTitle": "2 - Installation manager default installation -> 2 - Post installation test (create and build project) -> 1 - Should create a new project based on a template",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 102,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "2 - Should set the target",
+      "fullTitle": "2 - Installation manager default installation -> 2 - Post installation test (create and build project) -> 2 - Should set the target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 97875,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "3 - Should build project for the selected target",
+      "fullTitle": "2 - Installation manager default installation -> 2 - Post installation test (create and build project) -> 3 - Should build project for the selected target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 11035,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "Should install IDF using specified parameters",
+      "fullTitle": "3 - Installation using custom settings -> non-interactive-basic -> 1 - Run custom installation using given parameters -> Should install IDF using specified parameters",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 221105,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "1 - Should create a new project based on a template",
+      "fullTitle": "3 - Installation using custom settings -> non-interactive-basic -> 2 - Post installation test (create and build project) -> 1 - Should create a new project based on a template",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 100,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "2 - Should set the target",
+      "fullTitle": "3 - Installation using custom settings -> non-interactive-basic -> 2 - Post installation test (create and build project) -> 2 - Should set the target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 97430,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "3 - Should build project for the selected target",
+      "fullTitle": "3 - Installation using custom settings -> non-interactive-basic -> 2 - Post installation test (create and build project) -> 3 - Should build project for the selected target",
+      "file": "/home/fabricio/idf-im-cli/tests/runs/testRun.test.js",
+      "duration": 10835,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    }
+  ]
+}

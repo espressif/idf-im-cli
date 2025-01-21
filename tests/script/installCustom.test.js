@@ -82,11 +82,6 @@ export function runInstallCustom(pathToEim, args = []) {
                 "Failed to complete installation, missing 'Successfully Installed IDF'"
             ).to.be.true;
 
-            // expect(
-            //     testRunner.output,
-            //     "Error message during installation"
-            // ).to.not.include("error");
-
             expect(
                 testRunner.output,
                 "Failed to complete installation, missing 'Now you can start using IDF tools'"

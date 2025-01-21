@@ -6,8 +6,19 @@ import { runPostInstallTest } from "../script/postInstall.test.js";
 import logger from "../classes/logger.class.js";
 import os from "os";
 import path from "path";
+import fs from "fs";
 
-export function testRun(jsonScript) {
+const jsonFilePath = path.join(
+    import.meta.dirname,
+    "suites",
+    `${process.env.JSON_FILENAME}.json`
+);
+const testScript = JSON.parse(fs.readFileSync(jsonFilePath, "utf-8"));
+logger.info(`Running test script: ${jsonFilePath}`);
+
+testRun(testScript);
+
+function testRun(jsonScript) {
     const IDFMIRRORS = {
         github: "https://github.com",
         jihulab: "https://jihulab.com/esp-mirror",
