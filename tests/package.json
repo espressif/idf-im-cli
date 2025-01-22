@@ -11,7 +11,7 @@
     "scripts": {
         "pre-test": "mocha --exit --reporter json --reporter-options output=./results-pre-requisites-test.json script/prerequisites.test.js",
         "pre-install": "mocha --exit --bail --reporter json --reporter-options output=./results-pre-install-test.json script/prerequisitesInstallRunner.test.js",
-        "test": "mocha --exit --reporter json --reporter-options output=./results-$JSON_FILENAME.json runs/testRun.test.js",
-        "test-win": "mocha --exit --reporter json --reporter-options output=./results-$env:JSON_FILENAME.json runs/testRun.test.js"
+        "test": "export JSON_FILENAME=$npm_config_file && mocha --exit --reporter json --reporter-options output=./results-$JSON_FILENAME.json runs/testRun.test.js",
+        "test-win": "powershell -Command \"$env:JSON_FILENAME=$env:npm_config_file; mocha --exit --reporter json --reporter-options output=./results-$env:JSON_FILENAME.json runs/testRun.test.js\""
     }
 }

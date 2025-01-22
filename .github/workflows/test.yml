@@ -110,9 +110,8 @@ jobs:
                   export EIM_FILE_PATH="../test-bin/eim"
                   export EIM_VERSION="eim ${{ env.CLI_TAG }}"
                   export IDF_VERSION="${{ env.IDF_TAG }}"
-                  export JSON_FILENAME="basic_test"
                   cd tests
-                  npm run test
+                  npm run test --file=basic-test
 
             - name: Run IDF extended install test script (non-Windows)
               continue-on-error: true
@@ -124,10 +123,9 @@ jobs:
                   export LOG_TO_FILE="true"
                   export EIM_FILE_PATH="../test-bin/eim"
                   export EIM_VERSION="eim ${{ env.CLI_TAG }}"
-                  export IDF_VERSION="${{ env.IDF_TAG }}"
-                  export JSON_FILENAME="extended_test"                  
+                  export IDF_VERSION="${{ env.IDF_TAG }}"                 
                   cd tests
-                  npm run test
+                  npm run test --file=extended-test
 
             - name: Run IDF installation from alternative mirrors
               continue-on-error: true
@@ -136,11 +134,10 @@ jobs:
                   export LOG_TO_FILE="true"
                   export EIM_FILE_PATH="../test-bin/eim"
                   export EIM_VERSION="eim ${{ env.CLI_TAG }}"
-                  export IDF_VERSION="${{ env.IDF_TAG }}"
-                  export JSON_FILENAME="mirrors_test"                  
+                  export IDF_VERSION="${{ env.IDF_TAG }}"                 
                   cd tests
                   npm ci
-                  npm run test
+                  npm run test --file=mirrors-test
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -193,10 +190,9 @@ jobs:
                   $env:LOG_TO_FILE="true"
                   $env:EIM_FILE_PATH = "..\test-bin\eim.exe"
                   $env:EIM_VERSION = "eim ${{ env.CLI_TAG }}"
-                  $env:IDF_VERSION = "${{ env.IDF_TAG }}"
-                  $env:JSON_FILENAME = "basic_test"                  
+                  $env:IDF_VERSION = "${{ env.IDF_TAG }}"                  
                   Set-Location -Path "./tests"
-                  npm run test-win
+                  npm run test-win --file=basic-test
 
             - name: Run IDF extended install test script (Windows)
               continue-on-error: true
@@ -206,10 +202,9 @@ jobs:
                   $env:LOG_TO_FILE="true"
                   $env:EIM_FILE_PATH = "..\test-bin\eim.exe"
                   $env:EIM_VERSION = "eim ${{ env.CLI_TAG }}"
-                  $env:IDF_VERSION = "${{ env.IDF_TAG }}"
-                  $env:JSON_FILENAME = "extended_test"                   
+                  $env:IDF_VERSION = "${{ env.IDF_TAG }}"                  
                   Set-Location -Path "./tests"
-                  npm run test-win
+                  npm run test-win --file=extended-test
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -230,10 +225,10 @@ jobs:
 
         steps:
             - name: Publish Test Results
-              uses: dorny/test-reporter@v1
+              uses: phoenix-actions/test-reporting@v8
               with:
                   artifact: /test-results-(.*)/
-                  name: "Auto Tests $1"
+                  name: "Tests $1"
                   path: "*.json"
                   reporter: mocha-json
-                  fail-on-empty: "true"
+                  fail-on-error: "true"
