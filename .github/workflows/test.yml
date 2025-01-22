@@ -225,10 +225,10 @@ jobs:
 
         steps:
             - name: Publish Test Results
-              uses: phoenix-actions/test-reporting@v8
+              uses: dorny/test-reporter@v1
               with:
                   artifact: /test-results-(.*)/
                   name: "Tests $1"
                   path: "*.json"
                   reporter: mocha-json
-                  fail-on-error: "true"
+                  fail-on-empty: "true"

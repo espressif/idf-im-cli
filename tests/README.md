@@ -124,6 +124,8 @@ then execute the tests by running the test npm script passing the test script fi
 `npm run test --file=extended_test`
 `npm run test --file=mirrors-test`
 
+> For Windows use `test-win`
+
 The test for prerequisites test can be executed to check the detection of missing prerequisites (before they are installed in the system) by running:
 
 `npm run pre-test`
