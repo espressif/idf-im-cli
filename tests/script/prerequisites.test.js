@@ -24,7 +24,7 @@ if (process.env.EIM_FILE_PATH) {
     pathToEim = path.join(os.homedir(), "eim-cli/eim");
 }
 
-describe("Check if prerequisites are installed", function () {
+describe("Check if prerequisites are installed ->", function () {
     this.timeout(600000);
     let testRunner;
 

@@ -3,18 +3,26 @@ import { describe, it, before, after, beforeEach, afterEach } from "mocha";
 import { InteractiveCLITestRunner } from "../classes/CLITestRunner.class.js";
 import logger from "../classes/logger.class.js";
 import os from "os";
+import path from "path";
+import fs from "fs";
 
 export function runPostInstallTest(
     pathToIDFScript,
-    pathToProjectFolder,
+    installFolder,
     validTarget = "esp32",
     invalidTarget = ""
 ) {
-    describe("create and build sample project", function () {
+    describe("2 - Post installation test (create and build project) ->", function () {
         this.timeout(600000);
         let testRunner = null;
+        let pathToProjectFolder = path.join(installFolder, "project");
+        let postInstallStepFailed = false;
 
         beforeEach(async function () {
+            if (postInstallStepFailed) {
+                logger.info("Test failed, skipping next tests");
+                this.skip();
+            }
             this.timeout(10000);
             logger.debug(
                 `Starting IDF terminal using activation script ${pathToIDFScript}, sample project copied at ${pathToProjectFolder}`
@@ -34,8 +42,9 @@ export function runPostInstallTest(
             this.timeout(20000);
             if (this.currentTest.state === "failed") {
                 logger.info(
-                    `Terminal output on failure: >>\r ${testRunner.output}`
+                    `Post install test step failed -> output: >>\r ${testRunner.output}`
                 );
+                postInstallStepFailed = true;
             }
             try {
                 await testRunner.stop();
@@ -45,7 +54,17 @@ export function runPostInstallTest(
             }
         });
 
-        it("Should create a new project based on a template", async function () {
+        after(function () {
+            logger.info("Post install test completed, starting cleanup");
+            try {
+                fs.rmSync(installFolder, { recursive: true, force: true });
+                logger.info(`Successfully deleted ${installFolder}`);
+            } catch (err) {
+                logger.info(`Error deleting ${installFolder}`);
+            }
+        });
+
+        it("1 - Should create a new project based on a template", async function () {
             /**
              * This test should attempt to create a copy of the Hello World Project into the ~/esp folder
              * The commands might differ for each operating system.
@@ -58,7 +77,7 @@ export function runPostInstallTest(
             testRunner.sendInput(
                 os.platform() !== "win32"
                     ? `cp -r $IDF_PATH/examples/get-started/hello_world .\r`
-                    : `xcopy /e /i $env:IDF_PATH\\examples\\get-started\\hello_world hello_world\r`
+                    : `xcopy /E /I $env:IDF_PATH\\examples\\get-started\\hello_world hello_world\r`
             );
             if (os.platform() === "win32") {
                 const confirmFilesCopied = await testRunner.waitForOutput(
@@ -90,7 +109,7 @@ export function runPostInstallTest(
             logger.info("sample project creation Passed");
         });
 
-        it("Should set the target", async function () {
+        it("2 - Should set the target", async function () {
             /**
              * This test attempts to set a target MCU for the project created in the previous test.
              */
@@ -121,7 +140,7 @@ export function runPostInstallTest(
             logger.info("Set Target Passed");
         });
 
-        it("Should build project for the selected target", async function () {
+        it("3 - Should build project for the selected target", async function () {
             /**
              * This test attempts to build artifacts for the project and targets selected above.
              * The test is successful if the success message is printed in the terminal.
