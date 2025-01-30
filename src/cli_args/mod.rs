@@ -128,6 +128,12 @@ pub struct Cli {
         help = "if set, the installer will as it's very last move save the configuration to the specified file path. This file can than be used to repeat the installation with the same settings."
     )]
     pub config_file_save_path: Option<String>,
+
+    #[arg(
+        long,
+        help = "Comma separated list of additional IDF features (ci, docs, pytests, etc.) to be installed with ESP-IDF."
+    )]
+    pub idf_features: Option<String>,
 }
 
 impl IntoIterator for Cli {
@@ -198,6 +204,11 @@ impl IntoIterator for Cli {
             (
                 "config_file_save_path".to_string(),
                 self.config_file_save_path.map(Into::into),
+            ),
+            (
+                "idf_features".to_string(),
+                self.idf_features
+                    .map(|s| s.split(',').collect::<Vec<&str>>().into()),
             ),
         ]
         .into_iter()
