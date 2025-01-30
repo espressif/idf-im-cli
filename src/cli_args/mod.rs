@@ -151,13 +151,23 @@ impl IntoIterator for Cli {
             ),
             (
                 "target".to_string(),
-                self.target
-                    .map(|s| s.split(',').collect::<Vec<&str>>().into()),
+                self.target.map(|s| {
+                    if s != "" {
+                        s.split(',').collect::<Vec<&str>>().into()
+                    } else {
+                        s.into()
+                    }
+                }),
             ),
             (
                 "idf_versions".to_string(),
-                self.idf_versions
-                    .map(|s| s.split(',').collect::<Vec<&str>>().into()),
+                self.idf_versions.map(|s| {
+                    if s != "" {
+                        s.split(',').collect::<Vec<&str>>().into()
+                    } else {
+                        s.into()
+                    }
+                }),
             ),
             (
                 "tool_download_folder_name".to_string(),
