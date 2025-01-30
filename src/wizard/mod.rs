@@ -147,6 +147,34 @@ async fn download_tools(
             }
         }
         progress_handle.join().unwrap();
+        match idf_im_lib::verify_file_checksum(
+            &download_link.sha256,
+            full_file_path.to_str().unwrap(),
+        ) {
+            Ok(true) => {
+                continue;
+            }
+            _ => {
+                error!("{}", t!("wizard.tool.corupted"));
+                match fs::remove_file(&full_file_path) {
+                    Ok(_) => {
+                        error!(
+                            "{}: {}",
+                            t!("wizard.tool.removed"),
+                            full_file_path.to_str().unwrap()
+                        );
+                    }
+                    Err(err) => {
+                        error!(
+                            "{}: {}: {}",
+                            t!("wizard.tool.remove_failed"),
+                            full_file_path.to_str().unwrap(),
+                            err
+                        );
+                    }
+                };
+            }
+        }
     }
     downloaded_tools
 }
