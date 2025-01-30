@@ -546,7 +546,19 @@ pub async fn run_wizzard_run(mut config: Settings) -> Result<(), String> {
 
         let idf_tools_path = get_and_validate_idf_tools_path(&mut config, &idf_path)?;
 
-        idf_im_lib::python_utils::run_idf_tools_py(idf_tools_path.to_str().unwrap(), &env_vars)?;
+        if config.idf_features.is_some() {
+            let features = config.idf_features.clone().unwrap();
+            idf_im_lib::python_utils::run_idf_tools_py_with_features(
+                idf_tools_path.to_str().unwrap(),
+                &env_vars,
+                &features,
+            )?;
+        } else {
+            idf_im_lib::python_utils::run_idf_tools_py(
+                idf_tools_path.to_str().unwrap(),
+                &env_vars,
+            )?;
+        }
 
         let export_paths = idf_im_lib::idf_tools::get_tools_export_paths(
             tools,
