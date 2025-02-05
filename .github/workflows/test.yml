@@ -29,6 +29,9 @@ jobs:
                       run_on: GitHub
                     - os: ubuntu-latest
                       package_name: linux-x64
+                      run_on: Mirror
+                    - os: self-hosted
+                      package_name: linux-x64
                       run_on: CNRunner
 
         steps:
@@ -79,7 +82,10 @@ jobs:
 
             - name: Run prerequisites test script (non-Windows), skip for CNRunner
               continue-on-error: true
-              if: runner.os != 'Windows' && matrix.run_on != 'CNRunner'
+              if: |
+                  runner.os != 'Windows' && 
+                  matrix.run_on != 'Mirror' &&
+                  matrix.run_on != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
                   export EIM_FILE_PATH="../test-bin/eim"
@@ -104,6 +110,7 @@ jobs:
               continue-on-error: true
               if: |
                   runner.os != 'Windows' && 
+                  matrix.run_on != 'Mirror' &&
                   matrix.run_on != 'CNRunner'
               run: |
                   export LOG_TO_FILE="true"
@@ -117,6 +124,7 @@ jobs:
               continue-on-error: true
               if: |
                   runner.os != 'Windows' && 
+                  matrix.run_on != 'Mirror' &&
                   matrix.run_on != 'CNRunner'
 
               run: |
@@ -129,7 +137,7 @@ jobs:
 
             - name: Run IDF installation from alternative mirrors
               continue-on-error: true
-              if: matrix.run_on == 'CNRunner'
+              if: matrix.run_on == 'Mirror'
               run: |
                   export LOG_TO_FILE="true"
                   export EIM_FILE_PATH="../test-bin/eim"
@@ -138,6 +146,18 @@ jobs:
                   cd tests
                   npm ci
                   npm run test --file=mirrors-test
+
+            - name: Run IDF installation from runner in CN
+              continue-on-error: true
+              if: matrix.run_on == 'CNRunner'
+              run: |
+                  export LOG_TO_FILE="true"
+                  export EIM_FILE_PATH="../test-bin/eim"
+                  export EIM_VERSION="eim ${{ env.CLI_TAG }}"
+                  export IDF_VERSION="${{ env.IDF_TAG }}"                 
+                  cd tests
+                  npm ci
+                  npm run test --file=cnrunner-test
 
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
