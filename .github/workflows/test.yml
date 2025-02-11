@@ -18,18 +18,18 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - os: ubuntu-latest
-                      package_name: linux-x64
-                      run_on: GitHub
-                    - os: windows-latest
-                      package_name: windows-x64
-                      run_on: GitHub
-                    - os: macos-latest
-                      package_name: macos-aarch64
-                      run_on: GitHub
-                    - os: ubuntu-latest
-                      package_name: linux-x64
-                      run_on: Mirror
+                    # - os: ubuntu-latest
+                    #   package_name: linux-x64
+                    #   run_on: GitHub
+                    # - os: windows-latest
+                    #   package_name: windows-x64
+                    #   run_on: GitHub
+                    # - os: macos-latest
+                    #   package_name: macos-aarch64
+                    #   run_on: GitHub
+                    # - os: ubuntu-latest
+                    #   package_name: linux-x64
+                    #   run_on: Mirror
                     - os: self-hosted
                       package_name: linux-x64
                       run_on: CNRunner
@@ -96,7 +96,8 @@ jobs:
 
             - name: Install dependencies (Ubuntu)
               if: |
-                  runner.os == 'Linux'
+                  runner.os == 'Linux' &&
+                  matrix.run_on != 'CNRunner'
               run: |
                   sudo apt-get install -y git cmake ninja-build wget flex bison gperf ccache libffi-dev libssl-dev dfu-util libusb-1.0-0-dev python3 python3-venv python3-pip
 
