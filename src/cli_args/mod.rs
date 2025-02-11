@@ -1,6 +1,8 @@
 use clap::builder::styling::{AnsiColor, Color, Style, Styles};
-use clap::{arg, command, ColorChoice, Parser};
+use clap::{arg, command, ColorChoice, Parser, Subcommand};
 use std::path::PathBuf;
+
+// use clap::builder::styling::{AnsiColor, Color, Style, Styles};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -25,12 +27,73 @@ fn custom_styles() -> Styles {
 #[command(
     author,
     version = VERSION,
-    about = "ESP-IDF Install Manager",
+    about = "ESP-IDF Installation Manager",
     long_about = "All you need to manage your ESP-IDF installations",
     color = ColorChoice::Always,
     styles = custom_styles()
 )]
 pub struct Cli {
+    #[command(subcommand)]
+    pub command: Commands,
+
+    #[arg(short, long, help = "Set the language for the wizard (en, cn)")]
+    pub locale: Option<String>,
+
+    #[arg(
+        short,
+        long,
+        action = clap::ArgAction::Count,
+        help = "Increase verbosity level (can be used multiple times)"
+    )]
+    pub verbose: u8,
+
+    #[arg(long, help = "file in which logs will be stored (default: eim.log)")]
+    pub log_file: Option<String>,
+}
+
+// todo: add fix command which will reinstall using the existing IDF repository
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    /// Install ESP-IDF versions
+    Install(InstallArgs),
+
+    /// List installed ESP-IDF versions
+    List,
+
+    /// Select an ESP-IDF version as active
+    Select {
+        #[arg(help = "Version to select as active")]
+        version: Option<String>,
+    },
+
+    /// Discover available ESP-IDF versions (not implemented yet)
+    Discover,
+
+    /// Remove specific ESP-IDF version
+    Remove {
+        #[arg(help = "Version to remove")]
+        version: Option<String>,
+    },
+
+    /// Rename specific ESP-IDF version
+    Rename {
+        #[arg(help = "Version to rename")]
+        version: Option<String>,
+        new_name: Option<String>,
+    },
+
+    /// Import existing ESP-IDF installation using tools_set_config.json
+    Import {
+        #[arg(help = "Import using existing config file")]
+        path: Option<String>,
+    },
+
+    /// Purge all ESP-IDF installations
+    Purge,
+}
+
+#[derive(Parser, Debug, Clone)]
+pub struct InstallArgs {
     #[arg(
         short,
         long,
@@ -98,20 +161,6 @@ pub struct Cli {
     #[arg(
         short,
         long,
-        action = clap::ArgAction::Count,
-        help = "Increase verbosity level (can be used multiple times)"
-    )]
-    pub verbose: u8,
-
-    #[arg(short, long, help = "Set the language for the wizard (en, cn)")]
-    pub locale: Option<String>,
-
-    #[arg(long, help = "file in which logs will be stored (default: eim.log)")]
-    pub log_file: Option<String>,
-
-    #[arg(
-        short,
-        long,
         help = "Should the installer recurse into submodules of the ESP-IDF repository (default true) "
     )]
     pub recurse_submodules: Option<bool>,
@@ -136,7 +185,7 @@ pub struct Cli {
     pub idf_features: Option<String>,
 }
 
-impl IntoIterator for Cli {
+impl IntoIterator for InstallArgs {
     type Item = (String, Option<config::Value>);
     type IntoIter = std::vec::IntoIter<Self::Item>;
 

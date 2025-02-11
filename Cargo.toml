@@ -16,6 +16,8 @@ log = "0.4.21"
 rust-i18n = "3.0.1"
 dirs = "5.0.1"
 log4rs = "1.3.0"
+anyhow = "1.0.93"
+colored = "2.1.0"
 
 [dependencies.openssl-sys]
 version = "0.9"

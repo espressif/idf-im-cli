@@ -184,7 +184,10 @@ pub fn select_mirrors(mut config: Settings) -> Result<Settings, String> {
     {
         config.idf_mirror = Some(generic_select(
             "wizard.idf.mirror",
-            idf_im_lib::get_idf_mirrors_list(),
+            &idf_im_lib::get_idf_mirrors_list()
+                .iter()
+                .map(|&s| s.to_string())
+                .collect(),
         )?)
     }
 
@@ -195,7 +198,10 @@ pub fn select_mirrors(mut config: Settings) -> Result<Settings, String> {
     {
         config.mirror = Some(generic_select(
             "wizard.tools.mirror",
-            idf_im_lib::get_idf_tools_mirrors_list(),
+            &idf_im_lib::get_idf_tools_mirrors_list()
+                .iter()
+                .map(|&s| s.to_string())
+                .collect(),
         )?)
     }
 
