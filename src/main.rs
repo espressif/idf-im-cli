@@ -232,6 +232,20 @@ async fn main() {
                 println!("Found IDF directory: {}", dir);
             }
         }
+        Commands::Import { path } => match path {
+            Some(config_file) => {
+                println!("Importing using config file: {:?}", config_file);
+                match idf_im_lib::utils::parse_tool_set_config(&config_file) {
+                    Ok(_) => {
+                        println!("Config file parsed. eim_idf.json updated.");
+                    }
+                    Err(err) => error!("Error: {}", err),
+                }
+            }
+            None => {
+                println!("No config file specified, nothing to import.");
+            }
+        },
         Commands::Remove { version } => {
             // todo: add spinner
             if version.is_none() {

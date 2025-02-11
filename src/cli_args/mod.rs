@@ -82,6 +82,12 @@ pub enum Commands {
         new_name: Option<String>,
     },
 
+    /// Import existing ESP-IDF installation using tools_set_config.json
+    Import {
+        #[arg(help = "Import using existing config file")]
+        path: Option<String>,
+    },
+
     /// Purge all ESP-IDF installations
     Purge,
 }
