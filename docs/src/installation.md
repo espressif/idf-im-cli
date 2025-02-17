@@ -20,33 +20,33 @@ Installing the ESP-IDF using the Espressif Installation Manager (EIM) is a strai
 
 The installer will first verify that all prerequisites are met. If any prerequisites are not satisfied, the installer will either prompt you to address them manually (on POSIX systems) or offer an option for automatic installation.
 
-![Prerequisites Check](../_static/prereq.png)
+![Prerequisites Check](./_static/prereq.png)
 
 A similar check will be performed for Python. EIM will verify the presence of Python, its ability to create a virtual environment, and its capacity to establish SSL connections. If the Python sanity check fails, you will be prompted to configure Python manually (on Linux and macOS) or offered an automated Python setup (on Windows).
 
-![Python Check](../_static/python.png)
+![Python Check](./_static/python.png)
 
 ### Platform Selections
 
 The next step involves selecting the Espressif chips you wish to develop for. This is a multi-select question, with the default option set to `all`. You can deselect this option (using the space bar) and choose specific chips as needed. Once your selection is complete, proceed by pressing the Enter key.
 
-![Target Selection](../_static/target.svg)
+![Target Selection](./_static/target.svg)
 
 ### IDF Version Selections
 
 In the second step, you can choose from a list of supported ESP-IDF versions. While multiple versions can be selected, it is recommended to use the latest supported version, which is selected by default.
 
-![Version Selection](../_static/version.svg)
+![Version Selection](./_static/version.svg)
 
 ### Mirrors Selections
 
 You will then be prompted to select a mirror from which the ESP-IDF should be downloaded. For users in mainland China, it is advisable to avoid selecting GitHub.
 
-![Mirror Selection 1](../_static/mirror_1.svg)
+![Mirror Selection 1](./_static/mirror_1.svg)
 
 Subsequently, you will be asked to select a mirror for downloading the necessary tools. You may choose between GitHub or your company's mirror.
 
-![Mirror Selection 2](../_static/mirror_2.svg)
+![Mirror Selection 2](./_static/mirror_2.svg)
 
 ### Installation Path Selections
 
@@ -56,11 +56,11 @@ In the next step, you will be prompted to enter the installation path for the ES
 
 As the last step, the installer will ask you if you want to save the installation config. This can be later used to repeat the installation. It can also be shared and used by other users to achieve the same installation as yours.
 
-![Save Config](../_static/save.png)
+![Save Config](./_static/save.png)
 
 ### Finish
 
-![Success](../_static/success.png)
+![Success](./_static/success.png)
 
 ## After Installation
 
@@ -68,9 +68,9 @@ As the last step, the installer will ask you if you want to save the installatio
 
 On Windows, the installer creates an icon on your desktop labeled `IDF_PowerShell`. Clicking this icon will launch PowerShell with the environment set up, allowing you to start using ESP-IDF immediately. If you've installed multiple versions of ESP-IDF, you will have multiple icons, one for each version.
 
-![Icon](../_static/ico.png)
+![Icon](./_static/ico.png)
 
-![Shell](../_static/shell.png)
+![Shell](./_static/shell.png)
 
 ### macOS & Linux
 

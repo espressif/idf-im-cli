@@ -12,7 +12,7 @@ As the final step, the wizard will allow you to save your installation choices a
 
 The easiest way to see all possible command-line arguments is to run `eim --help`, which will display the following help screen:
 
-![Help Screen](../_static/help.png)
+![Help Screen](./_static/help.png)
 
 ## Config File
 
@@ -22,15 +22,21 @@ Here is an example of what a configuration file might look like:
 
 ```toml
 path = "/tmp/esp-new/"
-idf_path = "/tmp/esp-new/v5.3/esp-idf"
+idf_path = "/tmp/esp-new/v5.4/esp-idf"
+esp_idf_json_path = "/Users/petrgadorek/.espressif/tools"
 tool_download_folder_name = "dist"
 tool_install_folder_name = "tools"
 target = ["all"]
-idf_versions = ["v5.3"]
+idf_versions = ["v5.4"]
 tools_json_file = "tools/tools.json"
-idf_tools_path = "./tools/idf_tools.py"
+idf_tools_path = "tools/idf_tools.py"
+config_file_save_path = "eim_config.toml"
+non_interactive = false
+wizard_all_questions = false
 mirror = "https://github.com"
 idf_mirror = "https://github.com"
+recurse_submodules = true
+install_all_prerequisites = false
 ```
 
 ## Environment Variables
