@@ -1,3 +1,7 @@
 /target
 /docs/_build/
 node_modules/
+
+# mdbook
+/docs/book
+/docs/theme
