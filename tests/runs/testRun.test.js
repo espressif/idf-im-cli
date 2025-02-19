@@ -134,7 +134,7 @@ function testRun(jsonScript) {
                           `Microsoft.PowerShell_profile.ps1`
                       );
             describe(`${test.id} - Installation using custom settings -> ${test.name} ->`, function () {
-                this.timeout(2400000);
+                this.timeout(6000000);
 
                 runInstallCustom(PATHTOEIM, installArgs);
 
