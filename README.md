@@ -1,3 +1,27 @@
+# ESP-IDF Installation Manager (EIM) - CLI
+
+**Important Notice: This CLI tool has been integrated into the ESP-IDF Installation Manager(EIM) repository. While the CLI functionality is now primarily maintained within the GUI application, a dedicated CLI build is also available in the abovementioned repository for those who prefer a pure command-line experience and for headless or text-only environments (like CI). This repository is now deprecated.**
+
+The ESP-IDF Installation Manager (EIM) was a cross-platform CLI application that simplified the setup process for ESP-IDF (Espressif IoT Development Framework). It offered a consistent and user-friendly experience for installing prerequisites, ESP-IDF itself, and essential development tools on macOS, Linux, and Windows.
+
+**For the latest updates and continued development, please refer to the ESP-IDF Installation Manager(EIM) repository:**
+
+[![EIM-UI Repository](https://img.shields.io/badge/GitHub-EIM-red?style=for-the-badge&logo=github)](https://github.com/espressif/idf-im-ui)
+
+**Key Changes:**
+
+* **Integration with EIM:** The CLI functionality has been incorporated into the EIM repository, providing a unified experience for both GUI and CLI users.
+* **Dedicated CLI Build:** A pure CLI build is still available in the abovementioned repository for those who prefer a command-line interface.
+* **New Version Management:** The updated tooling includes enhanced version management capabilities.
+* **Deprecation of this Repository:** This repository is now considered deprecated. Please use the EIM repository for future updates and support.
+
+**Accessing the CLI:**
+
+* The CLI can be accessed through calling the EIM application from terminal ( `eim --help` ).
+* A standalone CLI build is available in the repository.
+
+**Original REAME.MD file (for reference):**
+
 # ESP-IDF Installation Manager(EIM) - CLI
 
 EIM is a cross-platform CLI application that simplifies the setup process for ESP-IDF (Espressif IoT Development Framework). Whether you’re working on macOS, Linux, or Windows, EIM offers a consistent and user-friendly experience for installing prerequisites, ESP-IDF itself, and essential development tools.
