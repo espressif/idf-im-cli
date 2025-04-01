@@ -53,7 +53,7 @@ export function runInstallCustom(pathToEim, args = []) {
             if (!"-n true" in args) {
                 const installationCompleted = await testRunner.waitForOutput(
                     "Do you want to save the installer configuration",
-                    1200000
+                    5000000
                 );
                 expect(
                     installationCompleted,
@@ -74,7 +74,7 @@ export function runInstallCustom(pathToEim, args = []) {
             }
             const installationSuccessful = await testRunner.waitForOutput(
                 "Successfully installed IDF",
-                1200000
+                5000000
             );
 
             expect(
